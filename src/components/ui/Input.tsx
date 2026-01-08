@@ -111,6 +111,7 @@ export function Input({
               fontSize: typography.bodyLarge.fontSize,
               fontWeight: typography.bodyLarge.fontWeight,
               color: colors.cardText,
+              lineHeight: undefined,
             },
             leftIcon && { paddingLeft: 0 },
             (rightIcon || isPassword) && { paddingRight: 0 },
@@ -175,7 +176,10 @@ const styles = StyleSheet.create({
     height: '100%',
     textAlignVertical: 'center',
     paddingVertical: 0,
+    paddingTop: 0,
+    paddingBottom: 0,
     margin: 0,
+    includeFontPadding: false,
   },
   leftIcon: {
     marginRight: SPACING.md,

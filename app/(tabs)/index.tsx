@@ -343,7 +343,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: LAYOUT.screenPadding,
-    paddingBottom: LAYOUT.tabBarHeight + SPACING.xl,
+    paddingBottom: LAYOUT.tabBarHeight + SPACING['3xl'],
   },
   header: {
     flexDirection: 'row',

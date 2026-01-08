@@ -157,6 +157,7 @@ export default function SignInScreen() {
                 loading={isLoading}
                 onPress={handleSubmit(onSubmit)}
                 style={{ marginTop: SPACING.md }}
+                textStyle={{ color: colors.accent }}
               >
                 Sign In
               </Button>
@@ -203,6 +204,7 @@ const styles = StyleSheet.create({
   signUpPrompt: {
     flexDirection: 'row',
     justifyContent: 'center',
+    alignItems: 'baseline',
     marginTop: SPACING.xl,
   },
 });

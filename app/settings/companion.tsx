@@ -93,15 +93,18 @@ export default function CompanionScreen() {
               {SUGGESTED_NAMES.map(suggestion => (
                 <Card
                   key={suggestion}
-                  variant={name === suggestion ? 'accent' : 'default'}
+                  variant={name === suggestion ? 'elevated' : 'default'}
                   padding="sm"
                   onPress={() => setName(suggestion)}
-                  style={styles.suggestionChip}
+                  style={{
+                    ...styles.suggestionChip,
+                    ...(name === suggestion ? { backgroundColor: colors.background } : {}),
+                  }}
                 >
                   <Text
                     style={[
                       typography.labelMedium,
-                      { color: name === suggestion ? colors.accent : colors.textSecondary },
+                      { color: name === suggestion ? colors.text : colors.cardText },
                     ]}
                   >
                     {suggestion}

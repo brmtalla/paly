@@ -1,0 +1,356 @@
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { useTheme } from '../../src/theme/ThemeContext';
+import { typography } from '../../src/theme/typography';
+import { SPACING, LAYOUT, RADIUS, SHADOWS } from '../../src/theme/spacing';
+import { Card, Button, Input, Background } from '../../src/components/ui';
+import { useClassStore } from '../../src/stores/classStore';
+import { useAuthStore } from '../../src/stores/authStore';
+import { Ionicons } from '@expo/vector-icons';
+
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+export default function NewClassScreen() {
+  const { colors, colorScheme } = useTheme();
+  const { addClass } = useClassStore();
+  const { profile } = useAuthStore();
+  
+  // Basic info
+  const [name, setName] = useState('');
+  const [location, setLocation] = useState('');
+  
+  // Schedule
+  const [selectedDays, setSelectedDays] = useState<number[]>([]);
+  const [startTime, setStartTime] = useState('09:00');
+  const [endTime, setEndTime] = useState('10:00');
+  
+  // Semester dates
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  
+  // Instructor
+  const [instructorName, setInstructorName] = useState('');
+  const [instructorEmail, setInstructorEmail] = useState('');
+  
+  const [isLoading, setIsLoading] = useState(false);
+
+  const toggleDay = (dayIndex: number) => {
+    setSelectedDays(prev =>
+      prev.includes(dayIndex)
+        ? prev.filter(d => d !== dayIndex)
+        : [...prev, dayIndex].sort()
+    );
+  };
+
+  const handleSave = async () => {
+    if (!name.trim()) {
+      Alert.alert('Error', 'Please enter a class name');
+      return;
+    }
+
+    if (selectedDays.length === 0) {
+      Alert.alert('Error', 'Please select at least one day');
+      return;
+    }
+
+    if (!profile?.id) {
+      Alert.alert('Error', 'Please sign in first');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await addClass(
+        { 
+          name: name.trim(), 
+          user_id: profile.id,
+          location: location.trim() || null,
+          start_date: startDate || null,
+          end_date: endDate || null,
+          instructor_name: instructorName.trim() || null,
+          instructor_email: instructorEmail.trim() || null,
+        },
+        selectedDays.map(day => ({
+          day_of_week: day,
+          start_time: startTime,
+          end_time: endTime,
+        }))
+      );
+      router.back();
+    } catch (error) {
+      console.error('Error adding class:', error);
+      Alert.alert('Error', 'Failed to add class. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <Background>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Header */}
+          <Animated.View
+            entering={FadeInDown.delay(100).duration(600).springify()}
+            style={styles.header}
+          >
+            <TouchableOpacity
+              onPress={() => router.back()}
+              style={styles.backButton}
+            >
+              <Ionicons name="close" size={24} color={colors.text} />
+            </TouchableOpacity>
+            
+            <Text style={[typography.titleLarge, { color: colors.text }]}>
+              Add Class
+            </Text>
+            
+            <View style={{ width: 40 }} />
+          </Animated.View>
+
+          {/* Basic Info */}
+          <Animated.View
+            entering={FadeInDown.delay(200).duration(600).springify()}
+          >
+            <Text style={[typography.labelSmall, { color: colors.textSecondary, marginBottom: SPACING.sm }]}>
+              CLASS INFO
+            </Text>
+            <Card style={styles.formCard}>
+              <Input
+                label="Class Name"
+                placeholder="e.g., Biology 101"
+                value={name}
+                onChangeText={setName}
+                leftIcon={
+                  <Ionicons name="book-outline" size={20} color={colors.cardTextMuted} />
+                }
+              />
+
+              <Input
+                label="Location"
+                placeholder="e.g., Room 301, Science Building"
+                value={location}
+                onChangeText={setLocation}
+                leftIcon={
+                  <Ionicons name="location-outline" size={20} color={colors.cardTextMuted} />
+                }
+                containerStyle={{ marginTop: SPACING.sm }}
+              />
+            </Card>
+          </Animated.View>
+
+          {/* Schedule */}
+          <Animated.View
+            entering={FadeInDown.delay(300).duration(600).springify()}
+          >
+            <Text style={[typography.labelSmall, { color: colors.textSecondary, marginBottom: SPACING.sm }]}>
+              SCHEDULE
+            </Text>
+            <Card style={styles.formCard}>
+              <Text style={[typography.labelMedium, { color: colors.cardText, marginBottom: SPACING.sm }]}>
+                Days
+              </Text>
+              <View style={styles.daysContainer}>
+                {DAYS.map((day, index) => (
+                  <TouchableOpacity
+                    key={day}
+                    onPress={() => toggleDay(index)}
+                    style={[
+                      styles.dayButton,
+                      {
+                        backgroundColor: selectedDays.includes(index)
+                          ? colors.background
+                          : colors.cardSecondary,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        typography.labelMedium,
+                        {
+                          color: selectedDays.includes(index)
+                            ? colors.text
+                            : colors.cardTextSecondary,
+                        },
+                      ]}
+                    >
+                      {day}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <View style={styles.timeRow}>
+                <View style={styles.timeInput}>
+                  <Input
+                    label="Start Time"
+                    placeholder="09:00"
+                    value={startTime}
+                    onChangeText={setStartTime}
+                    leftIcon={
+                      <Ionicons name="time-outline" size={20} color={colors.cardTextMuted} />
+                    }
+                  />
+                </View>
+                <View style={styles.timeInput}>
+                  <Input
+                    label="End Time"
+                    placeholder="10:00"
+                    value={endTime}
+                    onChangeText={setEndTime}
+                    leftIcon={
+                      <Ionicons name="time-outline" size={20} color={colors.cardTextMuted} />
+                    }
+                  />
+                </View>
+              </View>
+            </Card>
+          </Animated.View>
+
+          {/* Semester Dates */}
+          <Animated.View
+            entering={FadeInDown.delay(400).duration(600).springify()}
+          >
+            <Text style={[typography.labelSmall, { color: colors.textSecondary, marginBottom: SPACING.sm }]}>
+              SEMESTER DATES (OPTIONAL)
+            </Text>
+            <Card style={styles.formCard}>
+              <View style={styles.timeRow}>
+                <View style={styles.timeInput}>
+                  <Input
+                    label="Start Date"
+                    placeholder="2025-01-15"
+                    value={startDate}
+                    onChangeText={setStartDate}
+                    leftIcon={
+                      <Ionicons name="calendar-outline" size={20} color={colors.cardTextMuted} />
+                    }
+                  />
+                </View>
+                <View style={styles.timeInput}>
+                  <Input
+                    label="End Date"
+                    placeholder="2025-05-15"
+                    value={endDate}
+                    onChangeText={setEndDate}
+                    leftIcon={
+                      <Ionicons name="calendar-outline" size={20} color={colors.cardTextMuted} />
+                    }
+                  />
+                </View>
+              </View>
+            </Card>
+          </Animated.View>
+
+          {/* Instructor */}
+          <Animated.View
+            entering={FadeInDown.delay(500).duration(600).springify()}
+          >
+            <Text style={[typography.labelSmall, { color: colors.textSecondary, marginBottom: SPACING.sm }]}>
+              INSTRUCTOR (OPTIONAL)
+            </Text>
+            <Card style={styles.formCard}>
+              <Input
+                label="Instructor Name"
+                placeholder="e.g., Dr. Smith"
+                value={instructorName}
+                onChangeText={setInstructorName}
+                leftIcon={
+                  <Ionicons name="person-outline" size={20} color={colors.cardTextMuted} />
+                }
+              />
+
+              <Input
+                label="Instructor Email"
+                placeholder="e.g., smith@university.edu"
+                value={instructorEmail}
+                onChangeText={setInstructorEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                leftIcon={
+                  <Ionicons name="mail-outline" size={20} color={colors.cardTextMuted} />
+                }
+                containerStyle={{ marginTop: SPACING.sm }}
+              />
+            </Card>
+          </Animated.View>
+
+          {/* Save Button */}
+          <Animated.View
+            entering={FadeInDown.delay(600).duration(600).springify()}
+            style={styles.footer}
+          >
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              loading={isLoading}
+              onPress={handleSave}
+            >
+              Add Class
+            </Button>
+          </Animated.View>
+        </ScrollView>
+      </SafeAreaView>
+    </Background>
+  );
+}
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: LAYOUT.screenPadding,
+    paddingBottom: SPACING['3xl'],
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.xl,
+  },
+  backButton: {
+    padding: SPACING.sm,
+  },
+  formCard: {
+    marginBottom: SPACING.lg,
+  },
+  daysContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.sm,
+  },
+  dayButton: {
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: RADIUS.lg,
+    minWidth: 44,
+    alignItems: 'center',
+  },
+  timeRow: {
+    flexDirection: 'row',
+    gap: SPACING.md,
+    marginTop: SPACING.md,
+  },
+  timeInput: {
+    flex: 1,
+  },
+  footer: {
+    marginTop: SPACING.lg,
+  },
+});

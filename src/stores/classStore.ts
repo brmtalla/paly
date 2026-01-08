@@ -9,7 +9,8 @@ interface ClassState {
   
   // Actions
   fetchClasses: (userId: string) => Promise<void>;
-  createClass: (classData: Omit<Class, 'id' | 'created_at' | 'updated_at'>, sessions: Omit<ClassSession, 'id' | 'class_id' | 'created_at'>[]) => Promise<ClassWithSessions>;
+  createClass: (classData: Omit<Class, 'id' | 'created_at' | 'updated_at' | 'is_active'>, sessions: Omit<ClassSession, 'id' | 'class_id' | 'created_at'>[]) => Promise<ClassWithSessions>;
+  addClass: (classData: Omit<Class, 'id' | 'created_at' | 'updated_at' | 'is_active'>, sessions: Omit<ClassSession, 'id' | 'class_id' | 'created_at'>[]) => Promise<ClassWithSessions>;
   updateClass: (classId: string, updates: Partial<Class>) => Promise<void>;
   deleteClass: (classId: string) => Promise<void>;
   addSession: (classId: string, session: Omit<ClassSession, 'id' | 'class_id' | 'created_at'>) => Promise<void>;
@@ -102,6 +103,11 @@ export const useClassStore = create<ClassState>((set, get) => ({
       set({ isLoading: false });
       throw error;
     }
+  },
+
+  // Alias for createClass
+  addClass: async (classData, sessions) => {
+    return get().createClass(classData, sessions);
   },
 
   updateClass: async (classId: string, updates: Partial<Class>) => {

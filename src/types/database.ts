@@ -55,6 +55,11 @@ export interface Database {
           name: string;
           description: string | null;
           color: string | null;
+          location: string | null;
+          start_date: string | null;
+          end_date: string | null;
+          instructor_name: string | null;
+          instructor_email: string | null;
           is_active: boolean;
           created_at: string;
           updated_at: string;
@@ -65,12 +70,22 @@ export interface Database {
           name: string;
           description?: string | null;
           color?: string | null;
+          location?: string | null;
+          start_date?: string | null;
+          end_date?: string | null;
+          instructor_name?: string | null;
+          instructor_email?: string | null;
           is_active?: boolean;
         };
         Update: {
           name?: string;
           description?: string | null;
           color?: string | null;
+          location?: string | null;
+          start_date?: string | null;
+          end_date?: string | null;
+          instructor_name?: string | null;
+          instructor_email?: string | null;
           is_active?: boolean;
         };
       };

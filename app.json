@@ -17,7 +17,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.paly.app",
       "infoPlist": {
-        "UIBackgroundModes": ["remote-notification"]
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
       }
     },
     "android": {
@@ -26,7 +28,10 @@
         "backgroundColor": "#6366F1"
       },
       "package": "com.paly.app",
-      "permissions": ["NOTIFICATIONS", "RECEIVE_BOOT_COMPLETED"]
+      "permissions": [
+        "NOTIFICATIONS",
+        "RECEIVE_BOOT_COMPLETED"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -54,8 +59,9 @@
         "origin": false
       },
       "eas": {
-        "projectId": ""
+        "projectId": "3d334eca-64a1-40b3-89a7-569d42c5834a"
       }
-    }
+    },
+    "owner": "bmtall"
   }
 }

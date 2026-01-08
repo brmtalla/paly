@@ -93,6 +93,7 @@ export default function SignUpScreen() {
               fullWidth
               style={{ marginTop: SPACING['2xl'] }}
               onPress={() => router.replace('/(auth)/sign-in')}
+              textStyle={{ color: colors.accent }}
             >
               Go to Sign In
             </Button>
@@ -251,6 +252,7 @@ export default function SignUpScreen() {
                 loading={isLoading}
                 onPress={handleSubmit(onSubmit)}
                 style={{ marginTop: SPACING.md }}
+                textStyle={{ color: colors.accent }}
               >
                 Create Account
               </Button>
@@ -297,6 +299,7 @@ const styles = StyleSheet.create({
   signInPrompt: {
     flexDirection: 'row',
     justifyContent: 'center',
+    alignItems: 'baseline',
     marginTop: SPACING.xl,
   },
   successContainer: {

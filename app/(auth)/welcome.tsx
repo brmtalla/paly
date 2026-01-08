@@ -89,7 +89,7 @@ export default function WelcomeScreen() {
           style={styles.ctaContainer}
         >
           <Link href="/(auth)/sign-up" asChild>
-            <Button variant="primary" size="lg" fullWidth>
+            <Button variant="primary" size="lg" fullWidth textStyle={{ color: colors.accent }}>
               Get Started
             </Button>
           </Link>

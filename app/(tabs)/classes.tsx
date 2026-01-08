@@ -42,7 +42,26 @@ export default function ClassesScreen() {
     setRefreshing(false);
   };
 
-  const handleDeleteClass = (classData: ClassWithSessions) => {
+  const handleClassMenu = (classData: ClassWithSessions) => {
+    Alert.alert(
+      classData.name,
+      'What would you like to do?',
+      [
+        { 
+          text: 'Edit', 
+          onPress: () => router.push(`/class/${classData.id}/edit` as any),
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => confirmDeleteClass(classData),
+        },
+        { text: 'Cancel', style: 'cancel' },
+      ]
+    );
+  };
+
+  const confirmDeleteClass = (classData: ClassWithSessions) => {
     Alert.alert(
       'Delete Class',
       `Are you sure you want to delete "${classData.name}"? This will also delete all notes and study materials.`,
@@ -153,7 +172,7 @@ export default function ClassesScreen() {
                       </Text>
                     </View>
                     <TouchableOpacity
-                      onPress={() => handleDeleteClass(classData)}
+                      onPress={() => handleClassMenu(classData)}
                       style={styles.menuButton}
                     >
                       <Ionicons name="ellipsis-vertical" size={20} color={colors.cardTextTertiary} />
