@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 import { supabaseAdmin } from "../_shared/supabase.ts";
+import { sendSms } from "../_shared/twilio.ts";
 
 serve(async (req) => {
   // Handle CORS preflight
@@ -109,10 +110,50 @@ serve(async (req) => {
       );
     }
 
+    // Immediately deliver any prompts scheduled for right now or in the past
+    const now = new Date();
+    const immediatePrompts = insertedPrompts.filter(
+      (p: any) => new Date(p.scheduled_for) <= now
+    );
+
+    let smsDelivered = 0;
+    if (immediatePrompts.length > 0) {
+      const { data: profile } = await supabaseAdmin
+        .from("profiles")
+        .select("phone_number, assistant_name")
+        .eq("id", userId)
+        .single();
+
+      if (profile?.phone_number) {
+        const assistantName = profile.assistant_name || "Paly";
+
+        for (const prompt of immediatePrompts) {
+          const typeLabels: Record<string, string> = {
+            takeaway: "Key Takeaway",
+            recall: "Quick Recall",
+            quiz: "Quiz Time",
+            flashcard: "Flashcard",
+          };
+          const typeLabel = typeLabels[prompt.prompt_type] || "Study Prompt";
+          const smsBody = `${assistantName} here! 📚\n\n[${typeLabel} - Day ${prompt.day_index}]\n${className}\n\n${prompt.content}`;
+
+          const result = await sendSms(profile.phone_number, smsBody);
+          if (result.success) {
+            await supabaseAdmin
+              .from("study_prompts")
+              .update({ delivered_at: new Date().toISOString() })
+              .eq("id", prompt.id);
+            smsDelivered++;
+          }
+        }
+      }
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true, 
         promptsScheduled: insertedPrompts.length,
+        smsDelivered,
         prompts: insertedPrompts 
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }

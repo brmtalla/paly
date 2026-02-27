@@ -1,10 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -16,6 +18,7 @@ import { Card, Background } from '../../../src/components/ui';
 import { useClassStore } from '../../../src/stores/classStore';
 import { useStudyStore } from '../../../src/stores/studyStore';
 import { useAuthStore } from '../../../src/stores/authStore';
+import { supabase } from '../../../src/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function ClassStudyScreen() {
@@ -24,6 +27,7 @@ export default function ClassStudyScreen() {
   const { classes } = useClassStore();
   const { synthesizedContent, fetchSynthesizedContent } = useStudyStore();
   const { profile } = useAuthStore();
+  const [sendingId, setSendingId] = useState<string | null>(null);
   
   const classData = classes.find(c => c.id === id);
   const classContent = synthesizedContent.filter(c => c.class_id === id);
@@ -33,6 +37,23 @@ export default function ClassStudyScreen() {
       fetchSynthesizedContent(profile.id, id);
     }
   }, [profile?.id, id]);
+
+  const handleSendNow = async (contentId: string) => {
+    if (!profile?.id) return;
+    setSendingId(contentId);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-now', {
+        body: { synthesizedContentId: contentId, userId: profile.id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      Alert.alert('Sent!', `${data.sent.type} texted to you.`);
+    } catch (err: any) {
+      Alert.alert('Failed', err.message || 'Could not send text');
+    } finally {
+      setSendingId(null);
+    }
+  };
 
   return (
     <Background>
@@ -81,9 +102,50 @@ export default function ClassStudyScreen() {
             </Animated.View>
           ) : (
             <>
-              {/* Flashcards */}
+              {/* Text Me — on-demand SMS per session */}
               <Animated.View
                 entering={FadeInDown.delay(200).duration(600).springify()}
+              >
+                <Text style={[typography.titleMedium, { color: colors.text, marginBottom: SPACING.md }]}>
+                  Text Me
+                </Text>
+                {classContent.map((content) => (
+                  <Card key={`sms-${content.id}`} style={styles.studyCard}>
+                    <View style={[styles.studyIcon, { backgroundColor: colors.background }]}>
+                      <Ionicons name="chatbubble-ellipses-outline" size={24} color={colors.text} />
+                    </View>
+                    <View style={styles.studyContent}>
+                      <Text style={[typography.titleSmall, { color: colors.cardText }]}>
+                        {content.session_date} Session
+                      </Text>
+                      <Text style={[typography.bodySmall, { color: colors.cardTextSecondary }]}>
+                        {content.summary?.substring(0, 60)}...
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => handleSendNow(content.id)}
+                      disabled={sendingId === content.id}
+                      style={[styles.textMeButton, { backgroundColor: colors.background }]}
+                    >
+                      {sendingId === content.id ? (
+                        <ActivityIndicator size="small" color={colors.text} />
+                      ) : (
+                        <>
+                          <Ionicons name="paper-plane" size={14} color={colors.text} />
+                          <Text style={[typography.labelSmall, { color: colors.text, marginLeft: 4 }]}>
+                            Text me
+                          </Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  </Card>
+                ))}
+              </Animated.View>
+
+              {/* Flashcards */}
+              <Animated.View
+                entering={FadeInDown.delay(300).duration(600).springify()}
+                style={{ marginTop: SPACING.xl }}
               >
                 <Text style={[typography.titleMedium, { color: colors.text, marginBottom: SPACING.md }]}>
                   Flashcards
@@ -113,7 +175,7 @@ export default function ClassStudyScreen() {
 
               {/* Quizzes */}
               <Animated.View
-                entering={FadeInDown.delay(300).duration(600).springify()}
+                entering={FadeInDown.delay(400).duration(600).springify()}
                 style={{ marginTop: SPACING.xl }}
               >
                 <Text style={[typography.titleMedium, { color: colors.text, marginBottom: SPACING.md }]}>
@@ -185,5 +247,14 @@ const styles = StyleSheet.create({
   },
   studyContent: {
     flex: 1,
+  },
+  textMeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: RADIUS.md,
+    minWidth: 80,
+    justifyContent: 'center',
   },
 });

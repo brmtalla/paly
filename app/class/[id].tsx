@@ -7,10 +7,12 @@ import {
   TouchableOpacity,
   Alert,
   Linking,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import * as DocumentPicker from 'expo-document-picker';
 import { format } from 'date-fns';
 import { useTheme } from '../../src/theme/ThemeContext';
 import { typography } from '../../src/theme/typography';
@@ -18,6 +20,7 @@ import { SPACING, LAYOUT, RADIUS, SHADOWS } from '../../src/theme/spacing';
 import { Card, Button, Background } from '../../src/components/ui';
 import { useClassStore } from '../../src/stores/classStore';
 import { useNoteStore } from '../../src/stores/noteStore';
+import { useStudyStore } from '../../src/stores/studyStore';
 import { useAuthStore } from '../../src/stores/authStore';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -25,8 +28,10 @@ export default function ClassDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors, colorScheme } = useTheme();
   const { classes, deleteClass } = useClassStore();
-  const { notes, fetchNotes } = useNoteStore();
+  const { notes, fetchNotes, uploadFile } = useNoteStore();
+  const { synthesizeContent, isSynthesizing } = useStudyStore();
   const { profile } = useAuthStore();
+  const [isUploading, setIsUploading] = useState(false);
   
   const classData = classes.find(c => c.id === id);
   const classNotes = notes.filter(n => n.class_id === id);
@@ -36,6 +41,64 @@ export default function ClassDetailScreen() {
       fetchNotes(profile.id, id);
     }
   }, [profile?.id, id]);
+
+  const handleUploadSlides = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: [
+          'application/pdf',
+          'application/vnd.ms-powerpoint',
+          'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ],
+        copyToCacheDirectory: true,
+        multiple: true,
+      });
+
+      if (result.canceled || !result.assets?.length) return;
+
+      setIsUploading(true);
+      const sessionDate = format(new Date(), 'yyyy-MM-dd');
+
+      for (const asset of result.assets) {
+        await uploadFile(
+          null,
+          id!,
+          profile!.id,
+          sessionDate,
+          asset.uri,
+          asset.name
+        );
+      }
+
+      Alert.alert(
+        'Upload Complete',
+        `${result.assets.length} file${result.assets.length > 1 ? 's' : ''} uploaded. Text is being extracted in the background.`,
+      );
+    } catch (error) {
+      console.error('Upload error:', error);
+      Alert.alert('Error', 'Failed to upload files');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleSynthesize = async () => {
+    if (!profile?.id || !id) return;
+
+    const sessionDate = format(new Date(), 'yyyy-MM-dd');
+    try {
+      await synthesizeContent(id, profile.id, sessionDate);
+      Alert.alert(
+        'Synthesis Complete',
+        'Study materials have been generated and prompts scheduled! Check your texts.',
+      );
+    } catch (error: any) {
+      console.error('Synthesis error:', error);
+      Alert.alert('Synthesis Failed', error.message || 'Make sure you have notes or uploaded files first.');
+    }
+  };
 
   const handleDelete = () => {
     Alert.alert(
@@ -228,7 +291,7 @@ export default function ClassDetailScreen() {
           {/* Quick Actions */}
           <Animated.View
             entering={FadeInDown.delay(300).duration(600).springify()}
-            style={styles.actions}
+            style={styles.actionsGrid}
           >
             <TouchableOpacity
               style={[styles.quickAction, { backgroundColor: colors.card, ...SHADOWS.md }]}
@@ -239,6 +302,40 @@ export default function ClassDetailScreen() {
               </View>
               <Text style={[typography.labelMedium, { color: colors.cardText }]}>
                 Take Notes
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.quickAction, { backgroundColor: colors.card, ...SHADOWS.md }]}
+              onPress={handleUploadSlides}
+              disabled={isUploading}
+            >
+              <View style={[styles.quickActionIcon, { backgroundColor: colors.background }]}>
+                {isUploading ? (
+                  <ActivityIndicator size="small" color={colors.text} />
+                ) : (
+                  <Ionicons name="cloud-upload-outline" size={24} color={colors.text} />
+                )}
+              </View>
+              <Text style={[typography.labelMedium, { color: colors.cardText }]}>
+                {isUploading ? 'Uploading...' : 'Upload Slides'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.quickAction, { backgroundColor: colors.card, ...SHADOWS.md }]}
+              onPress={handleSynthesize}
+              disabled={isSynthesizing}
+            >
+              <View style={[styles.quickActionIcon, { backgroundColor: colors.background }]}>
+                {isSynthesizing ? (
+                  <ActivityIndicator size="small" color={colors.text} />
+                ) : (
+                  <Ionicons name="sparkles-outline" size={24} color={colors.text} />
+                )}
+              </View>
+              <Text style={[typography.labelMedium, { color: colors.cardText }]}>
+                {isSynthesizing ? 'Synthesizing...' : 'Synthesize'}
               </Text>
             </TouchableOpacity>
 
@@ -384,13 +481,14 @@ const styles = StyleSheet.create({
     marginLeft: SPACING.md,
     flex: 1,
   },
-  actions: {
+  actionsGrid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: SPACING.md,
     marginBottom: SPACING.xl,
   },
   quickAction: {
-    flex: 1,
+    width: '47%',
     alignItems: 'center',
     padding: SPACING.lg,
     borderRadius: RADIUS.xl,

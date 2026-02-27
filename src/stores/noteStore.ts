@@ -204,6 +204,23 @@ export const useNoteStore = create<NoteState>((set, get) => ({
         isSaving: false,
       }));
 
+      // Trigger text extraction in the background (fire-and-forget)
+      supabase.functions.invoke('extract-text', {
+        body: {
+          uploadId: data.id,
+          filePath: filePath,
+          fileType: fileExt,
+        },
+      }).then(({ data: extractResult, error: extractError }) => {
+        if (extractError) {
+          console.error('Text extraction failed:', extractError);
+        } else {
+          console.log('Text extracted:', extractResult?.textLength, 'chars');
+        }
+      }).catch((err) => {
+        console.error('Text extraction invoke failed:', err);
+      });
+
       return data;
     } catch (error) {
       set({ isSaving: false });
