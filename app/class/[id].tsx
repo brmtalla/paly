@@ -42,6 +42,7 @@ export default function ClassDetailScreen() {
   const { profile } = useAuthStore();
   const [isUploading, setIsUploading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [classUploadsData, setClassUploadsData] = useState<any[]>([]);
 
   const overdueQuizzes = id ? getOverdueQuizzes(id) : [];
   const nextQuizDeadline = id ? getNextQuizDeadline(id) : null;
@@ -77,10 +78,22 @@ export default function ClassDetailScreen() {
   const classData = classes.find(c => c.id === id);
   const classNotes = notes.filter(n => n.class_id === id);
 
+  const fetchUploads = async () => {
+    if (!profile?.id || !id) return;
+    const { data } = await supabase
+      .from('uploads')
+      .select('*')
+      .eq('class_id', id)
+      .eq('user_id', profile.id)
+      .order('created_at', { ascending: false });
+    setClassUploadsData(data || []);
+  };
+
   useEffect(() => {
     if (profile?.id && id) {
       fetchNotes(profile.id, id);
       fetchSynthesizedContent(profile.id, id);
+      fetchUploads();
     }
   }, [profile?.id, id]);
 
@@ -114,6 +127,7 @@ export default function ClassDetailScreen() {
         );
       }
 
+      fetchUploads();
       const autoMode = profile?.auto_synthesize ?? false;
       Alert.alert(
         'Upload Complete',
@@ -163,6 +177,25 @@ export default function ClassDetailScreen() {
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const handleDeleteUpload = (upload: any) => {
+    Alert.alert(
+      'Delete Upload',
+      `Remove "${upload.file_name}"?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            await supabase.storage.from('uploads').remove([upload.file_path]);
+            await supabase.from('uploads').delete().eq('id', upload.id);
+            fetchUploads();
+          },
+        },
+      ]
+    );
   };
 
   const handleDelete = () => {
@@ -472,6 +505,73 @@ export default function ClassDetailScreen() {
             )}
           </Animated.View>
 
+          {/* Uploads Section */}
+          {classUploadsData.length > 0 && (
+            <Animated.View
+              entering={FadeInDown.delay(375).duration(600).springify()}
+              style={{ marginBottom: SPACING.lg }}
+            >
+              <Text style={[typography.titleMedium, { color: colors.text, marginBottom: SPACING.md }]}>
+                Uploads ({classUploadsData.length})
+              </Text>
+              {classUploadsData.map((upload) => {
+                const ext = (upload.file_type || upload.file_name?.split('.').pop() || '').toLowerCase();
+                const iconName = ext === 'pdf' ? 'document-text' :
+                  ['pptx', 'ppt'].includes(ext) ? 'easel' :
+                  ['docx', 'doc'].includes(ext) ? 'document' : 'attach';
+                const hasText = !!upload.extracted_text;
+                const sizeKB = upload.file_size ? Math.round(upload.file_size / 1024) : null;
+
+                return (
+                  <Card key={upload.id} style={styles.uploadCard}>
+                    <View style={[styles.uploadIcon, { backgroundColor: colors.background }]}>
+                      <Ionicons name={iconName as any} size={22} color={colors.text} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={[typography.titleSmall, { color: colors.cardText }]}
+                        numberOfLines={1}
+                      >
+                        {upload.file_name}
+                      </Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 }}>
+                        <Text style={[typography.labelSmall, { color: colors.cardTextMuted }]}>
+                          {format(new Date(upload.created_at), 'MMM d')}
+                        </Text>
+                        {sizeKB && (
+                          <Text style={[typography.labelSmall, { color: colors.cardTextMuted }]}>
+                            {sizeKB > 1024 ? `${(sizeKB / 1024).toFixed(1)} MB` : `${sizeKB} KB`}
+                          </Text>
+                        )}
+                        {hasText ? (
+                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <Ionicons name="checkmark-circle" size={12} color="#34C759" />
+                            <Text style={[typography.labelSmall, { color: '#34C759', marginLeft: 3 }]}>
+                              Extracted
+                            </Text>
+                          </View>
+                        ) : (
+                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <Ionicons name="time-outline" size={12} color={colors.cardTextMuted} />
+                            <Text style={[typography.labelSmall, { color: colors.cardTextMuted, marginLeft: 3 }]}>
+                              Processing
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => handleDeleteUpload(upload)}
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    >
+                      <Ionicons name="trash-outline" size={18} color={colors.cardTextMuted} />
+                    </TouchableOpacity>
+                  </Card>
+                );
+              })}
+            </Animated.View>
+          )}
+
           {/* Notes Section */}
           <Animated.View
             entering={FadeInDown.delay(400).duration(600).springify()}
@@ -660,5 +760,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.sm,
     paddingVertical: SPACING.xs,
     borderRadius: RADIUS.md,
+  },
+  uploadCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
+    gap: SPACING.md,
+  },
+  uploadIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: RADIUS.md,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

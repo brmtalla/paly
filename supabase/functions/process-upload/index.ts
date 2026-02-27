@@ -15,7 +15,7 @@ serve(async (req) => {
   }
 
   try {
-    const { uploadId, filePath, fileType, classId, userId, sessionDate, skipExtraction } = await req.json();
+    const { uploadId, filePath, fileType, classId, userId, sessionDate, skipExtraction, extractOnly } = await req.json();
 
     if (!classId || !userId) {
       return new Response(
@@ -75,6 +75,18 @@ serve(async (req) => {
         .from("uploads")
         .update({ extracted_text: extractedText })
         .eq("id", uploadId);
+
+      // If extract-only mode, stop here (user will manually synthesize later)
+      if (extractOnly) {
+        return new Response(
+          JSON.stringify({
+            success: true,
+            status: "extracted",
+            textLength: extractedText.length,
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
     }
 
     // ── Step 2: Look up next class date ───────────────────────────────
