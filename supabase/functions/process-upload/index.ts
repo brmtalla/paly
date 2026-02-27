@@ -1,11 +1,10 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 import { supabaseAdmin } from "../_shared/supabase.ts";
 import { sendSms } from "../_shared/twilio.ts";
-import pdf from "npm:pdf-parse/lib/pdf-parse.js";
-import mammoth from "npm:mammoth";
-import JSZip from "npm:jszip";
+import JSZip from "https://esm.sh/jszip@3.10.1";
 
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 
@@ -44,7 +43,7 @@ serve(async (req) => {
 
       switch (extension) {
         case "pdf":
-          extractedText = await extractPdf(Buffer.from(buffer));
+          extractedText = await extractPdf(buffer);
           break;
         case "docx":
         case "doc":
@@ -66,7 +65,7 @@ serve(async (req) => {
       extractedText = extractedText.trim();
       if (!extractedText) {
         return new Response(
-          JSON.stringify({ error: "No text extracted from file" }),
+          JSON.stringify({ error: "No text extracted from file", debug: { extension, bufferSize: buffer.byteLength, header: new TextDecoder("latin1").decode(new Uint8Array(buffer).slice(0, 10)) } }),
           { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -527,14 +526,83 @@ Remember: respond with valid JSON only. Generate exactly ${numStudyDays} daily c
   return parsed;
 }
 
-async function extractPdf(buffer: Buffer): Promise<string> {
-  const data = await pdf(buffer);
-  return data.text || "";
+async function extractPdf(buffer: ArrayBuffer): Promise<string> {
+  const bytes = new Uint8Array(buffer);
+  console.log("PDF size:", bytes.length, "bytes");
+
+  const base64 = base64Encode(bytes);
+  console.log("Base64 length:", base64.length);
+
+  const response = await fetch("https://api.openai.com/v1/responses", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${OPENAI_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      input: [
+        {
+          role: "user",
+          content: [
+            { type: "input_text", text: "Extract ALL text content from this PDF. Return ONLY the raw text, preserving structure with newlines between sections. No commentary or formatting." },
+            {
+              type: "input_file",
+              filename: "document.pdf",
+              file_data: `data:application/pdf;base64,${base64}`,
+            },
+          ],
+        },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    console.error("GPT PDF extraction failed:", response.status, errText);
+    throw new Error(`GPT extraction failed: ${response.status} ${errText.substring(0, 200)}`);
+  }
+
+  const data = await response.json();
+  let extractedText = "";
+  if (data.output) {
+    for (const item of data.output) {
+      if (item.type === "message" && item.content) {
+        for (const c of item.content) {
+          if (c.type === "output_text") extractedText += c.text;
+        }
+      }
+    }
+  }
+
+  console.log("Extracted text length:", extractedText.trim().length);
+  return extractedText.trim();
 }
 
 async function extractDocx(buffer: ArrayBuffer): Promise<string> {
-  const result = await mammoth.extractRawText({ arrayBuffer: buffer });
-  return result.value || "";
+  const zip = await JSZip.loadAsync(buffer);
+  const docXml = zip.file("word/document.xml");
+  if (!docXml) return "";
+
+  const xml = await docXml.async("text");
+  // Extract text from <w:t> tags
+  const paragraphs: string[] = [];
+  const paraBlocks = xml.split(/<\/w:p>/);
+  for (const block of paraBlocks) {
+    const textRegex = /<w:t[^>]*>([\s\S]*?)<\/w:t>/g;
+    let paraText = "";
+    let m;
+    while ((m = textRegex.exec(block)) !== null) {
+      paraText += m[1]
+        .replace(/&amp;/g, "&")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&quot;/g, '"')
+        .replace(/&apos;/g, "'");
+    }
+    if (paraText.trim()) paragraphs.push(paraText.trim());
+  }
+  return paragraphs.join("\n");
 }
 
 async function extractPptx(buffer: ArrayBuffer): Promise<string> {

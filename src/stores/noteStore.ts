@@ -162,14 +162,32 @@ export const useNoteStore = create<NoteState>((set, get) => ({
       const fileExt = fileName.split('.').pop();
       const filePath = `${userId}/${classId}/${Date.now()}.${fileExt}`;
 
-      // Upload to Supabase Storage
+      // Read file as base64 and convert to ArrayBuffer for reliable upload
+      const base64Data = await FileSystem.readAsStringAsync(fileUri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      const binaryStr = atob(base64Data);
+      const bytes = new Uint8Array(binaryStr.length);
+      for (let i = 0; i < binaryStr.length; i++) {
+        bytes[i] = binaryStr.charCodeAt(i);
+      }
+
+      const mimeTypes: Record<string, string> = {
+        pdf: 'application/pdf',
+        docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        doc: 'application/msword',
+        pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        ppt: 'application/vnd.ms-powerpoint',
+        txt: 'text/plain',
+        md: 'text/markdown',
+      };
+
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('uploads')
-        .upload(filePath, {
-          uri: fileUri,
-          type: `application/${fileExt}`,
-          name: fileName,
-        } as any);
+        .upload(filePath, bytes.buffer, {
+          contentType: mimeTypes[fileExt || ''] || 'application/octet-stream',
+          upsert: false,
+        });
 
       if (uploadError) throw uploadError;
 
