@@ -24,16 +24,18 @@ export default function TodayScreen() {
   const { colors, colorScheme } = useTheme();
   const { profile } = useAuthStore();
   const { fetchClasses, getTodaysClasses, getUpcomingClass } = useClassStore();
-  const { todaysPrompts, fetchTodaysPrompts } = useStudyStore();
+  const { todaysPrompts, fetchTodaysPrompts, fetchSynthesizedContent, getAllOverdueQuizzes } = useStudyStore();
   const [refreshing, setRefreshing] = React.useState(false);
 
   const todaysClasses = getTodaysClasses();
   const upcomingClass = getUpcomingClass();
+  const overdueQuizzes = getAllOverdueQuizzes();
 
   useEffect(() => {
     if (profile?.id) {
       fetchClasses(profile.id);
       fetchTodaysPrompts(profile.id);
+      fetchSynthesizedContent(profile.id);
     }
   }, [profile?.id]);
 
@@ -43,6 +45,7 @@ export default function TodayScreen() {
       await Promise.all([
         fetchClasses(profile.id),
         fetchTodaysPrompts(profile.id),
+        fetchSynthesizedContent(profile.id),
       ]);
     }
     setRefreshing(false);
@@ -124,6 +127,40 @@ export default function TodayScreen() {
               </View>
             </Card>
           </Animated.View>
+
+          {/* Overdue Quiz Warning */}
+          {overdueQuizzes.length > 0 && (
+            <Animated.View entering={FadeInUp.delay(250).duration(600).springify()}>
+              <Card
+                variant="default"
+                padding="lg"
+                style={styles.overdueCard}
+              >
+                <View style={styles.overdueContent}>
+                  <Ionicons name="alert-circle" size={32} color="#FF3B30" />
+                  <View style={{ marginLeft: SPACING.md, flex: 1 }}>
+                    <Text style={[typography.titleSmall, { color: '#FF3B30' }]}>
+                      {overdueQuizzes.length} overdue quiz{overdueQuizzes.length > 1 ? 'zes' : ''}
+                    </Text>
+                    <Text style={[typography.bodySmall, { color: colors.cardTextSecondary }]}>
+                      New study content is blocked. Take {overdueQuizzes.length > 1 ? 'them' : 'it'} to resume.
+                    </Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  style={styles.overdueButton}
+                  onPress={() => {
+                    const first = overdueQuizzes[0];
+                    router.push(`/class/${first.class_id}/study` as any);
+                  }}
+                >
+                  <Text style={[typography.labelMedium, { color: '#fff' }]}>
+                    Take Quiz Now
+                  </Text>
+                </TouchableOpacity>
+              </Card>
+            </Animated.View>
+          )}
 
           {/* Upcoming Class */}
           {upcomingClass && (
@@ -440,6 +477,22 @@ const styles = StyleSheet.create({
     height: 28,
     borderRadius: 8,
     justifyContent: 'center',
+    alignItems: 'center',
+  },
+  overdueCard: {
+    marginBottom: SPACING.xl,
+    borderWidth: 1,
+    borderColor: '#FF3B30',
+  },
+  overdueContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  overdueButton: {
+    marginTop: SPACING.md,
+    backgroundColor: '#FF3B30',
+    paddingVertical: SPACING.sm,
+    borderRadius: RADIUS.md,
     alignItems: 'center',
   },
 });

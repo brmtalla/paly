@@ -21,6 +21,7 @@ export interface Database {
           is_premium: boolean;
           stripe_customer_id: string | null;
           onboarding_completed: boolean;
+          streak_count: number;
           created_at: string;
           updated_at: string;
         };
@@ -35,6 +36,7 @@ export interface Database {
           is_premium?: boolean;
           stripe_customer_id?: string | null;
           onboarding_completed?: boolean;
+          streak_count?: number;
         };
         Update: {
           email?: string | null;
@@ -46,6 +48,7 @@ export interface Database {
           is_premium?: boolean;
           stripe_customer_id?: string | null;
           onboarding_completed?: boolean;
+          streak_count?: number;
         };
       };
       classes: {
@@ -215,6 +218,8 @@ export interface Database {
           daily_chunks: Json;
           source_note_ids: string[];
           source_upload_ids: string[];
+          next_class_date: string | null;
+          quiz_deadline_notified: number;
           created_at: string;
           updated_at: string;
         };
@@ -230,6 +235,8 @@ export interface Database {
           daily_chunks?: Json;
           source_note_ids?: string[];
           source_upload_ids?: string[];
+          next_class_date?: string | null;
+          quiz_deadline_notified?: number;
         };
         Update: {
           summary?: string | null;
@@ -237,6 +244,8 @@ export interface Database {
           flashcards?: Json;
           quiz_questions?: Json;
           daily_chunks?: Json;
+          next_class_date?: string | null;
+          quiz_deadline_notified?: number;
         };
       };
       study_prompts: {

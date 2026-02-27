@@ -28,6 +28,11 @@ interface StudyState {
   
   // Flashcard actions
   getFlashcardsForClass: (classId: string) => Flashcard[];
+
+  // Quiz enforcement
+  getOverdueQuizzes: (classId: string) => SynthesizedContent[];
+  getAllOverdueQuizzes: () => SynthesizedContent[];
+  getNextQuizDeadline: (classId: string) => string | null;
 }
 
 export const useStudyStore = create<StudyState>((set, get) => ({
@@ -312,6 +317,31 @@ export const useStudyStore = create<StudyState>((set, get) => ({
     const classContent = synthesizedContent.filter(c => c.class_id === classId);
     
     return classContent.flatMap(c => (c.flashcards as Flashcard[]) || []);
+  },
+
+  getOverdueQuizzes: (classId: string) => {
+    const { synthesizedContent } = get();
+    const today = new Date().toISOString().split('T')[0];
+    return synthesizedContent.filter(
+      c => c.class_id === classId && c.next_class_date && c.next_class_date <= today && c.quiz_deadline_notified > 0
+    );
+  },
+
+  getAllOverdueQuizzes: () => {
+    const { synthesizedContent } = get();
+    const today = new Date().toISOString().split('T')[0];
+    return synthesizedContent.filter(
+      c => c.next_class_date && c.next_class_date <= today && c.quiz_deadline_notified > 0
+    );
+  },
+
+  getNextQuizDeadline: (classId: string) => {
+    const { synthesizedContent } = get();
+    const today = new Date().toISOString().split('T')[0];
+    const upcoming = synthesizedContent
+      .filter(c => c.class_id === classId && c.next_class_date && c.next_class_date > today)
+      .sort((a, b) => (a.next_class_date || '').localeCompare(b.next_class_date || ''));
+    return upcoming.length > 0 ? upcoming[0].next_class_date : null;
   },
 }));
 

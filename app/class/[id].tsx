@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import * as DocumentPicker from 'expo-document-picker';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { useTheme } from '../../src/theme/ThemeContext';
 import { typography } from '../../src/theme/typography';
 import { SPACING, LAYOUT, RADIUS, SHADOWS } from '../../src/theme/spacing';
@@ -29,9 +29,13 @@ export default function ClassDetailScreen() {
   const { colors, colorScheme } = useTheme();
   const { classes, deleteClass } = useClassStore();
   const { notes, fetchNotes, uploadFile } = useNoteStore();
-  const { synthesizeContent, isSynthesizing } = useStudyStore();
+  const { synthesizedContent, fetchSynthesizedContent, getOverdueQuizzes, getNextQuizDeadline } = useStudyStore();
   const { profile } = useAuthStore();
   const [isUploading, setIsUploading] = useState(false);
+
+  const overdueQuizzes = id ? getOverdueQuizzes(id) : [];
+  const nextQuizDeadline = id ? getNextQuizDeadline(id) : null;
+  const streak = profile?.streak_count ?? 0;
   
   const classData = classes.find(c => c.id === id);
   const classNotes = notes.filter(n => n.class_id === id);
@@ -39,6 +43,7 @@ export default function ClassDetailScreen() {
   useEffect(() => {
     if (profile?.id && id) {
       fetchNotes(profile.id, id);
+      fetchSynthesizedContent(profile.id, id);
     }
   }, [profile?.id, id]);
 
@@ -74,29 +79,13 @@ export default function ClassDetailScreen() {
 
       Alert.alert(
         'Upload Complete',
-        `${result.assets.length} file${result.assets.length > 1 ? 's' : ''} uploaded. Text is being extracted in the background.`,
+        `${result.assets.length} file${result.assets.length > 1 ? 's' : ''} uploaded! Study texts will start arriving automatically.`,
       );
     } catch (error) {
       console.error('Upload error:', error);
       Alert.alert('Error', 'Failed to upload files');
     } finally {
       setIsUploading(false);
-    }
-  };
-
-  const handleSynthesize = async () => {
-    if (!profile?.id || !id) return;
-
-    const sessionDate = format(new Date(), 'yyyy-MM-dd');
-    try {
-      await synthesizeContent(id, profile.id, sessionDate);
-      Alert.alert(
-        'Synthesis Complete',
-        'Study materials have been generated and prompts scheduled! Check your texts.',
-      );
-    } catch (error: any) {
-      console.error('Synthesis error:', error);
-      Alert.alert('Synthesis Failed', error.message || 'Make sure you have notes or uploaded files first.');
     }
   };
 
@@ -323,19 +312,18 @@ export default function ClassDetailScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.quickAction, { backgroundColor: colors.card, ...SHADOWS.md }]}
-              onPress={handleSynthesize}
-              disabled={isSynthesizing}
+              style={[styles.quickAction, { backgroundColor: overdueQuizzes.length > 0 ? colors.error + '15' : colors.card, ...SHADOWS.md }]}
+              onPress={() => router.push(`/class/${id}/study`)}
             >
-              <View style={[styles.quickActionIcon, { backgroundColor: colors.background }]}>
-                {isSynthesizing ? (
-                  <ActivityIndicator size="small" color={colors.text} />
+              <View style={[styles.quickActionIcon, { backgroundColor: overdueQuizzes.length > 0 ? colors.error + '20' : colors.background }]}>
+                {overdueQuizzes.length > 0 ? (
+                  <Ionicons name="alert-circle" size={24} color={colors.error} />
                 ) : (
-                  <Ionicons name="sparkles-outline" size={24} color={colors.text} />
+                  <Ionicons name="checkbox-outline" size={24} color={colors.text} />
                 )}
               </View>
-              <Text style={[typography.labelMedium, { color: colors.cardText }]}>
-                {isSynthesizing ? 'Synthesizing...' : 'Synthesize'}
+              <Text style={[typography.labelMedium, { color: overdueQuizzes.length > 0 ? colors.error : colors.cardText }]}>
+                {overdueQuizzes.length > 0 ? 'Quiz Overdue!' : 'Quiz Status'}
               </Text>
             </TouchableOpacity>
 
@@ -350,6 +338,55 @@ export default function ClassDetailScreen() {
                 Study
               </Text>
             </TouchableOpacity>
+          </Animated.View>
+
+          {/* Quiz & Streak Status */}
+          <Animated.View
+            entering={FadeInDown.delay(350).duration(600).springify()}
+            style={{ marginBottom: SPACING.lg }}
+          >
+            {overdueQuizzes.length > 0 ? (
+              <Card style={[styles.quizStatusCard, { borderLeftColor: colors.error, borderLeftWidth: 4 }]}>
+                <View style={styles.quizStatusRow}>
+                  <Ionicons name="alert-circle" size={28} color={colors.error} />
+                  <View style={{ flex: 1, marginLeft: SPACING.md }}>
+                    <Text style={[typography.titleSmall, { color: colors.error }]}>
+                      Overdue Quiz
+                    </Text>
+                    <Text style={[typography.bodySmall, { color: colors.cardTextSecondary }]}>
+                      Take the quiz to unlock new study material
+                    </Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  style={[styles.takeQuizButton, { backgroundColor: colors.error }]}
+                  onPress={() => router.push(`/class/${id}/study`)}
+                >
+                  <Text style={[typography.labelMedium, { color: '#fff' }]}>Take Quiz Now</Text>
+                </TouchableOpacity>
+              </Card>
+            ) : (
+              <Card style={styles.quizStatusCard}>
+                <View style={styles.quizStatusRow}>
+                  <View style={[styles.streakBadge, { backgroundColor: colors.background }]}>
+                    <Text style={[typography.headlineSmall, { color: colors.text }]}>
+                      {streak}
+                    </Text>
+                  </View>
+                  <View style={{ flex: 1, marginLeft: SPACING.md }}>
+                    <Text style={[typography.titleSmall, { color: colors.cardText }]}>
+                      {streak > 0 ? `${streak} quiz streak` : 'No streak yet'}
+                    </Text>
+                    <Text style={[typography.bodySmall, { color: colors.cardTextSecondary }]}>
+                      {nextQuizDeadline
+                        ? `Next quiz due ${formatDistanceToNow(new Date(nextQuizDeadline + 'T00:00:00'), { addSuffix: true })}`
+                        : 'Upload slides to start studying'}
+                    </Text>
+                  </View>
+                  <Ionicons name="flame" size={24} color={streak > 0 ? '#FF6B35' : colors.cardTextMuted} />
+                </View>
+              </Card>
+            )}
           </Animated.View>
 
           {/* Notes Section */}
@@ -499,6 +536,26 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: RADIUS.lg,
     justifyContent: 'center',
+    alignItems: 'center',
+  },
+  quizStatusCard: {
+    marginBottom: 0,
+  },
+  quizStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  streakBadge: {
+    width: 48,
+    height: 48,
+    borderRadius: RADIUS.lg,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  takeQuizButton: {
+    marginTop: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: RADIUS.md,
     alignItems: 'center',
   },
   emptyCard: {

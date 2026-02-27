@@ -204,21 +204,24 @@ export const useNoteStore = create<NoteState>((set, get) => ({
         isSaving: false,
       }));
 
-      // Trigger text extraction in the background (fire-and-forget)
-      supabase.functions.invoke('extract-text', {
+      // Trigger full pipeline: extract -> synthesize -> schedule (fire-and-forget)
+      supabase.functions.invoke('process-upload', {
         body: {
           uploadId: data.id,
           filePath: filePath,
           fileType: fileExt,
+          classId,
+          userId,
+          sessionDate,
         },
-      }).then(({ data: extractResult, error: extractError }) => {
-        if (extractError) {
-          console.error('Text extraction failed:', extractError);
+      }).then(({ data: result, error: processError }) => {
+        if (processError) {
+          console.error('Process upload failed:', processError);
         } else {
-          console.log('Text extracted:', extractResult?.textLength, 'chars');
+          console.log('Upload processed:', result?.status, '| Study days:', result?.studyDays, '| Prompts:', result?.promptsScheduled);
         }
       }).catch((err) => {
-        console.error('Text extraction invoke failed:', err);
+        console.error('Process upload invoke failed:', err);
       });
 
       return data;

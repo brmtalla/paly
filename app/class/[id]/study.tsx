@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { format, formatDistanceToNow } from 'date-fns';
 import { useTheme } from '../../../src/theme/ThemeContext';
 import { typography } from '../../../src/theme/typography';
 import { SPACING, LAYOUT, RADIUS, SHADOWS } from '../../../src/theme/spacing';
@@ -25,12 +26,16 @@ export default function ClassStudyScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors, colorScheme } = useTheme();
   const { classes } = useClassStore();
-  const { synthesizedContent, fetchSynthesizedContent } = useStudyStore();
+  const { synthesizedContent, fetchSynthesizedContent, getOverdueQuizzes } = useStudyStore();
   const { profile } = useAuthStore();
   const [sendingId, setSendingId] = useState<string | null>(null);
   
   const classData = classes.find(c => c.id === id);
   const classContent = synthesizedContent.filter(c => c.class_id === id);
+  const overdueQuizzes = id ? getOverdueQuizzes(id) : [];
+  const streak = profile?.streak_count ?? 0;
+
+  const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
     if (profile?.id && id) {
@@ -53,6 +58,16 @@ export default function ClassStudyScreen() {
     } finally {
       setSendingId(null);
     }
+  };
+
+  const getQuizStatus = (content: any): 'overdue' | 'due_soon' | 'upcoming' | 'none' => {
+    if (!content.next_class_date) return 'none';
+    if (content.next_class_date <= today && content.quiz_deadline_notified > 0) return 'overdue';
+    const deadline = new Date(content.next_class_date + 'T00:00:00');
+    const dayBefore = new Date(deadline);
+    dayBefore.setDate(dayBefore.getDate() - 1);
+    if (dayBefore.toISOString().split('T')[0] <= today) return 'due_soon';
+    return 'upcoming';
   };
 
   return (
@@ -81,6 +96,44 @@ export default function ClassStudyScreen() {
             <View style={{ width: 40 }} />
           </Animated.View>
 
+          {/* Streak Display */}
+          <Animated.View
+            entering={FadeInDown.delay(150).duration(600).springify()}
+          >
+            <Card style={styles.streakCard}>
+              <Ionicons name="flame" size={28} color={streak > 0 ? '#FF6B35' : colors.cardTextMuted} />
+              <View style={{ marginLeft: SPACING.md, flex: 1 }}>
+                <Text style={[typography.titleSmall, { color: colors.cardText }]}>
+                  {streak > 0 ? `${streak} quiz streak` : 'Start your streak'}
+                </Text>
+                <Text style={[typography.bodySmall, { color: colors.cardTextSecondary }]}>
+                  {streak > 0 ? 'Complete quizzes on time to keep it going' : 'Complete your first pre-class quiz'}
+                </Text>
+              </View>
+            </Card>
+          </Animated.View>
+
+          {/* Overdue Quiz Banner */}
+          {overdueQuizzes.length > 0 && (
+            <Animated.View
+              entering={FadeInDown.delay(175).duration(600).springify()}
+            >
+              <Card style={[styles.overdueBanner, { borderColor: colors.error, borderWidth: 1 }]}>
+                <View style={styles.overdueBannerContent}>
+                  <Ionicons name="alert-circle" size={32} color={colors.error} />
+                  <View style={{ marginLeft: SPACING.md, flex: 1 }}>
+                    <Text style={[typography.titleSmall, { color: colors.error }]}>
+                      {overdueQuizzes.length} overdue quiz{overdueQuizzes.length > 1 ? 'zes' : ''}
+                    </Text>
+                    <Text style={[typography.bodySmall, { color: colors.cardTextSecondary }]}>
+                      New study content is blocked until you complete {overdueQuizzes.length > 1 ? 'these' : 'this'}
+                    </Text>
+                  </View>
+                </View>
+              </Card>
+            </Animated.View>
+          )}
+
           {/* Study Options */}
           {classContent.length === 0 ? (
             <Animated.View
@@ -96,15 +149,69 @@ export default function ClassStudyScreen() {
                   No study materials yet
                 </Text>
                 <Text style={[typography.bodySmall, { color: colors.cardTextSecondary, textAlign: 'center', marginTop: SPACING.sm }]}>
-                  Take some notes and they'll be automatically synthesized into flashcards and quizzes
+                  Upload slides and they'll be automatically synthesized into study texts, flashcards, and quizzes
                 </Text>
               </Card>
             </Animated.View>
           ) : (
             <>
-              {/* Text Me — on-demand SMS per session */}
+              {/* Quizzes — shown first since they're mandatory */}
               <Animated.View
                 entering={FadeInDown.delay(200).duration(600).springify()}
+              >
+                <Text style={[typography.titleMedium, { color: colors.text, marginBottom: SPACING.md }]}>
+                  Quizzes
+                </Text>
+                {classContent.map((content) => {
+                  const status = getQuizStatus(content);
+                  const isOverdue = status === 'overdue';
+                  const isDueSoon = status === 'due_soon';
+
+                  return (
+                    <TouchableOpacity
+                      key={`quiz-${content.id}`}
+                      onPress={() => router.push(`/study/quiz/${content.id}`)}
+                    >
+                      <Card style={[
+                        styles.studyCard,
+                        isOverdue && { borderLeftWidth: 3, borderLeftColor: colors.error },
+                        isDueSoon && { borderLeftWidth: 3, borderLeftColor: '#FF9500' },
+                      ]}>
+                        <View style={[styles.studyIcon, { backgroundColor: isOverdue ? colors.error + '20' : isDueSoon ? '#FF950020' : colors.background }]}>
+                          <Ionicons
+                            name={isOverdue ? 'alert-circle' : 'help-circle-outline'}
+                            size={24}
+                            color={isOverdue ? colors.error : isDueSoon ? '#FF9500' : colors.text}
+                          />
+                        </View>
+                        <View style={styles.studyContent}>
+                          <Text style={[typography.titleSmall, { color: isOverdue ? colors.error : colors.cardText }]}>
+                            {content.session_date} Quiz
+                          </Text>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                            <Text style={[typography.bodySmall, { color: colors.cardTextSecondary }]}>
+                              {(content.quiz_questions as any[])?.length || 0} questions
+                            </Text>
+                            {content.next_class_date && (
+                              <Text style={[typography.labelSmall, {
+                                color: isOverdue ? colors.error : isDueSoon ? '#FF9500' : colors.cardTextMuted,
+                              }]}>
+                                {isOverdue ? 'OVERDUE' : isDueSoon ? 'DUE TODAY' : `Due ${formatDistanceToNow(new Date(content.next_class_date + 'T00:00:00'), { addSuffix: true })}`}
+                              </Text>
+                            )}
+                          </View>
+                        </View>
+                        <Ionicons name="chevron-forward" size={20} color={isOverdue ? colors.error : colors.cardTextMuted} />
+                      </Card>
+                    </TouchableOpacity>
+                  );
+                })}
+              </Animated.View>
+
+              {/* Text Me — on-demand SMS per session */}
+              <Animated.View
+                entering={FadeInDown.delay(300).duration(600).springify()}
+                style={{ marginTop: SPACING.xl }}
               >
                 <Text style={[typography.titleMedium, { color: colors.text, marginBottom: SPACING.md }]}>
                   Text Me
@@ -144,7 +251,7 @@ export default function ClassStudyScreen() {
 
               {/* Flashcards */}
               <Animated.View
-                entering={FadeInDown.delay(300).duration(600).springify()}
+                entering={FadeInDown.delay(400).duration(600).springify()}
                 style={{ marginTop: SPACING.xl }}
               >
                 <Text style={[typography.titleMedium, { color: colors.text, marginBottom: SPACING.md }]}>
@@ -164,38 +271,7 @@ export default function ClassStudyScreen() {
                           {content.session_date} Session
                         </Text>
                         <Text style={[typography.bodySmall, { color: colors.cardTextSecondary }]}>
-                          {content.flashcards?.length || 0} cards
-                        </Text>
-                      </View>
-                      <Ionicons name="chevron-forward" size={20} color={colors.cardTextMuted} />
-                    </Card>
-                  </TouchableOpacity>
-                ))}
-              </Animated.View>
-
-              {/* Quizzes */}
-              <Animated.View
-                entering={FadeInDown.delay(400).duration(600).springify()}
-                style={{ marginTop: SPACING.xl }}
-              >
-                <Text style={[typography.titleMedium, { color: colors.text, marginBottom: SPACING.md }]}>
-                  Quizzes
-                </Text>
-                {classContent.map((content) => (
-                  <TouchableOpacity
-                    key={`quiz-${content.id}`}
-                    onPress={() => router.push(`/study/quiz/${content.id}`)}
-                  >
-                    <Card style={styles.studyCard}>
-                      <View style={[styles.studyIcon, { backgroundColor: colors.background }]}>
-                        <Ionicons name="help-circle-outline" size={24} color={colors.text} />
-                      </View>
-                      <View style={styles.studyContent}>
-                        <Text style={[typography.titleSmall, { color: colors.cardText }]}>
-                          {content.session_date} Quiz
-                        </Text>
-                        <Text style={[typography.bodySmall, { color: colors.cardTextSecondary }]}>
-                          {content.quiz_questions?.length || 0} questions
+                          {(content.flashcards as any[])?.length || 0} cards
                         </Text>
                       </View>
                       <Ionicons name="chevron-forward" size={20} color={colors.cardTextMuted} />
@@ -227,6 +303,18 @@ const styles = StyleSheet.create({
   },
   backButton: {
     padding: SPACING.sm,
+  },
+  streakCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+  },
+  overdueBanner: {
+    marginBottom: SPACING.lg,
+  },
+  overdueBannerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   emptyCard: {
     alignItems: 'center',
