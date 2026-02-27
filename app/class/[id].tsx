@@ -11,7 +11,15 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, {
+  FadeInDown,
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withSequence,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated';
 import * as DocumentPicker from 'expo-document-picker';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useTheme } from '../../src/theme/ThemeContext';
@@ -22,6 +30,7 @@ import { useClassStore } from '../../src/stores/classStore';
 import { useNoteStore } from '../../src/stores/noteStore';
 import { useStudyStore } from '../../src/stores/studyStore';
 import { useAuthStore } from '../../src/stores/authStore';
+import { supabase } from '../../src/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function ClassDetailScreen() {
@@ -29,13 +38,41 @@ export default function ClassDetailScreen() {
   const { colors, colorScheme } = useTheme();
   const { classes, deleteClass } = useClassStore();
   const { notes, fetchNotes, uploadFile } = useNoteStore();
-  const { synthesizedContent, fetchSynthesizedContent, getOverdueQuizzes, getNextQuizDeadline } = useStudyStore();
+  const { synthesizedContent, fetchSynthesizedContent, isSynthesizing, getOverdueQuizzes, getNextQuizDeadline } = useStudyStore();
   const { profile } = useAuthStore();
   const [isUploading, setIsUploading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const overdueQuizzes = id ? getOverdueQuizzes(id) : [];
   const nextQuizDeadline = id ? getNextQuizDeadline(id) : null;
   const streak = profile?.streak_count ?? 0;
+
+  // Detect unsynthesized uploads for this class
+  const classUploads = notes.flatMap(n => n.uploads).filter(u => u.class_id === id);
+  const synthesizedDates = new Set(synthesizedContent.filter(c => c.class_id === id).map(c => c.session_date));
+  const uploadDates = new Set(classUploads.map(u => u.session_date));
+  const hasUnsynthesized = [...uploadDates].some(d => !synthesizedDates.has(d)) || (classUploads.length > 0 && synthesizedContent.filter(c => c.class_id === id).length === 0);
+
+  // Glow animation for Synthesize button
+  const glowOpacity = useSharedValue(0.4);
+  useEffect(() => {
+    if (hasUnsynthesized && !profile?.auto_synthesize) {
+      glowOpacity.value = withRepeat(
+        withSequence(
+          withTiming(1, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
+          withTiming(0.4, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
+        ),
+        -1,
+        false,
+      );
+    } else {
+      glowOpacity.value = withTiming(0, { duration: 300 });
+    }
+  }, [hasUnsynthesized, profile?.auto_synthesize]);
+
+  const glowStyle = useAnimatedStyle(() => ({
+    opacity: glowOpacity.value,
+  }));
   
   const classData = classes.find(c => c.id === id);
   const classNotes = notes.filter(n => n.class_id === id);
@@ -77,15 +114,54 @@ export default function ClassDetailScreen() {
         );
       }
 
+      const autoMode = profile?.auto_synthesize ?? false;
       Alert.alert(
         'Upload Complete',
-        `${result.assets.length} file${result.assets.length > 1 ? 's' : ''} uploaded! Study texts will start arriving automatically.`,
+        autoMode
+          ? `${result.assets.length} file${result.assets.length > 1 ? 's' : ''} uploaded! Study texts will start arriving automatically.`
+          : `${result.assets.length} file${result.assets.length > 1 ? 's' : ''} uploaded! Tap Synthesize when you're ready to generate study materials.`,
       );
     } catch (error) {
       console.error('Upload error:', error);
       Alert.alert('Error', 'Failed to upload files');
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleSynthesize = async () => {
+    if (!profile?.id || !id) return;
+    setIsProcessing(true);
+    try {
+      const sessionDate = format(new Date(), 'yyyy-MM-dd');
+      const { data, error } = await supabase.functions.invoke('process-upload', {
+        body: {
+          uploadId: 'manual-trigger',
+          filePath: '',
+          fileType: '',
+          classId: id,
+          userId: profile.id,
+          sessionDate,
+          skipExtraction: true,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      if (data?.status === 'blocked_overdue_quiz') {
+        Alert.alert('Quiz Required', 'Complete your overdue quiz first to synthesize new content.');
+      } else {
+        Alert.alert(
+          'Synthesis Complete',
+          `Study materials generated! ${data?.promptsScheduled || 0} study texts scheduled over ${data?.studyDays || 0} days.`,
+        );
+        fetchSynthesizedContent(profile.id, id);
+      }
+    } catch (error: any) {
+      console.error('Synthesis error:', error);
+      Alert.alert('Synthesis Failed', error.message || 'Make sure you have notes or uploaded files first.');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -312,18 +388,25 @@ export default function ClassDetailScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.quickAction, { backgroundColor: overdueQuizzes.length > 0 ? colors.error + '15' : colors.card, ...SHADOWS.md }]}
-              onPress={() => router.push(`/class/${id}/study`)}
+              style={[styles.quickAction, { backgroundColor: colors.card, ...SHADOWS.md, overflow: 'hidden' }]}
+              onPress={handleSynthesize}
+              disabled={isProcessing || isSynthesizing}
             >
-              <View style={[styles.quickActionIcon, { backgroundColor: overdueQuizzes.length > 0 ? colors.error + '20' : colors.background }]}>
-                {overdueQuizzes.length > 0 ? (
-                  <Ionicons name="alert-circle" size={24} color={colors.error} />
+              {hasUnsynthesized && !profile?.auto_synthesize && (
+                <Animated.View
+                  style={[StyleSheet.absoluteFill, { backgroundColor: '#8B5CF6' }, glowStyle]}
+                  pointerEvents="none"
+                />
+              )}
+              <View style={[styles.quickActionIcon, { backgroundColor: colors.background }]}>
+                {isProcessing || isSynthesizing ? (
+                  <ActivityIndicator size="small" color={colors.text} />
                 ) : (
-                  <Ionicons name="checkbox-outline" size={24} color={colors.text} />
+                  <Ionicons name="sparkles-outline" size={24} color={hasUnsynthesized ? '#8B5CF6' : colors.text} />
                 )}
               </View>
-              <Text style={[typography.labelMedium, { color: overdueQuizzes.length > 0 ? colors.error : colors.cardText }]}>
-                {overdueQuizzes.length > 0 ? 'Quiz Overdue!' : 'Quiz Status'}
+              <Text style={[typography.labelMedium, { color: hasUnsynthesized ? '#fff' : colors.cardText }]}>
+                {isProcessing || isSynthesizing ? 'Synthesizing...' : 'Synthesize'}
               </Text>
             </TouchableOpacity>
 

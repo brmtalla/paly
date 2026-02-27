@@ -33,6 +33,13 @@ interface StudyState {
   getOverdueQuizzes: (classId: string) => SynthesizedContent[];
   getAllOverdueQuizzes: () => SynthesizedContent[];
   getNextQuizDeadline: (classId: string) => string | null;
+
+  // Reading streak
+  fetchClassPrompts: (userId: string, classId: string) => Promise<StudyPrompt[]>;
+  markPromptScrolledToBottom: (promptId: string, userId: string) => Promise<void>;
+
+  // Points
+  awardPoints: (userId: string, points: number, reason: string) => Promise<void>;
 }
 
 export const useStudyStore = create<StudyState>((set, get) => ({
@@ -342,6 +349,122 @@ export const useStudyStore = create<StudyState>((set, get) => ({
       .filter(c => c.class_id === classId && c.next_class_date && c.next_class_date > today)
       .sort((a, b) => (a.next_class_date || '').localeCompare(b.next_class_date || ''));
     return upcoming.length > 0 ? upcoming[0].next_class_date : null;
+  },
+
+  fetchClassPrompts: async (userId: string, classId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('study_prompts')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('class_id', classId)
+        .order('scheduled_for', { ascending: true });
+
+      if (error) throw error;
+      return (data || []) as StudyPrompt[];
+    } catch (error) {
+      console.error('Fetch class prompts error:', error);
+      return [];
+    }
+  },
+
+  markPromptScrolledToBottom: async (promptId: string, userId: string) => {
+    try {
+      const now = new Date();
+      const todayStr = now.toISOString().split('T')[0];
+
+      // Mark this prompt as scrolled to bottom
+      await supabase
+        .from('study_prompts')
+        .update({ read_at_bottom: now.toISOString() })
+        .eq('id', promptId);
+
+      // Update reading streak
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('reading_streak, last_read_date, paly_points, paly_points_month')
+        .eq('id', userId)
+        .single();
+
+      if (!profile) return;
+
+      const lastRead = profile.last_read_date;
+      const currentMonth = todayStr.substring(0, 7);
+      let newStreak = profile.reading_streak || 0;
+      let points = profile.paly_points || 0;
+      let pointsMonth = profile.paly_points_month || currentMonth;
+
+      // Reset points if new month
+      if (pointsMonth !== currentMonth) {
+        points = 0;
+        pointsMonth = currentMonth;
+      }
+
+      if (lastRead === todayStr) {
+        // Already read today, no streak change
+        return;
+      }
+
+      const yesterday = new Date(now);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+      if (lastRead === yesterdayStr) {
+        // Consecutive day, increment streak
+        newStreak += 1;
+        points += 25; // streak maintenance bonus
+      } else if (!lastRead) {
+        // First ever read
+        newStreak = 1;
+      } else {
+        // Streak broken, start over
+        newStreak = 1;
+      }
+
+      await supabase
+        .from('profiles')
+        .update({
+          reading_streak: newStreak,
+          last_read_date: todayStr,
+          paly_points: points,
+          paly_points_month: pointsMonth,
+        })
+        .eq('id', userId);
+    } catch (error) {
+      console.error('Mark scrolled to bottom error:', error);
+    }
+  },
+
+  awardPoints: async (userId: string, points: number, _reason: string) => {
+    try {
+      const currentMonth = new Date().toISOString().substring(0, 7);
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('paly_points, paly_points_month')
+        .eq('id', userId)
+        .single();
+
+      if (!profile) return;
+
+      let currentPoints = profile.paly_points || 0;
+      let month = profile.paly_points_month || currentMonth;
+
+      if (month !== currentMonth) {
+        currentPoints = 0;
+        month = currentMonth;
+      }
+
+      await supabase
+        .from('profiles')
+        .update({
+          paly_points: currentPoints + points,
+          paly_points_month: month,
+        })
+        .eq('id', userId);
+    } catch (error) {
+      console.error('Award points error:', error);
+    }
   },
 }));
 

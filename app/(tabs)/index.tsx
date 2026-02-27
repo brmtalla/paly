@@ -15,6 +15,7 @@ import { useTheme } from '../../src/theme/ThemeContext';
 import { typography } from '../../src/theme/typography';
 import { SPACING, LAYOUT, RADIUS, SHADOWS } from '../../src/theme/spacing';
 import { Card, Background } from '../../src/components/ui';
+import { PalyPointsBar } from '../../src/components/PalyPointsBar';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useClassStore } from '../../src/stores/classStore';
 import { useStudyStore } from '../../src/stores/studyStore';
@@ -61,6 +62,7 @@ export default function TodayScreen() {
   return (
     <Background>
       <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <PalyPointsBar />
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}

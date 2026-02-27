@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Switch, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, Switch, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
@@ -21,7 +21,7 @@ interface NotificationPrefs {
 
 export default function NotificationsScreen() {
   const { colors } = useTheme();
-  const { profile } = useAuthStore();
+  const { profile, updateProfile } = useAuthStore();
   const [prefs, setPrefs] = useState<NotificationPrefs>({
     push_enabled: true,
     sms_enabled: false,
@@ -29,11 +29,13 @@ export default function NotificationsScreen() {
     study_prompts: true,
     quiz_reminders: true,
   });
+  const [autoSynthesize, setAutoSynthesize] = useState(profile?.auto_synthesize ?? false);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     fetchPreferences();
-  }, []);
+    setAutoSynthesize(profile?.auto_synthesize ?? false);
+  }, [profile?.auto_synthesize]);
 
   const fetchPreferences = async () => {
     if (!profile?.id) return;
@@ -175,15 +177,54 @@ export default function NotificationsScreen() {
             </Card>
           </Animated.View>
 
-          {/* Info */}
+          {/* Study Preferences */}
           <Animated.View
             entering={FadeInUp.delay(400).duration(600).springify()}
+            style={styles.section}
+          >
+            <Text style={[typography.labelSmall, { color: colors.textMuted, marginBottom: SPACING.sm }]}>
+              STUDY PREFERENCES
+            </Text>
+            <Card variant="elevated" padding="none">
+              <View style={styles.row}>
+                <View style={[styles.rowIcon, { backgroundColor: colors.backgroundSecondary }]}>
+                  <Ionicons name="sparkles" size={18} color={colors.text} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[typography.titleSmall, { color: colors.text }]}>Auto-Synthesize</Text>
+                  <Text style={[typography.bodySmall, { color: colors.textSecondary }]}>
+                    Automatically synthesize notes on upload
+                  </Text>
+                </View>
+                <Switch
+                  value={autoSynthesize}
+                  onValueChange={async (value) => {
+                    setAutoSynthesize(value);
+                    try {
+                      await updateProfile({ auto_synthesize: value } as any);
+                    } catch {
+                      setAutoSynthesize(!value);
+                      Alert.alert('Error', 'Failed to update preference');
+                    }
+                  }}
+                  trackColor={{ false: colors.backgroundTertiary, true: colors.accent + '60' }}
+                  thumbColor={autoSynthesize ? colors.accent : colors.textMuted}
+                />
+              </View>
+            </Card>
+          </Animated.View>
+
+          {/* Info */}
+          <Animated.View
+            entering={FadeInUp.delay(500).duration(600).springify()}
             style={styles.infoSection}
           >
             <View style={[styles.infoCard, { backgroundColor: colors.backgroundSecondary }]}>
               <Ionicons name="information-circle" size={20} color={colors.textMuted} />
               <Text style={[typography.bodySmall, { color: colors.textSecondary, flex: 1 }]}>
-                Study prompts are sent at random times within your available hours to improve retention.
+                {autoSynthesize
+                  ? 'Uploads are synthesized automatically. Study texts start arriving right away.'
+                  : 'With auto-synthesize off, tap the glowing Synthesize button on your class page when you\'re ready.'}
               </Text>
             </View>
           </Animated.View>

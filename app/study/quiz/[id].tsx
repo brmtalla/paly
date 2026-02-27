@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -14,12 +14,15 @@ import { typography } from '../../../src/theme/typography';
 import { SPACING, LAYOUT, RADIUS, SHADOWS } from '../../../src/theme/spacing';
 import { Card, Button, Background } from '../../../src/components/ui';
 import { useStudyStore } from '../../../src/stores/studyStore';
+import { useAuthStore } from '../../../src/stores/authStore';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function QuizScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors, colorScheme } = useTheme();
-  const { synthesizedContent } = useStudyStore();
+  const { synthesizedContent, awardPoints } = useStudyStore();
+  const { profile } = useAuthStore();
+  const pointsAwarded = useRef(false);
   
   const content = synthesizedContent.find(c => c.id === id);
   const questions = content?.quiz_questions || [];
@@ -51,6 +54,12 @@ export default function QuizScreen() {
       setSelectedAnswer(null);
       setShowResult(false);
     } else {
+      const finalScore = score + (selectedAnswer === questions[currentIndex].correct_index ? 1 : 0);
+      const pct = finalScore / questions.length;
+      if (pct >= 0.8 && profile?.id && !pointsAwarded.current) {
+        pointsAwarded.current = true;
+        awardPoints(profile.id, 10, 'quiz_pass');
+      }
       setIsComplete(true);
     }
   };
@@ -100,11 +109,22 @@ export default function QuizScreen() {
                 {score} / {questions.length} correct
               </Text>
               <Text style={[typography.bodyMedium, { color: colors.cardTextTertiary, marginTop: SPACING.md, textAlign: 'center' }]}>
-                {percentage >= 90 ? "Excellent work! 🎉" : 
-                 percentage >= 70 ? "Great job! Keep it up! 👍" :
-                 percentage >= 50 ? "Good effort! Review and try again! 📚" :
-                 "Keep studying, you'll get there! 💪"}
+                {percentage >= 90 ? "Excellent work!" : 
+                 percentage >= 70 ? "Great job! Keep it up!" :
+                 percentage >= 50 ? "Good effort! Review and try again!" :
+                 "Keep studying, you'll get there!"}
               </Text>
+              {percentage >= 80 && (
+                <Animated.View
+                  entering={FadeInUp.delay(300).springify()}
+                  style={styles.pointsEarned}
+                >
+                  <Ionicons name="star" size={18} color="#FFD700" />
+                  <Text style={[typography.labelMedium, { color: '#FFD700', marginLeft: 6 }]}>
+                    +10 Paly Points
+                  </Text>
+                </Animated.View>
+              )}
             </Animated.View>
             
             <Button
@@ -374,5 +394,14 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS['2xl'],
     alignItems: 'center',
     width: '100%',
+  },
+  pointsEarned: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: SPACING.lg,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+    backgroundColor: '#FFD70015',
+    borderRadius: RADIUS.lg,
   },
 });

@@ -21,6 +21,7 @@ import { typography } from '../../../src/theme/typography';
 import { SPACING, LAYOUT, RADIUS, SHADOWS } from '../../../src/theme/spacing';
 import { Button, Background } from '../../../src/components/ui';
 import { useStudyStore } from '../../../src/stores/studyStore';
+import { useAuthStore } from '../../../src/stores/authStore';
 import { Ionicons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
@@ -29,18 +30,28 @@ const CARD_WIDTH = width - SPACING.xl * 2;
 export default function FlashcardsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors, colorScheme } = useTheme();
-  const { synthesizedContent } = useStudyStore();
+  const { synthesizedContent, awardPoints } = useStudyStore();
+  const { profile } = useAuthStore();
   
   const content = synthesizedContent.find(c => c.id === id);
   const flashcards = content?.flashcards || [];
   
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
+  const [flippedCards, setFlippedCards] = useState<Set<number>>(new Set());
+  const [pointsEarned, setPointsEarned] = useState(0);
   
   const flipProgress = useSharedValue(0);
 
   const handleFlip = () => {
     flipProgress.value = withSpring(isFlipped ? 0 : 1, { damping: 15 });
+    if (!isFlipped && !flippedCards.has(currentIndex)) {
+      setFlippedCards(prev => new Set(prev).add(currentIndex));
+      setPointsEarned(prev => prev + 5);
+      if (profile?.id) {
+        awardPoints(profile.id, 5, 'flashcard_flip');
+      }
+    }
     setIsFlipped(!isFlipped);
   };
 
@@ -117,7 +128,16 @@ export default function FlashcardsScreen() {
               {currentIndex + 1} / {flashcards.length}
             </Text>
             
-            <View style={{ width: 40 }} />
+            <View style={{ flexDirection: 'row', alignItems: 'center', minWidth: 40 }}>
+              {pointsEarned > 0 && (
+                <>
+                  <Ionicons name="star" size={14} color="#FFD700" />
+                  <Text style={[typography.labelSmall, { color: '#FFD700', marginLeft: 3 }]}>
+                    +{pointsEarned}
+                  </Text>
+                </>
+              )}
+            </View>
           </View>
 
           {/* Progress */}

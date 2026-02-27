@@ -204,25 +204,32 @@ export const useNoteStore = create<NoteState>((set, get) => ({
         isSaving: false,
       }));
 
-      // Trigger full pipeline: extract -> synthesize -> schedule (fire-and-forget)
-      supabase.functions.invoke('process-upload', {
-        body: {
-          uploadId: data.id,
-          filePath: filePath,
-          fileType: fileExt,
-          classId,
-          userId,
-          sessionDate,
-        },
-      }).then(({ data: result, error: processError }) => {
-        if (processError) {
-          console.error('Process upload failed:', processError);
-        } else {
-          console.log('Upload processed:', result?.status, '| Study days:', result?.studyDays, '| Prompts:', result?.promptsScheduled);
-        }
-      }).catch((err) => {
-        console.error('Process upload invoke failed:', err);
-      });
+      // Check user's auto_synthesize preference
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('auto_synthesize')
+        .eq('id', userId)
+        .single();
+
+      const autoSynthesize = profile?.auto_synthesize ?? false;
+
+      if (autoSynthesize) {
+        // Full pipeline: extract -> synthesize -> schedule
+        supabase.functions.invoke('process-upload', {
+          body: { uploadId: data.id, filePath, fileType: fileExt, classId, userId, sessionDate },
+        }).then(({ data: result, error: processError }) => {
+          if (processError) console.error('Process upload failed:', processError);
+          else console.log('Auto-processed:', result?.status, '| Prompts:', result?.promptsScheduled);
+        }).catch((err) => console.error('Process upload invoke failed:', err));
+      } else {
+        // Extract text only; user will manually synthesize
+        supabase.functions.invoke('extract-text', {
+          body: { uploadId: data.id, filePath, fileType: fileExt },
+        }).then(({ data: result, error: extractError }) => {
+          if (extractError) console.error('Text extraction failed:', extractError);
+          else console.log('Text extracted:', result?.textLength, 'chars (awaiting manual synthesis)');
+        }).catch((err) => console.error('Extract text invoke failed:', err));
+      }
 
       return data;
     } catch (error) {

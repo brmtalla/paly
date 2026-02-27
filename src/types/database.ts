@@ -22,6 +22,11 @@ export interface Database {
           stripe_customer_id: string | null;
           onboarding_completed: boolean;
           streak_count: number;
+          paly_points: number;
+          paly_points_month: string;
+          reading_streak: number;
+          last_read_date: string | null;
+          auto_synthesize: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -37,6 +42,11 @@ export interface Database {
           stripe_customer_id?: string | null;
           onboarding_completed?: boolean;
           streak_count?: number;
+          paly_points?: number;
+          paly_points_month?: string;
+          reading_streak?: number;
+          last_read_date?: string | null;
+          auto_synthesize?: boolean;
         };
         Update: {
           email?: string | null;
@@ -49,6 +59,11 @@ export interface Database {
           stripe_customer_id?: string | null;
           onboarding_completed?: boolean;
           streak_count?: number;
+          paly_points?: number;
+          paly_points_month?: string;
+          reading_streak?: number;
+          last_read_date?: string | null;
+          auto_synthesize?: boolean;
         };
       };
       classes: {
@@ -259,6 +274,7 @@ export interface Database {
           scheduled_for: string;
           delivered_at: string | null;
           read_at: string | null;
+          read_at_bottom: string | null;
           delivery_method: 'push' | 'sms' | 'both';
           day_index: number;
           created_at: string;
@@ -273,12 +289,14 @@ export interface Database {
           scheduled_for: string;
           delivered_at?: string | null;
           read_at?: string | null;
+          read_at_bottom?: string | null;
           delivery_method?: 'push' | 'sms' | 'both';
           day_index?: number;
         };
         Update: {
           delivered_at?: string | null;
           read_at?: string | null;
+          read_at_bottom?: string | null;
         };
       };
       quiz_attempts: {

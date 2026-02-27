@@ -15,66 +15,67 @@ serve(async (req) => {
   }
 
   try {
-    const { uploadId, filePath, fileType, classId, userId, sessionDate } = await req.json();
+    const { uploadId, filePath, fileType, classId, userId, sessionDate, skipExtraction } = await req.json();
 
-    if (!uploadId || !filePath || !classId || !userId) {
+    if (!classId || !userId) {
       return new Response(
         JSON.stringify({ error: "Missing required fields" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // ── Step 1: Extract text ──────────────────────────────────────────
-    const { data: fileData, error: downloadError } = await supabaseAdmin.storage
-      .from("uploads")
-      .download(filePath);
+    // ── Step 1: Extract text (skip if already done) ───────────────────
+    if (!skipExtraction && uploadId && uploadId !== "manual-trigger" && filePath) {
+      const { data: fileData, error: downloadError } = await supabaseAdmin.storage
+        .from("uploads")
+        .download(filePath);
 
-    if (downloadError || !fileData) {
-      console.error("Download error:", downloadError);
-      return new Response(
-        JSON.stringify({ error: "Failed to download file" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      if (downloadError || !fileData) {
+        console.error("Download error:", downloadError);
+        return new Response(
+          JSON.stringify({ error: "Failed to download file" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const buffer = await fileData.arrayBuffer();
+      const extension = (fileType || filePath.split(".").pop() || "").toLowerCase();
+      let extractedText = "";
+
+      switch (extension) {
+        case "pdf":
+          extractedText = await extractPdf(Buffer.from(buffer));
+          break;
+        case "docx":
+        case "doc":
+          extractedText = await extractDocx(buffer);
+          break;
+        case "pptx":
+        case "ppt":
+          extractedText = await extractPptx(buffer);
+          break;
+        case "txt":
+        case "md":
+          extractedText = new TextDecoder().decode(buffer);
+          break;
+        default:
+          extractedText = new TextDecoder().decode(buffer);
+          break;
+      }
+
+      extractedText = extractedText.trim();
+      if (!extractedText) {
+        return new Response(
+          JSON.stringify({ error: "No text extracted from file" }),
+          { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      await supabaseAdmin
+        .from("uploads")
+        .update({ extracted_text: extractedText })
+        .eq("id", uploadId);
     }
-
-    const buffer = await fileData.arrayBuffer();
-    const extension = (fileType || filePath.split(".").pop() || "").toLowerCase();
-    let extractedText = "";
-
-    switch (extension) {
-      case "pdf":
-        extractedText = await extractPdf(Buffer.from(buffer));
-        break;
-      case "docx":
-      case "doc":
-        extractedText = await extractDocx(buffer);
-        break;
-      case "pptx":
-      case "ppt":
-        extractedText = await extractPptx(buffer);
-        break;
-      case "txt":
-      case "md":
-        extractedText = new TextDecoder().decode(buffer);
-        break;
-      default:
-        extractedText = new TextDecoder().decode(buffer);
-        break;
-    }
-
-    extractedText = extractedText.trim();
-    if (!extractedText) {
-      return new Response(
-        JSON.stringify({ error: "No text extracted from file" }),
-        { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Save extracted text to the upload record
-    await supabaseAdmin
-      .from("uploads")
-      .update({ extracted_text: extractedText })
-      .eq("id", uploadId);
 
     // ── Step 2: Look up next class date ───────────────────────────────
     const { data: sessions } = await supabaseAdmin
@@ -148,8 +149,7 @@ serve(async (req) => {
         JSON.stringify({
           success: true,
           status: "blocked_overdue_quiz",
-          message: "Text extracted and saved, but synthesis blocked until overdue quiz is completed.",
-          textLength: extractedText.length,
+          message: "Synthesis blocked until overdue quiz is completed.",
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -362,7 +362,7 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         status: "processed",
-        textLength: extractedText.length,
+        textLength: combinedContent.length,
         synthesizedContentId: savedContent.id,
         nextClassDate: nextClassDate.toISOString().split("T")[0],
         studyDays: numStudyDays,

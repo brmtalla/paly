@@ -26,22 +26,30 @@ export default function ClassStudyScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors, colorScheme } = useTheme();
   const { classes } = useClassStore();
-  const { synthesizedContent, fetchSynthesizedContent, getOverdueQuizzes } = useStudyStore();
+  const { synthesizedContent, studyPrompts, fetchSynthesizedContent, fetchClassPrompts, getOverdueQuizzes } = useStudyStore();
   const { profile } = useAuthStore();
   const [sendingId, setSendingId] = useState<string | null>(null);
+  const [classPrompts, setClassPrompts] = useState<any[]>([]);
   
   const classData = classes.find(c => c.id === id);
   const classContent = synthesizedContent.filter(c => c.class_id === id);
   const overdueQuizzes = id ? getOverdueQuizzes(id) : [];
-  const streak = profile?.streak_count ?? 0;
+  const streak = profile?.reading_streak ?? 0;
 
   const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
     if (profile?.id && id) {
       fetchSynthesizedContent(profile.id, id);
+      fetchClassPrompts(profile.id, id).then(setClassPrompts);
     }
   }, [profile?.id, id]);
+
+  const todaysChunks = classPrompts.filter(p =>
+    p.scheduled_for?.split('T')[0] <= today &&
+    (p.prompt_type === 'takeaway' || p.prompt_type === 'recall')
+  );
+  const unreadChunks = todaysChunks.filter(p => !p.read_at_bottom);
 
   const handleSendNow = async (contentId: string) => {
     if (!profile?.id) return;
@@ -104,12 +112,20 @@ export default function ClassStudyScreen() {
               <Ionicons name="flame" size={28} color={streak > 0 ? '#FF6B35' : colors.cardTextMuted} />
               <View style={{ marginLeft: SPACING.md, flex: 1 }}>
                 <Text style={[typography.titleSmall, { color: colors.cardText }]}>
-                  {streak > 0 ? `${streak} quiz streak` : 'Start your streak'}
+                  {streak > 0 ? `${streak}-day reading streak` : 'Start your streak'}
                 </Text>
                 <Text style={[typography.bodySmall, { color: colors.cardTextSecondary }]}>
-                  {streak > 0 ? 'Complete quizzes on time to keep it going' : 'Complete your first pre-class quiz'}
+                  {streak > 0 ? 'Read a daily chunk to keep it going' : 'Open and read through a study chunk'}
                 </Text>
               </View>
+              {(profile?.streak_count ?? 0) > 0 && (
+                <View style={{ alignItems: 'center' }}>
+                  <Ionicons name="checkbox-outline" size={18} color="#34C759" />
+                  <Text style={[typography.labelSmall, { color: '#34C759', fontSize: 9 }]}>
+                    {profile?.streak_count} quiz
+                  </Text>
+                </View>
+              )}
             </Card>
           </Animated.View>
 
@@ -134,8 +150,66 @@ export default function ClassStudyScreen() {
             </Animated.View>
           )}
 
+          {/* Daily Study Chunks */}
+          {todaysChunks.length > 0 && (
+            <Animated.View
+              entering={FadeInDown.delay(185).duration(600).springify()}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: SPACING.md }}>
+                <Text style={[typography.titleMedium, { color: colors.text }]}>
+                  Daily Chunks
+                </Text>
+                {unreadChunks.length > 0 && (
+                  <View style={[styles.unreadBadge, { backgroundColor: colors.error }]}>
+                    <Text style={[typography.labelSmall, { color: '#fff', fontSize: 10 }]}>
+                      {unreadChunks.length}
+                    </Text>
+                  </View>
+                )}
+              </View>
+              {todaysChunks.map((prompt: any) => {
+                const isRead = !!prompt.read_at_bottom;
+                return (
+                  <TouchableOpacity
+                    key={prompt.id}
+                    onPress={() => router.push(`/study/chunk/${prompt.id}`)}
+                  >
+                    <Card style={[styles.studyCard, { position: 'relative' as const }]}>
+                      {!isRead && (
+                        <View style={[styles.redDot, { backgroundColor: colors.error }]} />
+                      )}
+                      <View style={[styles.studyIcon, { backgroundColor: isRead ? '#34C75920' : colors.background }]}>
+                        <Ionicons
+                          name={prompt.prompt_type === 'takeaway' ? 'bulb-outline' : 'refresh-outline'}
+                          size={24}
+                          color={isRead ? '#34C759' : colors.text}
+                        />
+                      </View>
+                      <View style={styles.studyContent}>
+                        <Text style={[typography.titleSmall, { color: colors.cardText }]}>
+                          {prompt.prompt_type === 'takeaway' ? 'Takeaway' : 'Recall'}
+                        </Text>
+                        <Text
+                          style={[typography.bodySmall, { color: colors.cardTextSecondary }]}
+                          numberOfLines={2}
+                        >
+                          {prompt.content?.substring(0, 80)}...
+                        </Text>
+                      </View>
+                      {isRead ? (
+                        <Ionicons name="checkmark-circle" size={20} color="#34C759" />
+                      ) : (
+                        <Ionicons name="chevron-forward" size={20} color={colors.cardTextMuted} />
+                      )}
+                    </Card>
+                  </TouchableOpacity>
+                );
+              })}
+            </Animated.View>
+          )}
+
           {/* Study Options */}
-          {classContent.length === 0 ? (
+          {classContent.length === 0 && todaysChunks.length === 0 ? (
             <Animated.View
               entering={FadeInDown.delay(200).duration(600).springify()}
             >
@@ -344,5 +418,22 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.md,
     minWidth: 80,
     justifyContent: 'center',
+  },
+  redDot: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    zIndex: 1,
+  },
+  unreadBadge: {
+    marginLeft: SPACING.sm,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 10,
+    minWidth: 20,
+    alignItems: 'center',
   },
 });
