@@ -30,12 +30,7 @@ export const RADIUS = {
 } as const;
 
 // Helper to create cross-platform shadow styles
-const createShadow = (
-  offsetY: number,
-  blur: number,
-  opacity: number,
-  elevation: number
-) => {
+const createShadow = (offsetY: number, blur: number, opacity: number, elevation: number) => {
   if (Platform.OS === 'web') {
     return {
       boxShadow: `0 ${offsetY}px ${blur}px rgba(0, 0, 0, ${opacity})`,
@@ -52,15 +47,16 @@ const createShadow = (
 
 // Shadow styles for elevation
 export const SHADOWS = {
-  none: Platform.OS === 'web' 
-    ? { boxShadow: 'none' }
-    : {
-        shadowColor: 'transparent',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0,
-        shadowRadius: 0,
-        elevation: 0,
-      },
+  none:
+    Platform.OS === 'web'
+      ? { boxShadow: 'none' }
+      : {
+          shadowColor: 'transparent',
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0,
+          shadowRadius: 0,
+          elevation: 0,
+        },
   sm: createShadow(1, 2, 0.04, 1),
   md: createShadow(2, 4, 0.06, 2),
   lg: createShadow(4, 8, 0.08, 4),
@@ -95,4 +91,3 @@ export const LAYOUT = {
   tabBarHeight: 80,
   maxContentWidth: 600,
 } as const;
-

@@ -56,10 +56,13 @@ export async function registerForPushNotificationsAsync(userId: string): Promise
     try {
       // For Expo SDK 54, we need a valid EAS Project ID.
       // If you haven't run `eas project:init`, this will fail with "Invalid uuid".
-      const projectId = Constants.expoConfig?.extra?.eas?.projectId || Constants.easConfig?.projectId;
-      
+      const projectId =
+        Constants.expoConfig?.extra?.eas?.projectId || Constants.easConfig?.projectId;
+
       if (!projectId || projectId === 'paly-study-companion') {
-        console.warn('EAS Project ID is missing or invalid in app.json. Push notifications will not work.');
+        console.warn(
+          'EAS Project ID is missing or invalid in app.json. Push notifications will not work.'
+        );
         return null;
       }
 
@@ -85,19 +88,17 @@ async function savePushToken(userId: string, token: string): Promise<void> {
     const platform = Platform.OS as 'ios' | 'android' | 'web';
 
     // Upsert the token
-    const { error } = await supabase
-      .from('push_tokens')
-      .upsert(
-        {
-          user_id: userId,
-          token,
-          platform,
-          is_active: true,
-        },
-        {
-          onConflict: 'user_id,token',
-        }
-      );
+    const { error } = await supabase.from('push_tokens').upsert(
+      {
+        user_id: userId,
+        token,
+        platform,
+        is_active: true,
+      },
+      {
+        onConflict: 'user_id,token',
+      }
+    );
 
     if (error) {
       console.error('Error saving push token:', error);
@@ -180,4 +181,3 @@ export async function getBadgeCountAsync(): Promise<number> {
 export async function setBadgeCountAsync(count: number): Promise<boolean> {
   return await Notifications.setBadgeCountAsync(count);
 }
-

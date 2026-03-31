@@ -13,6 +13,7 @@ interface StudyState {
   } | null;
   isLoading: boolean;
   isSynthesizing: boolean;
+  error: string | null;
   
   // Actions
   fetchSynthesizedContent: (userId: string, classId?: string) => Promise<void>;
@@ -49,10 +50,11 @@ export const useStudyStore = create<StudyState>((set, get) => ({
   currentQuiz: null,
   isLoading: false,
   isSynthesizing: false,
+  error: null,
 
   fetchSynthesizedContent: async (userId: string, classId?: string) => {
     try {
-      set({ isLoading: true });
+      set({ isLoading: true, error: null });
       
       let query = supabase
         .from('synthesized_content')
@@ -70,13 +72,13 @@ export const useStudyStore = create<StudyState>((set, get) => ({
       set({ synthesizedContent: data, isLoading: false });
     } catch (error) {
       console.error('Fetch synthesized content error:', error);
-      set({ isLoading: false });
+      set({ isLoading: false, error: 'Failed to load study content. Pull down to retry.' });
     }
   },
 
   fetchStudyPrompts: async (userId: string) => {
     try {
-      set({ isLoading: true });
+      set({ isLoading: true, error: null });
       
       const { data, error } = await supabase
         .from('study_prompts')
@@ -89,7 +91,7 @@ export const useStudyStore = create<StudyState>((set, get) => ({
       set({ studyPrompts: data, isLoading: false });
     } catch (error) {
       console.error('Fetch study prompts error:', error);
-      set({ isLoading: false });
+      set({ isLoading: false, error: 'Failed to load study prompts. Pull down to retry.' });
     }
   },
 

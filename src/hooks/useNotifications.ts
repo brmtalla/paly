@@ -19,14 +19,14 @@ export function useNotifications() {
       registerForPushNotificationsAsync(user.id);
 
       // Handle notifications received while app is foregrounded
-      notificationListener.current = addNotificationReceivedListener(notification => {
+      notificationListener.current = addNotificationReceivedListener((notification) => {
         console.log('Notification received:', notification);
       });
 
       // Handle notification taps
-      responseListener.current = addNotificationResponseListener(response => {
+      responseListener.current = addNotificationResponseListener((response) => {
         const data = response.notification.request.content.data;
-        
+
         if (data.type === 'class_reminder' && data.classId) {
           router.push(`/notes/new?classId=${data.classId}`);
         } else if (data.type === 'study_prompt' && data.promptId) {
@@ -42,5 +42,3 @@ export function useNotifications() {
     };
   }, [user?.id, profile?.onboarding_completed]);
 }
-
-

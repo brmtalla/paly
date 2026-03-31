@@ -8,6 +8,7 @@ interface NoteState {
   currentNote: NoteWithUploads | null;
   isLoading: boolean;
   isSaving: boolean;
+  error: string | null;
   
   // Actions
   fetchNotes: (userId: string, classId?: string) => Promise<void>;
@@ -27,10 +28,11 @@ export const useNoteStore = create<NoteState>((set, get) => ({
   currentNote: null,
   isLoading: false,
   isSaving: false,
+  error: null,
 
   fetchNotes: async (userId: string, classId?: string) => {
     try {
-      set({ isLoading: true });
+      set({ isLoading: true, error: null });
       
       let query = supabase
         .from('notes')
@@ -51,7 +53,7 @@ export const useNoteStore = create<NoteState>((set, get) => ({
       set({ notes: data as NoteWithUploads[], isLoading: false });
     } catch (error) {
       console.error('Fetch notes error:', error);
-      set({ isLoading: false });
+      set({ isLoading: false, error: 'Failed to load notes. Pull down to retry.' });
     }
   },
 

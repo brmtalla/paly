@@ -2,11 +2,7 @@ import React from 'react';
 import { View, StyleSheet, ViewStyle, Pressable, Platform } from 'react-native';
 import { useTheme } from '../../theme/ThemeContext';
 import { SPACING, RADIUS, SHADOWS } from '../../theme/spacing';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -18,13 +14,7 @@ interface CardProps {
   style?: ViewStyle;
 }
 
-export function Card({
-  children,
-  variant = 'default',
-  padding = 'md',
-  onPress,
-  style,
-}: CardProps) {
+export function Card({ children, variant = 'default', padding = 'md', onPress, style }: CardProps) {
   const { colors } = useTheme();
   const scale = useSharedValue(1);
 

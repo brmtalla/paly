@@ -34,15 +34,15 @@ export default function AvailabilityScreen() {
   const [isLoading, setIsLoading] = useState(false);
 
   const toggleBlock = (id: string) => {
-    setBlocks(blocks.map(b => (b.id === id ? { ...b, isBlocked: !b.isBlocked } : b)));
+    setBlocks(blocks.map((b) => (b.id === id ? { ...b, isBlocked: !b.isBlocked } : b)));
   };
 
   const handleContinue = async () => {
     setIsLoading(true);
     try {
       // Save blocked availability times
-      const blockedTimes = blocks.filter(b => b.isBlocked);
-      
+      const blockedTimes = blocks.filter((b) => b.isBlocked);
+
       for (const block of blockedTimes) {
         // Save for all days (recurring)
         await supabase.from('availability_blocks').insert({
@@ -55,7 +55,7 @@ export default function AvailabilityScreen() {
 
       // Mark onboarding as complete
       await updateProfile({ onboarding_completed: true });
-      
+
       router.push('/(onboarding)/complete');
     } catch (error) {
       console.error('Error saving availability:', error);
@@ -64,27 +64,17 @@ export default function AvailabilityScreen() {
     }
   };
 
-  const availableCount = blocks.filter(b => !b.isBlocked).length;
+  const availableCount = blocks.filter((b) => !b.isBlocked).length;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SafeAreaView style={styles.safeArea}>
         {/* Progress indicator */}
-        <Animated.View
-          entering={FadeInDown.delay(100).duration(400)}
-          style={styles.progress}
-        >
+        <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.progress}>
           <View style={[styles.progressBar, { backgroundColor: colors.glassBackground }]}>
-            <View
-              style={[
-                styles.progressFill,
-                { backgroundColor: colors.card, width: '100%' },
-              ]}
-            />
+            <View style={[styles.progressFill, { backgroundColor: colors.card, width: '100%' }]} />
           </View>
-          <Text style={[typography.labelSmall, { color: colors.textSecondary }]}>
-            4 OF 4
-          </Text>
+          <Text style={[typography.labelSmall, { color: colors.textSecondary }]}>4 OF 4</Text>
         </Animated.View>
 
         <ScrollView
@@ -109,8 +99,8 @@ export default function AvailabilityScreen() {
                 { color: colors.textSecondary, textAlign: 'center', marginTop: SPACING.md },
               ]}
             >
-              Block off times when you're too busy for study reminders. We'll
-              only send prompts during your available hours.
+              Block off times when you're too busy for study reminders. We'll only send prompts
+              during your available hours.
             </Text>
           </Animated.View>
 
@@ -124,17 +114,11 @@ export default function AvailabilityScreen() {
                 key={block.id}
                 entering={FadeInUp.delay(index * 100 + 500).duration(400)}
               >
-                <TouchableOpacity
-                  onPress={() => toggleBlock(block.id)}
-                  activeOpacity={0.7}
-                >
+                <TouchableOpacity onPress={() => toggleBlock(block.id)} activeOpacity={0.7}>
                   <Card
                     variant={block.isBlocked ? 'solid' : 'default'}
                     padding="lg"
-                    style={[
-                      styles.blockCard,
-                      block.isBlocked && { opacity: 0.7 },
-                    ]}
+                    style={[styles.blockCard, block.isBlocked && { opacity: 0.7 }]}
                   >
                     <View style={styles.blockContent}>
                       <View>
@@ -142,9 +126,7 @@ export default function AvailabilityScreen() {
                           style={[
                             typography.titleMedium,
                             {
-                              color: block.isBlocked
-                                ? colors.textTertiary
-                                : colors.cardText,
+                              color: block.isBlocked ? colors.textTertiary : colors.cardText,
                             },
                           ]}
                         >
@@ -154,9 +136,7 @@ export default function AvailabilityScreen() {
                           style={[
                             typography.bodySmall,
                             {
-                              color: block.isBlocked
-                                ? colors.textMuted
-                                : colors.cardTextSecondary,
+                              color: block.isBlocked ? colors.textMuted : colors.cardTextSecondary,
                               marginTop: 2,
                             },
                           ]}
@@ -164,7 +144,7 @@ export default function AvailabilityScreen() {
                           {block.start} - {block.end}
                         </Text>
                       </View>
-                      
+
                       <View
                         style={[
                           styles.toggleIndicator,
@@ -204,10 +184,7 @@ export default function AvailabilityScreen() {
         </ScrollView>
 
         {/* CTA */}
-        <Animated.View
-          entering={FadeInUp.delay(900).duration(600).springify()}
-          style={styles.cta}
-        >
+        <Animated.View entering={FadeInUp.delay(900).duration(600).springify()} style={styles.cta}>
           <Button
             variant="primary"
             size="lg"

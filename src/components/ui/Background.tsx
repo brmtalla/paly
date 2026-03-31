@@ -11,20 +11,20 @@ const { width, height } = Dimensions.get('window');
 
 export function Background({ children }: BackgroundProps) {
   const { colors } = useTheme();
-  
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* 
         Web-specific: Real radial gradient for that perfect elliptical look
       */}
       {Platform.OS === 'web' && (
-        <View 
+        <View
           style={[
             StyleSheet.absoluteFill,
             {
               background: `radial-gradient(ellipse at center, transparent 20%, rgba(0,0,0,0.3) 100%)`,
               pointerEvents: 'none',
-            }
+            },
           ]}
         />
       )}
@@ -36,24 +36,14 @@ export function Background({ children }: BackgroundProps) {
         <>
           {/* Main vertical vignette - thicker edges */}
           <LinearGradient
-            colors={[
-              'rgba(0,0,0,0.25)',
-              'transparent',
-              'transparent',
-              'rgba(0,0,0,0.3)',
-            ]}
+            colors={['rgba(0,0,0,0.25)', 'transparent', 'transparent', 'rgba(0,0,0,0.3)']}
             locations={[0, 0.25, 0.75, 1]}
             style={StyleSheet.absoluteFill}
           />
-          
+
           {/* Main horizontal vignette - thicker edges */}
           <LinearGradient
-            colors={[
-              'rgba(0,0,0,0.2)',
-              'transparent',
-              'transparent',
-              'rgba(0,0,0,0.2)',
-            ]}
+            colors={['rgba(0,0,0,0.2)', 'transparent', 'transparent', 'rgba(0,0,0,0.2)']}
             locations={[0, 0.2, 0.8, 1]}
             start={{ x: 0, y: 0.5 }}
             end={{ x: 1, y: 0.5 }}
@@ -94,11 +84,7 @@ export function Background({ children }: BackgroundProps) {
 
       {/* Subtle Sheen for texture */}
       <LinearGradient
-        colors={[
-          'rgba(255,255,255,0.08)',
-          'transparent',
-          'rgba(0,0,0,0.05)',
-        ]}
+        colors={['rgba(255,255,255,0.08)', 'transparent', 'rgba(0,0,0,0.05)']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFill}
@@ -106,15 +92,16 @@ export function Background({ children }: BackgroundProps) {
 
       {/* Web Texture */}
       {Platform.OS === 'web' && (
-        <View 
+        <View
           style={[
-            StyleSheet.absoluteFill, 
-            { 
+            StyleSheet.absoluteFill,
+            {
               opacity: 0.03,
-              backgroundImage: 'url("https://www.transparenttextures.com/patterns/carbon-fibre.png")',
+              backgroundImage:
+                'url("https://www.transparenttextures.com/patterns/carbon-fibre.png")',
               pointerEvents: 'none',
-            }
-          ]} 
+            },
+          ]}
         />
       )}
 

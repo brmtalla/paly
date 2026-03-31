@@ -150,6 +150,17 @@ export default function SignInScreen() {
                 )}
               />
 
+              <Link href={'/(auth)/forgot-password' as any} asChild>
+                <Text
+                  style={[
+                    typography.bodySmall,
+                    { color: colors.textSecondary, textAlign: 'right', marginTop: SPACING.sm },
+                  ]}
+                >
+                  Forgot password?
+                </Text>
+              </Link>
+
               <Button
                 variant="primary"
                 size="lg"

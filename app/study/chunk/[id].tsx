@@ -6,6 +6,7 @@ import {
   ScrollView,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -18,7 +19,6 @@ import { useStudyStore } from '../../../src/stores/studyStore';
 import { useAuthStore } from '../../../src/stores/authStore';
 import { supabase } from '../../../src/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
-import { TouchableOpacity } from 'react-native';
 
 export default function ChunkViewerScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -47,18 +47,21 @@ export default function ChunkViewerScreen() {
       });
   }, [id]);
 
-  const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    if (hasMarked.current) return;
-    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
-    const isAtBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 40;
-    if (isAtBottom) {
-      setReachedBottom(true);
-      hasMarked.current = true;
-      if (profile?.id && id) {
-        markPromptScrolledToBottom(id, profile.id);
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (hasMarked.current) return;
+      const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+      const isAtBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 40;
+      if (isAtBottom) {
+        setReachedBottom(true);
+        hasMarked.current = true;
+        if (profile?.id && id) {
+          markPromptScrolledToBottom(id, profile.id);
+        }
       }
-    }
-  }, [id, profile?.id]);
+    },
+    [id, profile?.id]
+  );
 
   if (!prompt) {
     return (
@@ -81,8 +84,18 @@ export default function ChunkViewerScreen() {
     );
   }
 
-  const typeLabel = prompt.prompt_type === 'takeaway' ? 'Takeaway' : prompt.prompt_type === 'recall' ? 'Recall' : 'Study';
-  const typeIcon = prompt.prompt_type === 'takeaway' ? 'bulb-outline' : prompt.prompt_type === 'recall' ? 'refresh-outline' : 'book-outline';
+  const typeLabel =
+    prompt.prompt_type === 'takeaway'
+      ? 'Takeaway'
+      : prompt.prompt_type === 'recall'
+        ? 'Recall'
+        : 'Study';
+  const typeIcon =
+    prompt.prompt_type === 'takeaway'
+      ? 'bulb-outline'
+      : prompt.prompt_type === 'recall'
+        ? 'refresh-outline'
+        : 'book-outline';
 
   return (
     <Background>
@@ -92,7 +105,12 @@ export default function ChunkViewerScreen() {
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
           <View style={styles.headerCenter}>
-            <Ionicons name={typeIcon as any} size={18} color={colors.text} style={{ marginRight: 6 }} />
+            <Ionicons
+              name={typeIcon as any}
+              size={18}
+              color={colors.text}
+              style={{ marginRight: 6 }}
+            />
             <Text style={[typography.titleMedium, { color: colors.text }]}>{typeLabel}</Text>
           </View>
           <View style={{ width: 40 }}>
@@ -123,7 +141,9 @@ export default function ChunkViewerScreen() {
               <Animated.View entering={FadeIn.delay(500)}>
                 <View style={styles.scrollHint}>
                   <Ionicons name="chevron-down" size={20} color={colors.cardTextMuted} />
-                  <Text style={[typography.labelSmall, { color: colors.cardTextMuted, marginTop: 4 }]}>
+                  <Text
+                    style={[typography.labelSmall, { color: colors.cardTextMuted, marginTop: 4 }]}
+                  >
                     Scroll to finish reading
                   </Text>
                 </View>

@@ -41,11 +41,7 @@ export default function TabsLayout() {
         options={{
           title: 'Today',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? 'today' : 'today-outline'}
-              size={24}
-              color={color}
-            />
+            <Ionicons name={focused ? 'today' : 'today-outline'} size={24} color={color} />
           ),
         }}
       />
@@ -54,11 +50,7 @@ export default function TabsLayout() {
         options={{
           title: 'Classes',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? 'school' : 'school-outline'}
-              size={24}
-              color={color}
-            />
+            <Ionicons name={focused ? 'school' : 'school-outline'} size={24} color={color} />
           ),
         }}
       />
@@ -80,11 +72,7 @@ export default function TabsLayout() {
         options={{
           title: 'Study',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? 'sparkles' : 'sparkles-outline'}
-              size={24}
-              color={color}
-            />
+            <Ionicons name={focused ? 'sparkles' : 'sparkles-outline'} size={24} color={color} />
           ),
         }}
       />
@@ -93,11 +81,7 @@ export default function TabsLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? 'person' : 'person-outline'}
-              size={24}
-              color={color}
-            />
+            <Ionicons name={focused ? 'person' : 'person-outline'} size={24} color={color} />
           ),
         }}
       />

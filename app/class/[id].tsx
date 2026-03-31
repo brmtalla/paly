@@ -38,7 +38,13 @@ export default function ClassDetailScreen() {
   const { colors, colorScheme } = useTheme();
   const { classes, deleteClass } = useClassStore();
   const { notes, fetchNotes, uploadFile } = useNoteStore();
-  const { synthesizedContent, fetchSynthesizedContent, isSynthesizing, getOverdueQuizzes, getNextQuizDeadline } = useStudyStore();
+  const {
+    synthesizedContent,
+    fetchSynthesizedContent,
+    isSynthesizing,
+    getOverdueQuizzes,
+    getNextQuizDeadline,
+  } = useStudyStore();
   const { profile } = useAuthStore();
   const [isUploading, setIsUploading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -49,10 +55,14 @@ export default function ClassDetailScreen() {
   const streak = profile?.streak_count ?? 0;
 
   // Detect unsynthesized uploads for this class
-  const classUploads = notes.flatMap(n => n.uploads).filter(u => u.class_id === id);
-  const synthesizedDates = new Set(synthesizedContent.filter(c => c.class_id === id).map(c => c.session_date));
-  const uploadDates = new Set(classUploads.map(u => u.session_date));
-  const hasUnsynthesized = [...uploadDates].some(d => !synthesizedDates.has(d)) || (classUploads.length > 0 && synthesizedContent.filter(c => c.class_id === id).length === 0);
+  const classUploads = notes.flatMap((n) => n.uploads).filter((u) => u.class_id === id);
+  const synthesizedDates = new Set(
+    synthesizedContent.filter((c) => c.class_id === id).map((c) => c.session_date)
+  );
+  const uploadDates = new Set(classUploads.map((u) => u.session_date));
+  const hasUnsynthesized =
+    [...uploadDates].some((d) => !synthesizedDates.has(d)) ||
+    (classUploads.length > 0 && synthesizedContent.filter((c) => c.class_id === id).length === 0);
 
   // Glow animation for Synthesize button
   const glowOpacity = useSharedValue(0.4);
@@ -61,10 +71,10 @@ export default function ClassDetailScreen() {
       glowOpacity.value = withRepeat(
         withSequence(
           withTiming(1, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
-          withTiming(0.4, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
+          withTiming(0.4, { duration: 1000, easing: Easing.inOut(Easing.ease) })
         ),
         -1,
-        false,
+        false
       );
     } else {
       glowOpacity.value = withTiming(0, { duration: 300 });
@@ -74,9 +84,9 @@ export default function ClassDetailScreen() {
   const glowStyle = useAnimatedStyle(() => ({
     opacity: glowOpacity.value,
   }));
-  
-  const classData = classes.find(c => c.id === id);
-  const classNotes = notes.filter(n => n.class_id === id);
+
+  const classData = classes.find((c) => c.id === id);
+  const classNotes = notes.filter((n) => n.class_id === id);
 
   const fetchUploads = async () => {
     if (!profile?.id || !id) return;
@@ -117,14 +127,7 @@ export default function ClassDetailScreen() {
       const sessionDate = format(new Date(), 'yyyy-MM-dd');
 
       for (const asset of result.assets) {
-        await uploadFile(
-          null,
-          id!,
-          profile!.id,
-          sessionDate,
-          asset.uri,
-          asset.name
-        );
+        await uploadFile(null, id!, profile!.id, sessionDate, asset.uri, asset.name);
       }
 
       fetchUploads();
@@ -133,7 +136,7 @@ export default function ClassDetailScreen() {
         'Upload Complete',
         autoMode
           ? `${result.assets.length} file${result.assets.length > 1 ? 's' : ''} uploaded! Study texts will start arriving automatically.`
-          : `${result.assets.length} file${result.assets.length > 1 ? 's' : ''} uploaded! Tap Synthesize when you're ready to generate study materials.`,
+          : `${result.assets.length} file${result.assets.length > 1 ? 's' : ''} uploaded! Tap Synthesize when you're ready to generate study materials.`
       );
     } catch (error) {
       console.error('Upload error:', error);
@@ -167,35 +170,34 @@ export default function ClassDetailScreen() {
       } else {
         Alert.alert(
           'Synthesis Complete',
-          `Study materials generated! ${data?.promptsScheduled || 0} study texts scheduled over ${data?.studyDays || 0} days.`,
+          `Study materials generated! ${data?.promptsScheduled || 0} study texts scheduled over ${data?.studyDays || 0} days.`
         );
         fetchSynthesizedContent(profile.id, id);
       }
     } catch (error: any) {
       console.error('Synthesis error:', error);
-      Alert.alert('Synthesis Failed', error.message || 'Make sure you have notes or uploaded files first.');
+      Alert.alert(
+        'Synthesis Failed',
+        error.message || 'Make sure you have notes or uploaded files first.'
+      );
     } finally {
       setIsProcessing(false);
     }
   };
 
   const handleDeleteUpload = (upload: any) => {
-    Alert.alert(
-      'Delete Upload',
-      `Remove "${upload.file_name}"?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            await supabase.storage.from('uploads').remove([upload.file_path]);
-            await supabase.from('uploads').delete().eq('id', upload.id);
-            fetchUploads();
-          },
+    Alert.alert('Delete Upload', `Remove "${upload.file_name}"?`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          await supabase.storage.from('uploads').remove([upload.file_path]);
+          await supabase.from('uploads').delete().eq('id', upload.id);
+          fetchUploads();
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const handleDelete = () => {
@@ -229,9 +231,7 @@ export default function ClassDetailScreen() {
       <Background>
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.centered}>
-            <Text style={[typography.bodyLarge, { color: colors.text }]}>
-              Class not found
-            </Text>
+            <Text style={[typography.bodyLarge, { color: colors.text }]}>Class not found</Text>
             <Button variant="ghost" onPress={() => router.back()}>
               Go Back
             </Button>
@@ -267,13 +267,10 @@ export default function ClassDetailScreen() {
             entering={FadeInDown.delay(100).duration(600).springify()}
             style={styles.header}
           >
-            <TouchableOpacity
-              onPress={() => router.back()}
-              style={styles.backButton}
-            >
+            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
               <Ionicons name="arrow-back" size={24} color={colors.text} />
             </TouchableOpacity>
-            
+
             <View style={styles.headerActions}>
               <TouchableOpacity
                 onPress={() => router.push(`/class/${id}/edit` as any)}
@@ -291,34 +288,34 @@ export default function ClassDetailScreen() {
           </Animated.View>
 
           {/* Class Info */}
-          <Animated.View
-            entering={FadeInDown.delay(200).duration(600).springify()}
-          >
+          <Animated.View entering={FadeInDown.delay(200).duration(600).springify()}>
             <Card style={styles.infoCard}>
               <Text style={[typography.headlineMedium, { color: colors.cardText }]}>
                 {classData.name}
               </Text>
-              
+
               {/* Location */}
               {classData.location && (
                 <View style={styles.infoRow}>
                   <Ionicons name="location-outline" size={18} color={colors.cardTextSecondary} />
-                  <Text style={[typography.bodyMedium, { color: colors.cardTextSecondary, marginLeft: SPACING.sm }]}>
+                  <Text
+                    style={[
+                      typography.bodyMedium,
+                      { color: colors.cardTextSecondary, marginLeft: SPACING.sm },
+                    ]}
+                  >
                     {classData.location}
                   </Text>
                 </View>
               )}
-              
+
               {/* Schedule */}
               <View style={styles.schedule}>
                 <View style={styles.days}>
                   {classData.class_sessions?.map((session, index) => (
                     <View
                       key={index}
-                      style={[
-                        styles.dayBadge,
-                        { backgroundColor: colors.background },
-                      ]}
+                      style={[styles.dayBadge, { backgroundColor: colors.background }]}
                     >
                       <Text style={[typography.labelSmall, { color: colors.text }]}>
                         {getDayLabel(session.day_of_week)}
@@ -326,12 +323,18 @@ export default function ClassDetailScreen() {
                     </View>
                   ))}
                 </View>
-                
+
                 {classData.class_sessions?.[0] && (
                   <View style={styles.infoRow}>
                     <Ionicons name="time-outline" size={18} color={colors.cardTextSecondary} />
-                    <Text style={[typography.bodyMedium, { color: colors.cardTextSecondary, marginLeft: SPACING.sm }]}>
-                      {classData.class_sessions[0].start_time} - {classData.class_sessions[0].end_time}
+                    <Text
+                      style={[
+                        typography.bodyMedium,
+                        { color: colors.cardTextSecondary, marginLeft: SPACING.sm },
+                      ]}
+                    >
+                      {classData.class_sessions[0].start_time} -{' '}
+                      {classData.class_sessions[0].end_time}
                     </Text>
                   </View>
                 )}
@@ -341,7 +344,12 @@ export default function ClassDetailScreen() {
               {(classData.start_date || classData.end_date) && (
                 <View style={[styles.infoRow, { marginTop: SPACING.md }]}>
                   <Ionicons name="calendar-outline" size={18} color={colors.cardTextSecondary} />
-                  <Text style={[typography.bodyMedium, { color: colors.cardTextSecondary, marginLeft: SPACING.sm }]}>
+                  <Text
+                    style={[
+                      typography.bodyMedium,
+                      { color: colors.cardTextSecondary, marginLeft: SPACING.sm },
+                    ]}
+                  >
                     {formatDate(classData.start_date)} — {formatDate(classData.end_date)}
                   </Text>
                 </View>
@@ -351,9 +359,7 @@ export default function ClassDetailScreen() {
 
           {/* Instructor Info */}
           {(classData.instructor_name || classData.instructor_email) && (
-            <Animated.View
-              entering={FadeInDown.delay(250).duration(600).springify()}
-            >
+            <Animated.View entering={FadeInDown.delay(250).duration(600).springify()}>
               <Card style={styles.instructorCard}>
                 <View style={styles.instructorHeader}>
                   <View style={[styles.instructorAvatar, { backgroundColor: colors.background }]}>
@@ -370,7 +376,7 @@ export default function ClassDetailScreen() {
                     )}
                   </View>
                 </View>
-                
+
                 {classData.instructor_email && (
                   <Button
                     variant="secondary"
@@ -398,9 +404,7 @@ export default function ClassDetailScreen() {
               <View style={[styles.quickActionIcon, { backgroundColor: colors.background }]}>
                 <Ionicons name="create-outline" size={24} color={colors.text} />
               </View>
-              <Text style={[typography.labelMedium, { color: colors.cardText }]}>
-                Take Notes
-              </Text>
+              <Text style={[typography.labelMedium, { color: colors.cardText }]}>Take Notes</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -421,7 +425,10 @@ export default function ClassDetailScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.quickAction, { backgroundColor: colors.card, ...SHADOWS.md, overflow: 'hidden' }]}
+              style={[
+                styles.quickAction,
+                { backgroundColor: colors.card, ...SHADOWS.md, overflow: 'hidden' },
+              ]}
               onPress={handleSynthesize}
               disabled={isProcessing || isSynthesizing}
             >
@@ -435,10 +442,19 @@ export default function ClassDetailScreen() {
                 {isProcessing || isSynthesizing ? (
                   <ActivityIndicator size="small" color={colors.text} />
                 ) : (
-                  <Ionicons name="sparkles-outline" size={24} color={hasUnsynthesized ? '#8B5CF6' : colors.text} />
+                  <Ionicons
+                    name="sparkles-outline"
+                    size={24}
+                    color={hasUnsynthesized ? '#8B5CF6' : colors.text}
+                  />
                 )}
               </View>
-              <Text style={[typography.labelMedium, { color: hasUnsynthesized ? '#fff' : colors.cardText }]}>
+              <Text
+                style={[
+                  typography.labelMedium,
+                  { color: hasUnsynthesized ? '#fff' : colors.cardText },
+                ]}
+              >
                 {isProcessing || isSynthesizing ? 'Synthesizing...' : 'Synthesize'}
               </Text>
             </TouchableOpacity>
@@ -450,9 +466,7 @@ export default function ClassDetailScreen() {
               <View style={[styles.quickActionIcon, { backgroundColor: colors.background }]}>
                 <Ionicons name="book-outline" size={24} color={colors.text} />
               </View>
-              <Text style={[typography.labelMedium, { color: colors.cardText }]}>
-                Study
-              </Text>
+              <Text style={[typography.labelMedium, { color: colors.cardText }]}>Study</Text>
             </TouchableOpacity>
           </Animated.View>
 
@@ -462,7 +476,12 @@ export default function ClassDetailScreen() {
             style={{ marginBottom: SPACING.lg }}
           >
             {overdueQuizzes.length > 0 ? (
-              <Card style={[styles.quizStatusCard, { borderLeftColor: colors.error, borderLeftWidth: 4 }]}>
+              <Card
+                style={[
+                  styles.quizStatusCard,
+                  { borderLeftColor: colors.error, borderLeftWidth: 4 },
+                ]}
+              >
                 <View style={styles.quizStatusRow}>
                   <Ionicons name="alert-circle" size={28} color={colors.error} />
                   <View style={{ flex: 1, marginLeft: SPACING.md }}>
@@ -485,9 +504,7 @@ export default function ClassDetailScreen() {
               <Card style={styles.quizStatusCard}>
                 <View style={styles.quizStatusRow}>
                   <View style={[styles.streakBadge, { backgroundColor: colors.background }]}>
-                    <Text style={[typography.headlineSmall, { color: colors.text }]}>
-                      {streak}
-                    </Text>
+                    <Text style={[typography.headlineSmall, { color: colors.text }]}>{streak}</Text>
                   </View>
                   <View style={{ flex: 1, marginLeft: SPACING.md }}>
                     <Text style={[typography.titleSmall, { color: colors.cardText }]}>
@@ -499,7 +516,11 @@ export default function ClassDetailScreen() {
                         : 'Upload slides to start studying'}
                     </Text>
                   </View>
-                  <Ionicons name="flame" size={24} color={streak > 0 ? '#FF6B35' : colors.cardTextMuted} />
+                  <Ionicons
+                    name="flame"
+                    size={24}
+                    color={streak > 0 ? '#FF6B35' : colors.cardTextMuted}
+                  />
                 </View>
               </Card>
             )}
@@ -511,14 +532,25 @@ export default function ClassDetailScreen() {
               entering={FadeInDown.delay(375).duration(600).springify()}
               style={{ marginBottom: SPACING.lg }}
             >
-              <Text style={[typography.titleMedium, { color: colors.text, marginBottom: SPACING.md }]}>
+              <Text
+                style={[typography.titleMedium, { color: colors.text, marginBottom: SPACING.md }]}
+              >
                 Uploads ({classUploadsData.length})
               </Text>
               {classUploadsData.map((upload) => {
-                const ext = (upload.file_type || upload.file_name?.split('.').pop() || '').toLowerCase();
-                const iconName = ext === 'pdf' ? 'document-text' :
-                  ['pptx', 'ppt'].includes(ext) ? 'easel' :
-                  ['docx', 'doc'].includes(ext) ? 'document' : 'attach';
+                const ext = (
+                  upload.file_type ||
+                  upload.file_name?.split('.').pop() ||
+                  ''
+                ).toLowerCase();
+                const iconName =
+                  ext === 'pdf'
+                    ? 'document-text'
+                    : ['pptx', 'ppt'].includes(ext)
+                      ? 'easel'
+                      : ['docx', 'doc'].includes(ext)
+                        ? 'document'
+                        : 'attach';
                 const hasText = !!upload.extracted_text;
                 const sizeKB = upload.file_size ? Math.round(upload.file_size / 1024) : null;
 
@@ -534,7 +566,9 @@ export default function ClassDetailScreen() {
                       >
                         {upload.file_name}
                       </Text>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 }}>
+                      <View
+                        style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 }}
+                      >
                         <Text style={[typography.labelSmall, { color: colors.cardTextMuted }]}>
                           {format(new Date(upload.created_at), 'MMM d')}
                         </Text>
@@ -546,14 +580,21 @@ export default function ClassDetailScreen() {
                         {hasText ? (
                           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                             <Ionicons name="checkmark-circle" size={12} color="#34C759" />
-                            <Text style={[typography.labelSmall, { color: '#34C759', marginLeft: 3 }]}>
+                            <Text
+                              style={[typography.labelSmall, { color: '#34C759', marginLeft: 3 }]}
+                            >
                               Extracted
                             </Text>
                           </View>
                         ) : (
                           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                             <Ionicons name="time-outline" size={12} color={colors.cardTextMuted} />
-                            <Text style={[typography.labelSmall, { color: colors.cardTextMuted, marginLeft: 3 }]}>
+                            <Text
+                              style={[
+                                typography.labelSmall,
+                                { color: colors.cardTextMuted, marginLeft: 3 },
+                              ]}
+                            >
                               Processing
                             </Text>
                           </View>
@@ -573,48 +614,62 @@ export default function ClassDetailScreen() {
           )}
 
           {/* Notes Section */}
-          <Animated.View
-            entering={FadeInDown.delay(400).duration(600).springify()}
-          >
-            <Text style={[typography.titleMedium, { color: colors.text, marginBottom: SPACING.md }]}>
+          <Animated.View entering={FadeInDown.delay(400).duration(600).springify()}>
+            <Text
+              style={[typography.titleMedium, { color: colors.text, marginBottom: SPACING.md }]}
+            >
               Notes ({classNotes.length})
             </Text>
 
             {classNotes.length === 0 ? (
               <Card style={styles.emptyCard}>
-                <Ionicons 
-                  name="document-text-outline" 
-                  size={48} 
-                  color={colorScheme === 'dark' ? colors.text : colors.cardTextMuted} 
+                <Ionicons
+                  name="document-text-outline"
+                  size={48}
+                  color={colorScheme === 'dark' ? colors.text : colors.cardTextMuted}
                 />
-                <Text style={[typography.bodyLarge, { color: colors.cardText, marginTop: SPACING.md }]}>
+                <Text
+                  style={[typography.bodyLarge, { color: colors.cardText, marginTop: SPACING.md }]}
+                >
                   No notes yet
                 </Text>
-                <Text style={[typography.bodySmall, { color: colors.cardTextSecondary, textAlign: 'center' }]}>
+                <Text
+                  style={[
+                    typography.bodySmall,
+                    { color: colors.cardTextSecondary, textAlign: 'center' },
+                  ]}
+                >
                   Take notes during class to generate study materials
                 </Text>
               </Card>
             ) : (
               classNotes.map((note, index) => (
-                <TouchableOpacity
-                  key={note.id}
-                  onPress={() => router.push(`/notes/${note.id}`)}
-                >
+                <TouchableOpacity key={note.id} onPress={() => router.push(`/notes/${note.id}`)}>
                   <Card style={styles.noteCard}>
                     <View style={styles.noteHeader}>
                       <Text style={[typography.titleSmall, { color: colors.cardText }]}>
                         {format(new Date(note.session_date), 'EEEE, MMM d')}
                       </Text>
                       {note.is_synthesized && (
-                        <View style={[styles.synthesizedBadge, { backgroundColor: colors.success + '20' }]}>
+                        <View
+                          style={[
+                            styles.synthesizedBadge,
+                            { backgroundColor: colors.success + '20' },
+                          ]}
+                        >
                           <Ionicons name="sparkles" size={12} color={colors.success} />
-                          <Text style={[typography.labelSmall, { color: colors.success, marginLeft: 4 }]}>
+                          <Text
+                            style={[
+                              typography.labelSmall,
+                              { color: colors.success, marginLeft: 4 },
+                            ]}
+                          >
                             Synthesized
                           </Text>
                         </View>
                       )}
                     </View>
-                    <Text 
+                    <Text
                       style={[typography.bodySmall, { color: colors.cardTextSecondary }]}
                       numberOfLines={2}
                     >

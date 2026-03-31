@@ -17,22 +17,22 @@ export const FONT_SIZES = {
   displayLarge: 48,
   displayMedium: 40,
   displaySmall: 32,
-  
+
   // Headline sizes
   headlineLarge: 28,
   headlineMedium: 24,
   headlineSmall: 20,
-  
+
   // Title sizes
   titleLarge: 18,
   titleMedium: 16,
   titleSmall: 14,
-  
+
   // Body sizes
   bodyLarge: 16,
   bodyMedium: 14,
   bodySmall: 12,
-  
+
   // Label sizes
   labelLarge: 14,
   labelMedium: 12,
@@ -82,7 +82,7 @@ export const typography: Record<string, TextStyle> = {
     lineHeight: FONT_SIZES.displaySmall * LINE_HEIGHTS.tight,
     letterSpacing: LETTER_SPACING.tight,
   },
-  
+
   // Headlines - for section titles
   headlineLarge: {
     fontSize: FONT_SIZES.headlineLarge,
@@ -102,7 +102,7 @@ export const typography: Record<string, TextStyle> = {
     lineHeight: FONT_SIZES.headlineSmall * LINE_HEIGHTS.normal,
     letterSpacing: LETTER_SPACING.normal,
   },
-  
+
   // Titles - for cards, list items
   titleLarge: {
     fontSize: FONT_SIZES.titleLarge,
@@ -122,7 +122,7 @@ export const typography: Record<string, TextStyle> = {
     lineHeight: FONT_SIZES.titleSmall * LINE_HEIGHTS.normal,
     letterSpacing: LETTER_SPACING.normal,
   },
-  
+
   // Body - for paragraphs, content
   bodyLarge: {
     fontSize: FONT_SIZES.bodyLarge,
@@ -142,7 +142,7 @@ export const typography: Record<string, TextStyle> = {
     lineHeight: FONT_SIZES.bodySmall * LINE_HEIGHTS.relaxed,
     letterSpacing: LETTER_SPACING.normal,
   },
-  
+
   // Labels - for buttons, tags, captions
   labelLarge: {
     fontSize: FONT_SIZES.labelLarge,
@@ -164,5 +164,3 @@ export const typography: Record<string, TextStyle> = {
     textTransform: 'uppercase',
   },
 };
-
-

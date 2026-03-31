@@ -1,10 +1,4 @@
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[];
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export interface Database {
   public: {
@@ -399,7 +393,8 @@ export type SynthesizedContent = Database['public']['Tables']['synthesized_conte
 export type StudyPrompt = Database['public']['Tables']['study_prompts']['Row'];
 export type QuizAttempt = Database['public']['Tables']['quiz_attempts']['Row'];
 export type AvailabilityBlock = Database['public']['Tables']['availability_blocks']['Row'];
-export type NotificationPreferences = Database['public']['Tables']['notification_preferences']['Row'];
+export type NotificationPreferences =
+  Database['public']['Tables']['notification_preferences']['Row'];
 
 // Extended types with relations
 export type ClassWithSessions = Class & {
@@ -431,5 +426,3 @@ export type DailyChunk = {
   content: string;
   key_points: string[];
 };
-
-

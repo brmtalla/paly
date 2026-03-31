@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -17,6 +18,11 @@ import { SPACING, LAYOUT, RADIUS, SHADOWS } from '../../src/theme/spacing';
 import { Card, Button, Background } from '../../src/components/ui';
 import { useAuthStore } from '../../src/stores/authStore';
 import { Ionicons } from '@expo/vector-icons';
+
+const SUPPORT_EMAIL = 'support@paly.app';
+const PRIVACY_URL = 'https://paly.app/privacy';
+const TERMS_URL = 'https://paly.app/terms';
+const FAQ_URL = 'https://paly.app/faq';
 
 export default function ProfileScreen() {
   const { colors, setAccentColor, accentColor, toggleColorScheme, colorScheme } = useTheme();
@@ -178,25 +184,25 @@ export default function ProfileScreen() {
               <SettingsItem
                 icon="help-circle-outline"
                 label="Help & FAQ"
-                onPress={() => {}}
+                onPress={() => Linking.openURL(FAQ_URL)}
                 colors={colors}
               />
               <SettingsItem
                 icon="chatbubble-outline"
                 label="Contact Us"
-                onPress={() => {}}
+                onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}`)}
                 colors={colors}
               />
               <SettingsItem
                 icon="document-text-outline"
                 label="Terms of Service"
-                onPress={() => {}}
+                onPress={() => Linking.openURL(TERMS_URL)}
                 colors={colors}
               />
               <SettingsItem
                 icon="shield-outline"
                 label="Privacy Policy"
-                onPress={() => {}}
+                onPress={() => Linking.openURL(PRIVACY_URL)}
                 colors={colors}
                 isLast
               />

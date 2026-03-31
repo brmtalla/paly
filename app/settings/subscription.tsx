@@ -1,13 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-  Linking,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
@@ -21,7 +13,11 @@ import { Ionicons } from '@expo/vector-icons';
 
 const PREMIUM_FEATURES = [
   { icon: 'chatbubbles', title: 'SMS Study Prompts', description: 'Get prompts via text message' },
-  { icon: 'sparkles', title: 'Advanced Synthesis', description: 'Deeper analysis & more flashcards' },
+  {
+    icon: 'sparkles',
+    title: 'Advanced Synthesis',
+    description: 'Deeper analysis & more flashcards',
+  },
   { icon: 'school', title: 'Exam Mode', description: 'Intensive review before exams' },
   { icon: 'infinite', title: 'Unlimited Classes', description: 'No limit on class count' },
   { icon: 'cloud-upload', title: 'More Storage', description: 'Upload larger files' },
@@ -83,16 +79,11 @@ export default function SubscriptionScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         {/* Header */}
-        <Animated.View
-          entering={FadeInDown.delay(100).duration(400)}
-          style={styles.header}
-        >
+        <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[typography.titleLarge, { color: colors.text }]}>
-            Subscription
-          </Text>
+          <Text style={[typography.titleLarge, { color: colors.text }]}>Subscription</Text>
           <View style={{ width: 40 }} />
         </Animated.View>
 
@@ -111,7 +102,11 @@ export default function SubscriptionScreen() {
                 <View
                   style={[
                     styles.planIcon,
-                    { backgroundColor: profile?.is_premium ? colors.accent : colors.backgroundSecondary },
+                    {
+                      backgroundColor: profile?.is_premium
+                        ? colors.accent
+                        : colors.backgroundSecondary,
+                    },
                   ]}
                 >
                   <Ionicons
@@ -143,12 +138,8 @@ export default function SubscriptionScreen() {
                 </Button>
               ) : (
                 <View style={styles.priceContainer}>
-                  <Text style={[typography.displaySmall, { color: colors.accent }]}>
-                    $4.99
-                  </Text>
-                  <Text style={[typography.bodySmall, { color: colors.textMuted }]}>
-                    /month
-                  </Text>
+                  <Text style={[typography.displaySmall, { color: colors.accent }]}>$4.99</Text>
+                  <Text style={[typography.bodySmall, { color: colors.textMuted }]}>/month</Text>
                 </View>
               )}
             </Card>
@@ -159,7 +150,9 @@ export default function SubscriptionScreen() {
             entering={FadeInUp.delay(300).duration(600).springify()}
             style={styles.section}
           >
-            <Text style={[typography.headlineSmall, { color: colors.text, marginBottom: SPACING.lg }]}>
+            <Text
+              style={[typography.headlineSmall, { color: colors.text, marginBottom: SPACING.lg }]}
+            >
               {profile?.is_premium ? 'Your Premium Features' : 'Upgrade to Premium'}
             </Text>
 
@@ -169,17 +162,8 @@ export default function SubscriptionScreen() {
                 entering={FadeInUp.delay(index * 100 + 400).duration(400)}
               >
                 <View style={styles.featureItem}>
-                  <View
-                    style={[
-                      styles.featureIcon,
-                      { backgroundColor: colors.accentLight },
-                    ]}
-                  >
-                    <Ionicons
-                      name={feature.icon as any}
-                      size={20}
-                      color={colors.accent}
-                    />
+                  <View style={[styles.featureIcon, { backgroundColor: colors.accentLight }]}>
+                    <Ionicons name={feature.icon as any} size={20} color={colors.accent} />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={[typography.titleSmall, { color: colors.text }]}>
@@ -204,16 +188,13 @@ export default function SubscriptionScreen() {
               style={styles.section}
             >
               <Card variant="elevated" padding="lg">
-                <Text style={[typography.titleMedium, { color: colors.text, marginBottom: SPACING.lg }]}>
+                <Text
+                  style={[typography.titleMedium, { color: colors.text, marginBottom: SPACING.lg }]}
+                >
                   Compare Plans
                 </Text>
 
-                <ComparisonRow
-                  label="Classes"
-                  free="3 max"
-                  premium="Unlimited"
-                  colors={colors}
-                />
+                <ComparisonRow label="Classes" free="3 max" premium="Unlimited" colors={colors} />
                 <ComparisonRow
                   label="Study Prompts"
                   free="Push only"
@@ -291,13 +272,18 @@ function ComparisonRow({ label, free, premium, colors, isLast }: ComparisonRowPr
         !isLast && { borderBottomWidth: 1, borderBottomColor: colors.backgroundSecondary },
       ]}
     >
-      <Text style={[typography.bodyMedium, { color: colors.text, flex: 1 }]}>
-        {label}
-      </Text>
-      <Text style={[typography.bodySmall, { color: colors.textMuted, width: 80, textAlign: 'center' }]}>
+      <Text style={[typography.bodyMedium, { color: colors.text, flex: 1 }]}>{label}</Text>
+      <Text
+        style={[typography.bodySmall, { color: colors.textMuted, width: 80, textAlign: 'center' }]}
+      >
         {free}
       </Text>
-      <Text style={[typography.bodySmall, { color: colors.accent, width: 80, textAlign: 'center', fontWeight: '600' }]}>
+      <Text
+        style={[
+          typography.bodySmall,
+          { color: colors.accent, width: 80, textAlign: 'center', fontWeight: '600' },
+        ]}
+      >
         {premium}
       </Text>
     </View>
@@ -371,5 +357,3 @@ const styles = StyleSheet.create({
     marginTop: SPACING['2xl'],
   },
 });
-
-

@@ -26,7 +26,7 @@ function RootLayoutNav() {
   const { colors, colorScheme } = useTheme();
   const { isInitialized, profile, user, isLoading } = useAuthStore();
   const segments = useSegments();
-  
+
   // Initialize notifications
   useNotifications();
 
@@ -74,9 +74,9 @@ function RootLayoutNav() {
 }
 
 export default function RootLayout() {
-  const initialize = useAuthStore(state => state.initialize);
-  const isInitialized = useAuthStore(state => state.isInitialized);
-  const profile = useAuthStore(state => state.profile);
+  const initialize = useAuthStore((state) => state.initialize);
+  const isInitialized = useAuthStore((state) => state.isInitialized);
+  const profile = useAuthStore((state) => state.profile);
   const [showSplash, setShowSplash] = useState(true);
   const [nativeSplashHidden, setNativeSplashHidden] = useState(false);
 
@@ -120,4 +120,3 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
-

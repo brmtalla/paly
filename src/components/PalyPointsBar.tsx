@@ -35,7 +35,7 @@ export function PalyPointsBar() {
 
       if (data) {
         const m = data.paly_points_month || currentMonth;
-        const p = m === currentMonth ? (data.paly_points || 0) : 0;
+        const p = m === currentMonth ? data.paly_points || 0 : 0;
         setPoints(p);
         setMonth(m);
         progressWidth.value = withSpring(Math.min(p / PRO_THRESHOLD, 1), { damping: 15 });
@@ -46,19 +46,25 @@ export function PalyPointsBar() {
 
     const channel = supabase
       .channel('points-bar')
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'profiles',
-        filter: `id=eq.${profile.id}`,
-      }, (payload: any) => {
-        const newPoints = payload.new.paly_points || 0;
-        setPoints(newPoints);
-        progressWidth.value = withSpring(Math.min(newPoints / PRO_THRESHOLD, 1), { damping: 15 });
-      })
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${profile.id}`,
+        },
+        (payload: any) => {
+          const newPoints = payload.new.paly_points || 0;
+          setPoints(newPoints);
+          progressWidth.value = withSpring(Math.min(newPoints / PRO_THRESHOLD, 1), { damping: 15 });
+        }
+      )
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [profile?.id]);
 
   const animatedBarStyle = useAnimatedStyle(() => ({
@@ -76,11 +82,7 @@ export function PalyPointsBar() {
     >
       <View style={styles.row}>
         <View style={styles.left}>
-          <Ionicons
-            name="star"
-            size={16}
-            color={isProUnlocked ? '#FFD700' : '#FFD70080'}
-          />
+          <Ionicons name="star" size={16} color={isProUnlocked ? '#FFD700' : '#FFD70080'} />
           <Text style={[typography.labelMedium, { color: colors.cardText, marginLeft: 6 }]}>
             {points}
           </Text>
@@ -90,7 +92,9 @@ export function PalyPointsBar() {
         </View>
         {isProUnlocked && (
           <View style={styles.proBadge}>
-            <Text style={[typography.labelSmall, { color: '#FFD700', fontSize: 10, fontWeight: '800' }]}>
+            <Text
+              style={[typography.labelSmall, { color: '#FFD700', fontSize: 10, fontWeight: '800' }]}
+            >
               PRO
             </Text>
           </View>

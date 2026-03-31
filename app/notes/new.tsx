@@ -45,7 +45,13 @@ export default function NewNoteScreen() {
   const handlePickDocument = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: ['application/pdf', 'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+        type: [
+          'application/pdf',
+          'application/vnd.ms-powerpoint',
+          'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ],
         copyToCacheDirectory: true,
       });
 
@@ -111,16 +117,11 @@ export default function NewNoteScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         {/* Header */}
-        <Animated.View
-          entering={FadeInDown.delay(100).duration(400)}
-          style={styles.header}
-        >
+        <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="close" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[typography.titleLarge, { color: colors.text, flex: 1 }]}>
-            New Note
-          </Text>
+          <Text style={[typography.titleLarge, { color: colors.text, flex: 1 }]}>New Note</Text>
           <Button
             variant="primary"
             size="sm"
@@ -142,7 +143,12 @@ export default function NewNoteScreen() {
           >
             {/* Class selector */}
             <Animated.View entering={FadeInUp.delay(200).duration(400)}>
-              <Text style={[typography.labelSmall, { color: colors.textMuted, marginBottom: SPACING.sm }]}>
+              <Text
+                style={[
+                  typography.labelSmall,
+                  { color: colors.textMuted, marginBottom: SPACING.sm },
+                ]}
+              >
                 CLASS
               </Text>
               <ScrollView
@@ -150,7 +156,7 @@ export default function NewNoteScreen() {
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.classSelector}
               >
-                {classes.map(classData => (
+                {classes.map((classData) => (
                   <TouchableOpacity
                     key={classData.id}
                     onPress={() => setSelectedClassId(classData.id)}
@@ -169,9 +175,7 @@ export default function NewNoteScreen() {
                         typography.labelMedium,
                         {
                           color:
-                            selectedClassId === classData.id
-                              ? '#FFFFFF'
-                              : colors.textSecondary,
+                            selectedClassId === classData.id ? '#FFFFFF' : colors.textSecondary,
                         },
                       ]}
                     >
@@ -189,16 +193,15 @@ export default function NewNoteScreen() {
                 placeholderTextColor={colors.textMuted}
                 value={title}
                 onChangeText={setTitle}
-                style={[
-                  styles.titleInput,
-                  typography.headlineSmall,
-                  { color: colors.text },
-                ]}
+                style={[styles.titleInput, typography.headlineSmall, { color: colors.text }]}
               />
             </Animated.View>
 
             {/* Content input */}
-            <Animated.View entering={FadeInUp.delay(400).duration(400)} style={styles.contentSection}>
+            <Animated.View
+              entering={FadeInUp.delay(400).duration(400)}
+              style={styles.contentSection}
+            >
               <TextInput
                 placeholder="Start typing your notes..."
                 placeholderTextColor={colors.textMuted}
@@ -206,20 +209,24 @@ export default function NewNoteScreen() {
                 onChangeText={setContent}
                 multiline
                 textAlignVertical="top"
-                style={[
-                  styles.contentInput,
-                  typography.bodyLarge,
-                  { color: colors.text },
-                ]}
+                style={[styles.contentInput, typography.bodyLarge, { color: colors.text }]}
               />
             </Animated.View>
 
             {/* Attachments */}
-            <Animated.View entering={FadeInUp.delay(500).duration(400)} style={styles.attachmentsSection}>
-              <Text style={[typography.labelSmall, { color: colors.textMuted, marginBottom: SPACING.sm }]}>
+            <Animated.View
+              entering={FadeInUp.delay(500).duration(400)}
+              style={styles.attachmentsSection}
+            >
+              <Text
+                style={[
+                  typography.labelSmall,
+                  { color: colors.textMuted, marginBottom: SPACING.sm },
+                ]}
+              >
                 ATTACHMENTS
               </Text>
-              
+
               {attachments.map((attachment, index) => (
                 <Card key={index} variant="default" padding="md" style={styles.attachmentCard}>
                   <View style={styles.attachmentContent}>
@@ -324,5 +331,3 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
   },
 });
-
-

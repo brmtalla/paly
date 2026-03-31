@@ -14,6 +14,13 @@ serve(async (req) => {
   }
 
   try {
+    if (!OPENAI_API_KEY) {
+      return new Response(
+        JSON.stringify({ error: "Server configuration error: AI service unavailable" }),
+        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { uploadId, filePath, fileType, classId, userId, sessionDate, skipExtraction, extractOnly } = await req.json();
 
     if (!classId || !userId) {

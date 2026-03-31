@@ -12,11 +12,7 @@ import {
 import { useTheme } from '../../theme/ThemeContext';
 import { typography } from '../../theme/typography';
 import { SPACING, RADIUS, LAYOUT, SHADOWS } from '../../theme/spacing';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-} from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 
 interface InputProps extends TextInputProps {
@@ -65,10 +61,7 @@ export function Input({
   const handleBlur = () => {
     setIsFocused(false);
     if (Platform.OS !== 'web') {
-      borderColor.value = withTiming(
-        error ? colors.error : colors.border,
-        { duration: 150 }
-      );
+      borderColor.value = withTiming(error ? colors.error : colors.border, { duration: 150 });
     }
     props.onBlur?.({} as any);
   };
@@ -83,17 +76,16 @@ export function Input({
   return (
     <View style={[styles.container, containerStyle]}>
       {label && (
-        <Text style={[styles.label, typography.labelMedium, { color: colors.text }]}>
-          {label}
-        </Text>
+        <Text style={[styles.label, typography.labelMedium, { color: colors.text }]}>{label}</Text>
       )}
-      
+
       <Animated.View
         style={[
           styles.inputContainer,
           {
             backgroundColor: colors.card,
-            borderColor: Platform.OS === 'web' ? getBorderColor() : (error ? colors.error : colors.border),
+            borderColor:
+              Platform.OS === 'web' ? getBorderColor() : error ? colors.error : colors.border,
             // Add CSS transition for web
             ...(Platform.OS === 'web' ? { transition: 'border-color 150ms ease' } : {}),
           },
@@ -102,7 +94,7 @@ export function Input({
         ]}
       >
         {leftIcon && <View style={styles.leftIcon}>{leftIcon}</View>}
-        
+
         <TextInput
           {...props}
           style={[
@@ -122,12 +114,9 @@ export function Input({
           onBlur={handleBlur}
           secureTextEntry={isPassword && !showPassword}
         />
-        
+
         {isPassword && (
-          <TouchableOpacity
-            onPress={() => setShowPassword(!showPassword)}
-            style={styles.rightIcon}
-          >
+          <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.rightIcon}>
             <Ionicons
               name={showPassword ? 'eye-off-outline' : 'eye-outline'}
               size={22}
@@ -135,12 +124,10 @@ export function Input({
             />
           </TouchableOpacity>
         )}
-        
-        {rightIcon && !isPassword && (
-          <View style={styles.rightIcon}>{rightIcon}</View>
-        )}
+
+        {rightIcon && !isPassword && <View style={styles.rightIcon}>{rightIcon}</View>}
       </Animated.View>
-      
+
       {(error || hint) && (
         <Text
           style={[

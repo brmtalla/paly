@@ -3,4 +3,5 @@ export { Input } from './Input';
 export { Card } from './Card';
 export { GlassCard } from './GlassCard';
 export { Background } from './Background';
+export { ErrorState } from './ErrorState';
 

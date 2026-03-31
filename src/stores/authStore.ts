@@ -15,6 +15,8 @@ interface AuthState {
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<{ error: Error | null }>;
+  deleteAccount: () => Promise<{ error: Error | null }>;
   fetchProfile: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
 }
@@ -68,14 +70,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   signIn: async (email: string, password: string) => {
     try {
-      console.log('Signing in with:', email);
       set({ isLoading: true });
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      console.log('Sign in response:', { user: data.user?.id, error });
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
       set({ isLoading: false });
       return { error: error as Error | null };
     } catch (error) {
-      console.error('Sign in catch error:', error);
       set({ isLoading: false });
       return { error: error as Error };
     }
@@ -89,6 +88,44 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     } catch (error) {
       console.error('Sign out error:', error);
       set({ isLoading: false });
+    }
+  },
+
+  resetPassword: async (email: string) => {
+    try {
+      set({ isLoading: true });
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: 'paly://reset-password',
+      });
+      set({ isLoading: false });
+      return { error: error as Error | null };
+    } catch (error) {
+      set({ isLoading: false });
+      return { error: error as Error };
+    }
+  },
+
+  deleteAccount: async () => {
+    try {
+      set({ isLoading: true });
+      const { user } = get();
+      if (!user) {
+        set({ isLoading: false });
+        return { error: new Error('No user logged in') };
+      }
+      const { error } = await supabase.functions.invoke('delete-account', {
+        body: { userId: user.id },
+      });
+      if (error) {
+        set({ isLoading: false });
+        return { error: error as Error };
+      }
+      await supabase.auth.signOut();
+      set({ user: null, session: null, profile: null, isLoading: false });
+      return { error: null };
+    } catch (error) {
+      set({ isLoading: false });
+      return { error: error as Error };
     }
   },
 

@@ -26,13 +26,19 @@ export default function ClassStudyScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors, colorScheme } = useTheme();
   const { classes } = useClassStore();
-  const { synthesizedContent, studyPrompts, fetchSynthesizedContent, fetchClassPrompts, getOverdueQuizzes } = useStudyStore();
+  const {
+    synthesizedContent,
+    studyPrompts,
+    fetchSynthesizedContent,
+    fetchClassPrompts,
+    getOverdueQuizzes,
+  } = useStudyStore();
   const { profile } = useAuthStore();
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [classPrompts, setClassPrompts] = useState<any[]>([]);
-  
-  const classData = classes.find(c => c.id === id);
-  const classContent = synthesizedContent.filter(c => c.class_id === id);
+
+  const classData = classes.find((c) => c.id === id);
+  const classContent = synthesizedContent.filter((c) => c.class_id === id);
   const overdueQuizzes = id ? getOverdueQuizzes(id) : [];
   const streak = profile?.reading_streak ?? 0;
 
@@ -45,11 +51,12 @@ export default function ClassStudyScreen() {
     }
   }, [profile?.id, id]);
 
-  const todaysChunks = classPrompts.filter(p =>
-    p.scheduled_for?.split('T')[0] <= today &&
-    (p.prompt_type === 'takeaway' || p.prompt_type === 'recall')
+  const todaysChunks = classPrompts.filter(
+    (p) =>
+      p.scheduled_for?.split('T')[0] <= today &&
+      (p.prompt_type === 'takeaway' || p.prompt_type === 'recall')
   );
-  const unreadChunks = todaysChunks.filter(p => !p.read_at_bottom);
+  const unreadChunks = todaysChunks.filter((p) => !p.read_at_bottom);
 
   const handleSendNow = async (contentId: string) => {
     if (!profile?.id) return;
@@ -90,32 +97,33 @@ export default function ClassStudyScreen() {
             entering={FadeInDown.delay(100).duration(600).springify()}
             style={styles.header}
           >
-            <TouchableOpacity
-              onPress={() => router.back()}
-              style={styles.backButton}
-            >
+            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
               <Ionicons name="arrow-back" size={24} color={colors.text} />
             </TouchableOpacity>
-            
+
             <Text style={[typography.titleLarge, { color: colors.text }]}>
               Study {classData?.name}
             </Text>
-            
+
             <View style={{ width: 40 }} />
           </Animated.View>
 
           {/* Streak Display */}
-          <Animated.View
-            entering={FadeInDown.delay(150).duration(600).springify()}
-          >
+          <Animated.View entering={FadeInDown.delay(150).duration(600).springify()}>
             <Card style={styles.streakCard}>
-              <Ionicons name="flame" size={28} color={streak > 0 ? '#FF6B35' : colors.cardTextMuted} />
+              <Ionicons
+                name="flame"
+                size={28}
+                color={streak > 0 ? '#FF6B35' : colors.cardTextMuted}
+              />
               <View style={{ marginLeft: SPACING.md, flex: 1 }}>
                 <Text style={[typography.titleSmall, { color: colors.cardText }]}>
                   {streak > 0 ? `${streak}-day reading streak` : 'Start your streak'}
                 </Text>
                 <Text style={[typography.bodySmall, { color: colors.cardTextSecondary }]}>
-                  {streak > 0 ? 'Read a daily chunk to keep it going' : 'Open and read through a study chunk'}
+                  {streak > 0
+                    ? 'Read a daily chunk to keep it going'
+                    : 'Open and read through a study chunk'}
                 </Text>
               </View>
               {(profile?.streak_count ?? 0) > 0 && (
@@ -131,9 +139,7 @@ export default function ClassStudyScreen() {
 
           {/* Overdue Quiz Banner */}
           {overdueQuizzes.length > 0 && (
-            <Animated.View
-              entering={FadeInDown.delay(175).duration(600).springify()}
-            >
+            <Animated.View entering={FadeInDown.delay(175).duration(600).springify()}>
               <Card style={[styles.overdueBanner, { borderColor: colors.error, borderWidth: 1 }]}>
                 <View style={styles.overdueBannerContent}>
                   <Ionicons name="alert-circle" size={32} color={colors.error} />
@@ -142,7 +148,8 @@ export default function ClassStudyScreen() {
                       {overdueQuizzes.length} overdue quiz{overdueQuizzes.length > 1 ? 'zes' : ''}
                     </Text>
                     <Text style={[typography.bodySmall, { color: colors.cardTextSecondary }]}>
-                      New study content is blocked until you complete {overdueQuizzes.length > 1 ? 'these' : 'this'}
+                      New study content is blocked until you complete{' '}
+                      {overdueQuizzes.length > 1 ? 'these' : 'this'}
                     </Text>
                   </View>
                 </View>
@@ -152,13 +159,11 @@ export default function ClassStudyScreen() {
 
           {/* Daily Study Chunks */}
           {todaysChunks.length > 0 && (
-            <Animated.View
-              entering={FadeInDown.delay(185).duration(600).springify()}
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: SPACING.md }}>
-                <Text style={[typography.titleMedium, { color: colors.text }]}>
-                  Daily Chunks
-                </Text>
+            <Animated.View entering={FadeInDown.delay(185).duration(600).springify()}>
+              <View
+                style={{ flexDirection: 'row', alignItems: 'center', marginBottom: SPACING.md }}
+              >
+                <Text style={[typography.titleMedium, { color: colors.text }]}>Daily Chunks</Text>
                 {unreadChunks.length > 0 && (
                   <View style={[styles.unreadBadge, { backgroundColor: colors.error }]}>
                     <Text style={[typography.labelSmall, { color: '#fff', fontSize: 10 }]}>
@@ -178,9 +183,16 @@ export default function ClassStudyScreen() {
                       {!isRead && (
                         <View style={[styles.redDot, { backgroundColor: colors.error }]} />
                       )}
-                      <View style={[styles.studyIcon, { backgroundColor: isRead ? '#34C75920' : colors.background }]}>
+                      <View
+                        style={[
+                          styles.studyIcon,
+                          { backgroundColor: isRead ? '#34C75920' : colors.background },
+                        ]}
+                      >
                         <Ionicons
-                          name={prompt.prompt_type === 'takeaway' ? 'bulb-outline' : 'refresh-outline'}
+                          name={
+                            prompt.prompt_type === 'takeaway' ? 'bulb-outline' : 'refresh-outline'
+                          }
                           size={24}
                           color={isRead ? '#34C759' : colors.text}
                         />
@@ -210,30 +222,39 @@ export default function ClassStudyScreen() {
 
           {/* Study Options */}
           {classContent.length === 0 && todaysChunks.length === 0 ? (
-            <Animated.View
-              entering={FadeInDown.delay(200).duration(600).springify()}
-            >
+            <Animated.View entering={FadeInDown.delay(200).duration(600).springify()}>
               <Card style={styles.emptyCard}>
-                <Ionicons 
-                  name="school-outline" 
-                  size={48} 
-                  color={colorScheme === 'dark' ? colors.text : colors.cardTextMuted} 
+                <Ionicons
+                  name="school-outline"
+                  size={48}
+                  color={colorScheme === 'dark' ? colors.text : colors.cardTextMuted}
                 />
-                <Text style={[typography.titleMedium, { color: colors.cardText, marginTop: SPACING.md }]}>
+                <Text
+                  style={[
+                    typography.titleMedium,
+                    { color: colors.cardText, marginTop: SPACING.md },
+                  ]}
+                >
                   No study materials yet
                 </Text>
-                <Text style={[typography.bodySmall, { color: colors.cardTextSecondary, textAlign: 'center', marginTop: SPACING.sm }]}>
-                  Upload slides and they'll be automatically synthesized into study texts, flashcards, and quizzes
+                <Text
+                  style={[
+                    typography.bodySmall,
+                    { color: colors.cardTextSecondary, textAlign: 'center', marginTop: SPACING.sm },
+                  ]}
+                >
+                  Upload slides and they'll be automatically synthesized into study texts,
+                  flashcards, and quizzes
                 </Text>
               </Card>
             </Animated.View>
           ) : (
             <>
               {/* Quizzes — shown first since they're mandatory */}
-              <Animated.View
-                entering={FadeInDown.delay(200).duration(600).springify()}
-              >
-                <Text style={[typography.titleMedium, { color: colors.text, marginBottom: SPACING.md }]}>
+              <Animated.View entering={FadeInDown.delay(200).duration(600).springify()}>
+                <Text
+                  style={[typography.titleMedium, { color: colors.text, marginBottom: SPACING.md }]}
+                >
                   Quizzes
                 </Text>
                 {classContent.map((content) => {
@@ -246,12 +267,25 @@ export default function ClassStudyScreen() {
                       key={`quiz-${content.id}`}
                       onPress={() => router.push(`/study/quiz/${content.id}`)}
                     >
-                      <Card style={[
-                        styles.studyCard,
-                        isOverdue && { borderLeftWidth: 3, borderLeftColor: colors.error },
-                        isDueSoon && { borderLeftWidth: 3, borderLeftColor: '#FF9500' },
-                      ]}>
-                        <View style={[styles.studyIcon, { backgroundColor: isOverdue ? colors.error + '20' : isDueSoon ? '#FF950020' : colors.background }]}>
+                      <Card
+                        style={[
+                          styles.studyCard,
+                          isOverdue && { borderLeftWidth: 3, borderLeftColor: colors.error },
+                          isDueSoon && { borderLeftWidth: 3, borderLeftColor: '#FF9500' },
+                        ]}
+                      >
+                        <View
+                          style={[
+                            styles.studyIcon,
+                            {
+                              backgroundColor: isOverdue
+                                ? colors.error + '20'
+                                : isDueSoon
+                                  ? '#FF950020'
+                                  : colors.background,
+                            },
+                          ]}
+                        >
                           <Ionicons
                             name={isOverdue ? 'alert-circle' : 'help-circle-outline'}
                             size={24}
@@ -259,23 +293,47 @@ export default function ClassStudyScreen() {
                           />
                         </View>
                         <View style={styles.studyContent}>
-                          <Text style={[typography.titleSmall, { color: isOverdue ? colors.error : colors.cardText }]}>
+                          <Text
+                            style={[
+                              typography.titleSmall,
+                              { color: isOverdue ? colors.error : colors.cardText },
+                            ]}
+                          >
                             {content.session_date} Quiz
                           </Text>
                           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                            <Text style={[typography.bodySmall, { color: colors.cardTextSecondary }]}>
+                            <Text
+                              style={[typography.bodySmall, { color: colors.cardTextSecondary }]}
+                            >
                               {(content.quiz_questions as any[])?.length || 0} questions
                             </Text>
                             {content.next_class_date && (
-                              <Text style={[typography.labelSmall, {
-                                color: isOverdue ? colors.error : isDueSoon ? '#FF9500' : colors.cardTextMuted,
-                              }]}>
-                                {isOverdue ? 'OVERDUE' : isDueSoon ? 'DUE TODAY' : `Due ${formatDistanceToNow(new Date(content.next_class_date + 'T00:00:00'), { addSuffix: true })}`}
+                              <Text
+                                style={[
+                                  typography.labelSmall,
+                                  {
+                                    color: isOverdue
+                                      ? colors.error
+                                      : isDueSoon
+                                        ? '#FF9500'
+                                        : colors.cardTextMuted,
+                                  },
+                                ]}
+                              >
+                                {isOverdue
+                                  ? 'OVERDUE'
+                                  : isDueSoon
+                                    ? 'DUE TODAY'
+                                    : `Due ${formatDistanceToNow(new Date(content.next_class_date + 'T00:00:00'), { addSuffix: true })}`}
                               </Text>
                             )}
                           </View>
                         </View>
-                        <Ionicons name="chevron-forward" size={20} color={isOverdue ? colors.error : colors.cardTextMuted} />
+                        <Ionicons
+                          name="chevron-forward"
+                          size={20}
+                          color={isOverdue ? colors.error : colors.cardTextMuted}
+                        />
                       </Card>
                     </TouchableOpacity>
                   );
@@ -287,7 +345,9 @@ export default function ClassStudyScreen() {
                 entering={FadeInDown.delay(300).duration(600).springify()}
                 style={{ marginTop: SPACING.xl }}
               >
-                <Text style={[typography.titleMedium, { color: colors.text, marginBottom: SPACING.md }]}>
+                <Text
+                  style={[typography.titleMedium, { color: colors.text, marginBottom: SPACING.md }]}
+                >
                   Text Me
                 </Text>
                 {classContent.map((content) => (
@@ -313,7 +373,9 @@ export default function ClassStudyScreen() {
                       ) : (
                         <>
                           <Ionicons name="paper-plane" size={14} color={colors.text} />
-                          <Text style={[typography.labelSmall, { color: colors.text, marginLeft: 4 }]}>
+                          <Text
+                            style={[typography.labelSmall, { color: colors.text, marginLeft: 4 }]}
+                          >
                             Text me
                           </Text>
                         </>
@@ -328,7 +390,9 @@ export default function ClassStudyScreen() {
                 entering={FadeInDown.delay(400).duration(600).springify()}
                 style={{ marginTop: SPACING.xl }}
               >
-                <Text style={[typography.titleMedium, { color: colors.text, marginBottom: SPACING.md }]}>
+                <Text
+                  style={[typography.titleMedium, { color: colors.text, marginBottom: SPACING.md }]}
+                >
                   Flashcards
                 </Text>
                 {classContent.map((content) => (

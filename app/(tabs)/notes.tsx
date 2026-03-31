@@ -14,7 +14,7 @@ import { format, parseISO } from 'date-fns';
 import { useTheme } from '../../src/theme/ThemeContext';
 import { typography } from '../../src/theme/typography';
 import { SPACING, LAYOUT, RADIUS, SHADOWS } from '../../src/theme/spacing';
-import { Card, Button, Background } from '../../src/components/ui';
+import { Card, Button, Background, ErrorState } from '../../src/components/ui';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useNoteStore } from '../../src/stores/noteStore';
 import { useClassStore } from '../../src/stores/classStore';
@@ -24,7 +24,7 @@ import { Ionicons } from '@expo/vector-icons';
 export default function NotesScreen() {
   const { colors } = useTheme();
   const { profile } = useAuthStore();
-  const { notes, fetchNotes } = useNoteStore();
+  const { notes, fetchNotes, error: notesError } = useNoteStore();
   const { classes, fetchClasses } = useClassStore();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
@@ -154,7 +154,9 @@ export default function NotesScreen() {
             />
           }
         >
-          {sortedDates.length > 0 ? (
+          {notesError ? (
+            <ErrorState message={notesError} onRetry={onRefresh} />
+          ) : sortedDates.length > 0 ? (
             sortedDates.map((date, dateIndex) => (
               <Animated.View
                 key={date}

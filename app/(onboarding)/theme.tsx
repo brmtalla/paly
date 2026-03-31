@@ -56,21 +56,11 @@ export default function ThemeScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SafeAreaView style={styles.safeArea}>
         {/* Progress indicator */}
-        <Animated.View
-          entering={FadeInDown.delay(100).duration(400)}
-          style={styles.progress}
-        >
+        <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.progress}>
           <View style={[styles.progressBar, { backgroundColor: colors.glassBackground }]}>
-            <View
-              style={[
-                styles.progressFill,
-                { backgroundColor: colors.card, width: '50%' },
-              ]}
-            />
+            <View style={[styles.progressFill, { backgroundColor: colors.card, width: '50%' }]} />
           </View>
-          <Text style={[typography.labelSmall, { color: colors.textSecondary }]}>
-            2 OF 4
-          </Text>
+          <Text style={[typography.labelSmall, { color: colors.textSecondary }]}>2 OF 4</Text>
         </Animated.View>
 
         <ScrollView
@@ -86,12 +76,7 @@ export default function ThemeScreen() {
               <Ionicons name="color-palette" size={36} color={colors.background} />
             </View>
 
-            <Text
-              style={[
-                typography.displaySmall,
-                { color: colors.text, textAlign: 'center' },
-              ]}
-            >
+            <Text style={[typography.displaySmall, { color: colors.text, textAlign: 'center' }]}>
               Your personal{'\n'}color
             </Text>
 
@@ -105,8 +90,8 @@ export default function ThemeScreen() {
                 },
               ]}
             >
-              This color will be your app's signature look. It becomes the main 
-              background with white cards as accents.
+              This color will be your app's signature look. It becomes the main background with
+              white cards as accents.
             </Text>
           </Animated.View>
 
@@ -144,30 +129,15 @@ export default function ThemeScreen() {
             <View style={[styles.previewPhone, { backgroundColor: selectedColor }]}>
               <View style={[styles.previewCard, { backgroundColor: '#FFFFFF', ...SHADOWS.md }]}>
                 <View style={styles.previewHeader}>
-                  <View
-                    style={[
-                      styles.previewIndicator,
-                      { backgroundColor: selectedColor },
-                    ]}
-                  />
-                  <Text style={[typography.titleSmall, { color: '#1A1A1A' }]}>
-                    Biology 101
-                  </Text>
+                  <View style={[styles.previewIndicator, { backgroundColor: selectedColor }]} />
+                  <Text style={[typography.titleSmall, { color: '#1A1A1A' }]}>Biology 101</Text>
                 </View>
-                <Text
-                  style={[
-                    typography.bodySmall,
-                    { color: '#4A4A4A', marginTop: SPACING.xs },
-                  ]}
-                >
+                <Text style={[typography.bodySmall, { color: '#4A4A4A', marginTop: SPACING.xs }]}>
                   Today's study prompt is ready!
                 </Text>
                 <View style={styles.previewProgress}>
                   <View
-                    style={[
-                      styles.previewProgressBar,
-                      { backgroundColor: selectedColor + '20' },
-                    ]}
+                    style={[styles.previewProgressBar, { backgroundColor: selectedColor + '20' }]}
                   >
                     <View
                       style={[
@@ -191,10 +161,7 @@ export default function ThemeScreen() {
         </ScrollView>
 
         {/* CTA */}
-        <Animated.View
-          entering={FadeInUp.delay(800).duration(600).springify()}
-          style={styles.cta}
-        >
+        <Animated.View entering={FadeInUp.delay(800).duration(600).springify()} style={styles.cta}>
           <Button
             variant="primary"
             size="lg"
@@ -211,7 +178,7 @@ export default function ThemeScreen() {
 }
 
 interface ColorOptionProps {
-  color: typeof THEME_COLORS[number];
+  color: (typeof THEME_COLORS)[number];
   isSelected: boolean;
   onSelect: () => void;
   delay: number;
@@ -242,10 +209,7 @@ function ColorOption({ color, isSelected, onSelect, delay }: ColorOptionProps) {
   };
 
   return (
-    <Animated.View
-      entering={FadeInUp.delay(delay).duration(400)}
-      style={animatedStyle}
-    >
+    <Animated.View entering={FadeInUp.delay(delay).duration(400)} style={animatedStyle}>
       <TouchableOpacity
         onPress={onSelect}
         onPressIn={handlePressIn}
@@ -257,16 +221,9 @@ function ColorOption({ color, isSelected, onSelect, delay }: ColorOptionProps) {
           isSelected && styles.colorOptionSelected,
         ]}
       >
-        {isSelected && (
-          <Ionicons name="checkmark" size={24} color="#FFFFFF" />
-        )}
+        {isSelected && <Ionicons name="checkmark" size={24} color="#FFFFFF" />}
       </TouchableOpacity>
-      <Text
-        style={[
-          styles.colorName,
-          { color: isSelected ? '#FFFFFF' : 'rgba(255,255,255,0.6)' },
-        ]}
-      >
+      <Text style={[styles.colorName, { color: isSelected ? '#FFFFFF' : 'rgba(255,255,255,0.6)' }]}>
         {color.name}
       </Text>
     </Animated.View>

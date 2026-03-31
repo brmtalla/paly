@@ -14,7 +14,7 @@ import { format } from 'date-fns';
 import { useTheme } from '../../src/theme/ThemeContext';
 import { typography } from '../../src/theme/typography';
 import { SPACING, LAYOUT, RADIUS, SHADOWS } from '../../src/theme/spacing';
-import { Card, Background } from '../../src/components/ui';
+import { Card, Background, ErrorState } from '../../src/components/ui';
 import { PalyPointsBar } from '../../src/components/PalyPointsBar';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useClassStore } from '../../src/stores/classStore';
@@ -25,7 +25,8 @@ export default function TodayScreen() {
   const { colors, colorScheme } = useTheme();
   const { profile } = useAuthStore();
   const { fetchClasses, getTodaysClasses, getUpcomingClass } = useClassStore();
-  const { todaysPrompts, fetchTodaysPrompts, fetchSynthesizedContent, getAllOverdueQuizzes } = useStudyStore();
+  const { todaysPrompts, fetchTodaysPrompts, fetchSynthesizedContent, getAllOverdueQuizzes, error: studyError } = useStudyStore();
+  const { error: classError } = useClassStore();
   const [refreshing, setRefreshing] = React.useState(false);
 
   const todaysClasses = getTodaysClasses();
@@ -129,6 +130,16 @@ export default function TodayScreen() {
               </View>
             </Card>
           </Animated.View>
+
+          {/* Error State */}
+          {(classError || studyError) && (
+            <Animated.View entering={FadeInUp.delay(200).duration(400)}>
+              <ErrorState
+                message={classError || studyError || undefined}
+                onRetry={onRefresh}
+              />
+            </Animated.View>
+          )}
 
           {/* Overdue Quiz Warning */}
           {overdueQuizzes.length > 0 && (

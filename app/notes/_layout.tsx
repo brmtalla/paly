@@ -17,5 +17,3 @@ export default function NotesLayout() {
     </Stack>
   );
 }
-
-

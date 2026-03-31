@@ -30,8 +30,8 @@ export default function NoteDetailScreen() {
   const { classes } = useClassStore();
   const { synthesizeContent, isSynthesizing } = useStudyStore();
 
-  const note = notes.find(n => n.id === id);
-  const classData = classes.find(c => c.id === note?.class_id);
+  const note = notes.find((n) => n.id === id);
+  const classData = classes.find((c) => c.id === note?.class_id);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(note?.content || '');
@@ -48,7 +48,12 @@ export default function NoteDetailScreen() {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <SafeAreaView style={styles.safeArea}>
-          <Text style={[typography.bodyLarge, { color: colors.text, textAlign: 'center', marginTop: 100 }]}>
+          <Text
+            style={[
+              typography.bodyLarge,
+              { color: colors.text, textAlign: 'center', marginTop: 100 },
+            ]}
+          >
             Note not found
           </Text>
           <Button variant="ghost" onPress={() => router.back()} style={{ marginTop: SPACING.lg }}>
@@ -72,25 +77,21 @@ export default function NoteDetailScreen() {
   };
 
   const handleDelete = () => {
-    Alert.alert(
-      'Delete Note',
-      'Are you sure you want to delete this note?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteNote(note.id);
-              router.back();
-            } catch (error) {
-              Alert.alert('Error', 'Failed to delete note');
-            }
-          },
+    Alert.alert('Delete Note', 'Are you sure you want to delete this note?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteNote(note.id);
+            router.back();
+          } catch (error) {
+            Alert.alert('Error', 'Failed to delete note');
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const handleSynthesize = async () => {
@@ -101,7 +102,10 @@ export default function NoteDetailScreen() {
 
     try {
       await synthesizeContent(note.class_id, profile!.id, note.session_date);
-      Alert.alert('Success', 'Your notes have been synthesized! Check the Study tab for flashcards and quizzes.');
+      Alert.alert(
+        'Success',
+        'Your notes have been synthesized! Check the Study tab for flashcards and quizzes.'
+      );
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to synthesize content');
     }
@@ -111,16 +115,13 @@ export default function NoteDetailScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         {/* Header */}
-        <Animated.View
-          entering={FadeInDown.delay(100).duration(400)}
-          style={styles.header}
-        >
+        <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
-          
+
           <View style={{ flex: 1 }} />
-          
+
           {isEditing ? (
             <>
               <Button variant="ghost" size="sm" onPress={() => setIsEditing(false)}>
@@ -198,15 +199,26 @@ export default function NoteDetailScreen() {
 
           {/* Attachments */}
           {note.uploads && note.uploads.length > 0 && (
-            <Animated.View entering={FadeInUp.delay(500).duration(400)} style={styles.attachmentsSection}>
-              <Text style={[typography.labelSmall, { color: colors.textMuted, marginBottom: SPACING.sm }]}>
+            <Animated.View
+              entering={FadeInUp.delay(500).duration(400)}
+              style={styles.attachmentsSection}
+            >
+              <Text
+                style={[
+                  typography.labelSmall,
+                  { color: colors.textMuted, marginBottom: SPACING.sm },
+                ]}
+              >
                 ATTACHMENTS ({note.uploads.length})
               </Text>
-              {note.uploads.map(upload => (
+              {note.uploads.map((upload) => (
                 <Card key={upload.id} variant="default" padding="md" style={styles.attachmentCard}>
                   <View style={styles.attachmentContent}>
                     <Ionicons name="document-outline" size={20} color={colors.accent} />
-                    <Text style={[typography.bodyMedium, { color: colors.text, flex: 1 }]} numberOfLines={1}>
+                    <Text
+                      style={[typography.bodyMedium, { color: colors.text, flex: 1 }]}
+                      numberOfLines={1}
+                    >
                       {upload.file_name}
                     </Text>
                   </View>
@@ -217,7 +229,10 @@ export default function NoteDetailScreen() {
 
           {/* Synthesize button */}
           {!note.is_synthesized && !isEditing && (
-            <Animated.View entering={FadeInUp.delay(600).duration(400)} style={styles.synthesizeSection}>
+            <Animated.View
+              entering={FadeInUp.delay(600).duration(400)}
+              style={styles.synthesizeSection}
+            >
               <Card variant="accent" padding="lg">
                 <View style={styles.synthesizeContent}>
                   <View style={[styles.synthesizeIcon, { backgroundColor: colors.accent }]}>
@@ -227,7 +242,9 @@ export default function NoteDetailScreen() {
                     <Text style={[typography.titleMedium, { color: colors.text }]}>
                       Ready to study?
                     </Text>
-                    <Text style={[typography.bodySmall, { color: colors.textSecondary, marginTop: 4 }]}>
+                    <Text
+                      style={[typography.bodySmall, { color: colors.textSecondary, marginTop: 4 }]}
+                    >
                       Generate flashcards, quizzes, and study prompts from your notes
                     </Text>
                   </View>
@@ -345,5 +362,3 @@ const styles = StyleSheet.create({
     marginTop: SPACING['2xl'],
   },
 });
-
-

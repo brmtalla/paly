@@ -53,7 +53,7 @@ export default function ScheduleScreen() {
   };
 
   const updateClass = (id: string, updates: Partial<ClassFormData>) => {
-    setClasses(classes.map(c => (c.id === id ? { ...c, ...updates } : c)));
+    setClasses(classes.map((c) => (c.id === id ? { ...c, ...updates } : c)));
   };
 
   const removeClass = (id: string) => {
@@ -61,15 +61,15 @@ export default function ScheduleScreen() {
       Alert.alert('Cannot Remove', 'You need at least one class to continue.');
       return;
     }
-    setClasses(classes.filter(c => c.id !== id));
+    setClasses(classes.filter((c) => c.id !== id));
   };
 
   const toggleDay = (classId: string, dayIndex: number) => {
-    const classData = classes.find(c => c.id === classId);
+    const classData = classes.find((c) => c.id === classId);
     if (!classData) return;
 
     const newDays = classData.days.includes(dayIndex)
-      ? classData.days.filter(d => d !== dayIndex)
+      ? classData.days.filter((d) => d !== dayIndex)
       : [...classData.days, dayIndex].sort();
 
     updateClass(classId, { days: newDays });
@@ -77,15 +77,10 @@ export default function ScheduleScreen() {
 
   const handleContinue = async () => {
     // Validate classes
-    const validClasses = classes.filter(
-      c => c.name.trim() && c.days.length > 0
-    );
+    const validClasses = classes.filter((c) => c.name.trim() && c.days.length > 0);
 
     if (validClasses.length === 0) {
-      Alert.alert(
-        'Add Your Classes',
-        'Please add at least one class with a name and schedule.'
-      );
+      Alert.alert('Add Your Classes', 'Please add at least one class with a name and schedule.');
       return;
     }
 
@@ -93,7 +88,7 @@ export default function ScheduleScreen() {
     try {
       // Create all classes
       for (const classData of validClasses) {
-        const sessions = classData.days.map(day => ({
+        const sessions = classData.days.map((day) => ({
           day_of_week: day,
           start_time: classData.startTime,
           end_time: classData.endTime,
@@ -122,21 +117,11 @@ export default function ScheduleScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SafeAreaView style={styles.safeArea}>
         {/* Progress indicator */}
-        <Animated.View
-          entering={FadeInDown.delay(100).duration(400)}
-          style={styles.progress}
-        >
+        <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.progress}>
           <View style={[styles.progressBar, { backgroundColor: colors.backgroundTertiary }]}>
-            <View
-              style={[
-                styles.progressFill,
-                { backgroundColor: colors.accent, width: '75%' },
-              ]}
-            />
+            <View style={[styles.progressFill, { backgroundColor: colors.accent, width: '75%' }]} />
           </View>
-          <Text style={[typography.labelSmall, { color: colors.textMuted }]}>
-            3 OF 4
-          </Text>
+          <Text style={[typography.labelSmall, { color: colors.textMuted }]}>3 OF 4</Text>
         </Animated.View>
 
         <ScrollView
@@ -148,17 +133,12 @@ export default function ScheduleScreen() {
             entering={FadeInDown.delay(200).duration(600).springify()}
             style={styles.header}
           >
-            <Text style={[typography.displaySmall, { color: colors.text }]}>
-              Add your classes
-            </Text>
+            <Text style={[typography.displaySmall, { color: colors.text }]}>Add your classes</Text>
             <Text
-              style={[
-                typography.bodyLarge,
-                { color: colors.textSecondary, marginTop: SPACING.md },
-              ]}
+              style={[typography.bodyLarge, { color: colors.textSecondary, marginTop: SPACING.md }]}
             >
-              We'll remind you to take notes during class and send study prompts
-              based on your schedule.
+              We'll remind you to take notes during class and send study prompts based on your
+              schedule.
             </Text>
           </Animated.View>
 
@@ -171,9 +151,9 @@ export default function ScheduleScreen() {
               <ClassForm
                 classData={classData}
                 colors={colors}
-                onUpdate={updates => updateClass(classData.id, updates)}
+                onUpdate={(updates) => updateClass(classData.id, updates)}
                 onRemove={() => removeClass(classData.id)}
-                onToggleDay={day => toggleDay(classData.id, day)}
+                onToggleDay={(day) => toggleDay(classData.id, day)}
                 showRemove={classes.length > 1}
               />
             </Animated.View>
@@ -194,10 +174,7 @@ export default function ScheduleScreen() {
         </ScrollView>
 
         {/* CTA */}
-        <Animated.View
-          entering={FadeInUp.delay(600).duration(600).springify()}
-          style={styles.cta}
-        >
+        <Animated.View entering={FadeInUp.delay(600).duration(600).springify()} style={styles.cta}>
           <Button
             variant="primary"
             size="lg"
@@ -236,7 +213,7 @@ function ClassForm({
         <Input
           placeholder="Class name (e.g., Biology 101)"
           value={classData.name}
-          onChangeText={name => onUpdate({ name })}
+          onChangeText={(name) => onUpdate({ name })}
           containerStyle={{ flex: 1, marginBottom: 0 }}
         />
         {showRemove && (
@@ -273,9 +250,7 @@ function ClassForm({
               style={[
                 typography.labelMedium,
                 {
-                  color: classData.days.includes(index)
-                    ? '#FFFFFF'
-                    : colors.textSecondary,
+                  color: classData.days.includes(index) ? '#FFFFFF' : colors.textSecondary,
                 },
               ]}
             >
@@ -289,32 +264,26 @@ function ClassForm({
       <View style={styles.timeContainer}>
         <View style={styles.timeInput}>
           <Text
-            style={[
-              typography.labelSmall,
-              { color: colors.textMuted, marginBottom: SPACING.sm },
-            ]}
+            style={[typography.labelSmall, { color: colors.textMuted, marginBottom: SPACING.sm }]}
           >
             START TIME
           </Text>
           <Input
             value={classData.startTime}
-            onChangeText={startTime => onUpdate({ startTime })}
+            onChangeText={(startTime) => onUpdate({ startTime })}
             placeholder="09:00"
             containerStyle={{ marginBottom: 0 }}
           />
         </View>
         <View style={styles.timeInput}>
           <Text
-            style={[
-              typography.labelSmall,
-              { color: colors.textMuted, marginBottom: SPACING.sm },
-            ]}
+            style={[typography.labelSmall, { color: colors.textMuted, marginBottom: SPACING.sm }]}
           >
             END TIME
           </Text>
           <Input
             value={classData.endTime}
-            onChangeText={endTime => onUpdate({ endTime })}
+            onChangeText={(endTime) => onUpdate({ endTime })}
             placeholder="10:00"
             containerStyle={{ marginBottom: 0 }}
           />
@@ -323,16 +292,10 @@ function ClassForm({
 
       {/* Summary */}
       {classData.days.length > 0 && (
-        <View
-          style={[
-            styles.summary,
-            { backgroundColor: colors.accentLight },
-          ]}
-        >
+        <View style={[styles.summary, { backgroundColor: colors.accentLight }]}>
           <Ionicons name="calendar-outline" size={16} color={colors.accent} />
           <Text style={[typography.bodySmall, { color: colors.accent, flex: 1 }]}>
-            {classData.days.map(d => DAY_FULL[d]).join(', ')} at{' '}
-            {classData.startTime}
+            {classData.days.map((d) => DAY_FULL[d]).join(', ')} at {classData.startTime}
           </Text>
         </View>
       )}
@@ -423,5 +386,3 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.lg,
   },
 });
-
-

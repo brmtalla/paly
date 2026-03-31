@@ -11,11 +11,7 @@ import {
 import { useTheme } from '../../theme/ThemeContext';
 import { typography } from '../../theme/typography';
 import { SPACING, RADIUS, LAYOUT, SHADOWS } from '../../theme/spacing';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
@@ -163,9 +159,7 @@ export function Button({
         <ActivityIndicator color={getTextColor()} />
       ) : (
         <>
-          {icon && iconPosition === 'left' && (
-            <React.Fragment>{icon}</React.Fragment>
-          )}
+          {icon && iconPosition === 'left' && <React.Fragment>{icon}</React.Fragment>}
           <Text
             style={[
               styles.text,
@@ -178,9 +172,7 @@ export function Button({
           >
             {children}
           </Text>
-          {icon && iconPosition === 'right' && (
-            <React.Fragment>{icon}</React.Fragment>
-          )}
+          {icon && iconPosition === 'right' && <React.Fragment>{icon}</React.Fragment>}
         </>
       )}
     </AnimatedTouchable>

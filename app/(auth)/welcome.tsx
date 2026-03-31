@@ -2,11 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { Link } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Animated, { 
-  FadeIn, 
-  FadeInDown, 
-  FadeInUp 
-} from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useTheme } from '../../src/theme/ThemeContext';
 import { typography } from '../../src/theme/typography';
 import { SPACING, LAYOUT, RADIUS, SHADOWS } from '../../src/theme/spacing';
@@ -22,7 +18,7 @@ export default function WelcomeScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SafeAreaView style={styles.safeArea}>
         {/* Hero Section */}
-        <Animated.View 
+        <Animated.View
           entering={FadeInDown.delay(200).duration(800).springify()}
           style={styles.heroSection}
         >
@@ -33,28 +29,18 @@ export default function WelcomeScreen() {
 
           <Animated.Text
             entering={FadeIn.delay(400).duration(600)}
-            style={[
-              styles.title,
-              typography.displayMedium,
-              { color: colors.text },
-            ]}
+            style={[styles.title, typography.displayMedium, { color: colors.text }]}
           >
             Study without{'\n'}cramming
           </Animated.Text>
 
           <Animated.Text
             entering={FadeIn.delay(600).duration(600)}
-            style={[
-              styles.subtitle,
-              typography.bodyLarge,
-              { color: colors.textSecondary },
-            ]}
+            style={[styles.subtitle, typography.bodyLarge, { color: colors.textSecondary }]}
           >
             Your personal study companion that helps you learn{' '}
-            <Text style={{ color: colors.text, fontWeight: '600' }}>
-              consistently
-            </Text>
-            , not just before exams.
+            <Text style={{ color: colors.text, fontWeight: '600' }}>consistently</Text>, not just
+            before exams.
           </Animated.Text>
         </Animated.View>
 
@@ -84,10 +70,7 @@ export default function WelcomeScreen() {
         </Animated.View>
 
         {/* CTA Buttons */}
-        <Animated.View
-          entering={FadeInUp.delay(1000).duration(600)}
-          style={styles.ctaContainer}
-        >
+        <Animated.View entering={FadeInUp.delay(1000).duration(600)} style={styles.ctaContainer}>
           <Link href="/(auth)/sign-up" asChild>
             <Button variant="primary" size="lg" fullWidth textStyle={{ color: colors.accent }}>
               Get Started
@@ -115,24 +98,12 @@ interface FeatureItemProps {
 function FeatureItem({ icon, title, description, colors }: FeatureItemProps) {
   return (
     <View style={styles.featureItem}>
-      <View
-        style={[
-          styles.featureIcon,
-          { backgroundColor: colors.glassBackground },
-        ]}
-      >
+      <View style={[styles.featureIcon, { backgroundColor: colors.glassBackground }]}>
         <Ionicons name={icon} size={20} color={colors.text} />
       </View>
       <View style={styles.featureText}>
-        <Text style={[typography.titleSmall, { color: colors.text }]}>
-          {title}
-        </Text>
-        <Text
-          style={[
-            typography.bodySmall,
-            { color: colors.textTertiary, marginTop: 2 },
-          ]}
-        >
+        <Text style={[typography.titleSmall, { color: colors.text }]}>{title}</Text>
+        <Text style={[typography.bodySmall, { color: colors.textTertiary, marginTop: 2 }]}>
           {description}
         </Text>
       </View>

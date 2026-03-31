@@ -14,7 +14,7 @@ import { format, parseISO } from 'date-fns';
 import { useTheme } from '../../src/theme/ThemeContext';
 import { typography } from '../../src/theme/typography';
 import { SPACING, LAYOUT, RADIUS, SHADOWS } from '../../src/theme/spacing';
-import { Card, Button, Background } from '../../src/components/ui';
+import { Card, Button, Background, ErrorState } from '../../src/components/ui';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useStudyStore } from '../../src/stores/studyStore';
 import { useClassStore } from '../../src/stores/classStore';
@@ -23,7 +23,7 @@ import { Ionicons } from '@expo/vector-icons';
 export default function StudyScreen() {
   const { colors, colorScheme } = useTheme();
   const { profile } = useAuthStore();
-  const { synthesizedContent, studyPrompts, fetchSynthesizedContent, fetchStudyPrompts } = useStudyStore();
+  const { synthesizedContent, studyPrompts, fetchSynthesizedContent, fetchStudyPrompts, error: studyError } = useStudyStore();
   const { classes, fetchClasses } = useClassStore();
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<'prompts' | 'flashcards' | 'quizzes'>('prompts');
@@ -104,7 +104,11 @@ export default function StudyScreen() {
             />
           }
         >
-          {activeTab === 'prompts' && (
+          {studyError && (
+            <ErrorState message={studyError} onRetry={onRefresh} />
+          )}
+
+          {!studyError && activeTab === 'prompts' && (
             <>
               {/* Unread prompts */}
               {unreadPrompts.length > 0 && (
@@ -253,7 +257,7 @@ export default function StudyScreen() {
             </>
           )}
 
-          {activeTab === 'flashcards' && (
+          {!studyError && activeTab === 'flashcards' && (
             <Animated.View entering={FadeInUp.delay(300).duration(600).springify()}>
               {synthesizedContent.length > 0 ? (
                 synthesizedContent.map(content => {
@@ -340,7 +344,7 @@ export default function StudyScreen() {
             </Animated.View>
           )}
 
-          {activeTab === 'quizzes' && (
+          {!studyError && activeTab === 'quizzes' && (
             <Animated.View entering={FadeInUp.delay(300).duration(600).springify()}>
               {synthesizedContent.length > 0 ? (
                 synthesizedContent.map(content => {

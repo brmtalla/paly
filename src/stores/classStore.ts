@@ -6,6 +6,7 @@ interface ClassState {
   classes: ClassWithSessions[];
   currentClass: ClassWithSessions | null;
   isLoading: boolean;
+  error: string | null;
   
   // Actions
   fetchClasses: (userId: string) => Promise<void>;
@@ -25,10 +26,11 @@ export const useClassStore = create<ClassState>((set, get) => ({
   classes: [],
   currentClass: null,
   isLoading: false,
+  error: null,
 
   fetchClasses: async (userId: string) => {
     try {
-      set({ isLoading: true });
+      set({ isLoading: true, error: null });
       
       const { data, error } = await supabase
         .from('classes')
@@ -44,7 +46,7 @@ export const useClassStore = create<ClassState>((set, get) => ({
       set({ classes: data as ClassWithSessions[], isLoading: false });
     } catch (error) {
       console.error('Fetch classes error:', error);
-      set({ isLoading: false });
+      set({ isLoading: false, error: 'Failed to load classes. Pull down to retry.' });
     }
   },
 

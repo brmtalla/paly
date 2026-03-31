@@ -1,12 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -24,31 +17,29 @@ export default function NewClassScreen() {
   const { colors, colorScheme } = useTheme();
   const { addClass } = useClassStore();
   const { profile } = useAuthStore();
-  
+
   // Basic info
   const [name, setName] = useState('');
   const [location, setLocation] = useState('');
-  
+
   // Schedule
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('10:00');
-  
+
   // Semester dates
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  
+
   // Instructor
   const [instructorName, setInstructorName] = useState('');
   const [instructorEmail, setInstructorEmail] = useState('');
-  
+
   const [isLoading, setIsLoading] = useState(false);
 
   const toggleDay = (dayIndex: number) => {
-    setSelectedDays(prev =>
-      prev.includes(dayIndex)
-        ? prev.filter(d => d !== dayIndex)
-        : [...prev, dayIndex].sort()
+    setSelectedDays((prev) =>
+      prev.includes(dayIndex) ? prev.filter((d) => d !== dayIndex) : [...prev, dayIndex].sort()
     );
   };
 
@@ -71,8 +62,8 @@ export default function NewClassScreen() {
     setIsLoading(true);
     try {
       await addClass(
-        { 
-          name: name.trim(), 
+        {
+          name: name.trim(),
           user_id: profile.id,
           location: location.trim() || null,
           start_date: startDate || null,
@@ -80,7 +71,7 @@ export default function NewClassScreen() {
           instructor_name: instructorName.trim() || null,
           instructor_email: instructorEmail.trim() || null,
         },
-        selectedDays.map(day => ({
+        selectedDays.map((day) => ({
           day_of_week: day,
           start_time: startTime,
           end_time: endTime,
@@ -108,25 +99,23 @@ export default function NewClassScreen() {
             entering={FadeInDown.delay(100).duration(600).springify()}
             style={styles.header}
           >
-            <TouchableOpacity
-              onPress={() => router.back()}
-              style={styles.backButton}
-            >
+            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
               <Ionicons name="close" size={24} color={colors.text} />
             </TouchableOpacity>
-            
-            <Text style={[typography.titleLarge, { color: colors.text }]}>
-              Add Class
-            </Text>
-            
+
+            <Text style={[typography.titleLarge, { color: colors.text }]}>Add Class</Text>
+
             <View style={{ width: 40 }} />
           </Animated.View>
 
           {/* Basic Info */}
-          <Animated.View
-            entering={FadeInDown.delay(200).duration(600).springify()}
-          >
-            <Text style={[typography.labelSmall, { color: colors.textSecondary, marginBottom: SPACING.sm }]}>
+          <Animated.View entering={FadeInDown.delay(200).duration(600).springify()}>
+            <Text
+              style={[
+                typography.labelSmall,
+                { color: colors.textSecondary, marginBottom: SPACING.sm },
+              ]}
+            >
               CLASS INFO
             </Text>
             <Card style={styles.formCard}>
@@ -135,9 +124,7 @@ export default function NewClassScreen() {
                 placeholder="e.g., Biology 101"
                 value={name}
                 onChangeText={setName}
-                leftIcon={
-                  <Ionicons name="book-outline" size={20} color={colors.cardTextMuted} />
-                }
+                leftIcon={<Ionicons name="book-outline" size={20} color={colors.cardTextMuted} />}
               />
 
               <Input
@@ -154,14 +141,22 @@ export default function NewClassScreen() {
           </Animated.View>
 
           {/* Schedule */}
-          <Animated.View
-            entering={FadeInDown.delay(300).duration(600).springify()}
-          >
-            <Text style={[typography.labelSmall, { color: colors.textSecondary, marginBottom: SPACING.sm }]}>
+          <Animated.View entering={FadeInDown.delay(300).duration(600).springify()}>
+            <Text
+              style={[
+                typography.labelSmall,
+                { color: colors.textSecondary, marginBottom: SPACING.sm },
+              ]}
+            >
               SCHEDULE
             </Text>
             <Card style={styles.formCard}>
-              <Text style={[typography.labelMedium, { color: colors.cardText, marginBottom: SPACING.sm }]}>
+              <Text
+                style={[
+                  typography.labelMedium,
+                  { color: colors.cardText, marginBottom: SPACING.sm },
+                ]}
+              >
                 Days
               </Text>
               <View style={styles.daysContainer}>
@@ -222,10 +217,13 @@ export default function NewClassScreen() {
           </Animated.View>
 
           {/* Semester Dates */}
-          <Animated.View
-            entering={FadeInDown.delay(400).duration(600).springify()}
-          >
-            <Text style={[typography.labelSmall, { color: colors.textSecondary, marginBottom: SPACING.sm }]}>
+          <Animated.View entering={FadeInDown.delay(400).duration(600).springify()}>
+            <Text
+              style={[
+                typography.labelSmall,
+                { color: colors.textSecondary, marginBottom: SPACING.sm },
+              ]}
+            >
               SEMESTER DATES (OPTIONAL)
             </Text>
             <Card style={styles.formCard}>
@@ -257,10 +255,13 @@ export default function NewClassScreen() {
           </Animated.View>
 
           {/* Instructor */}
-          <Animated.View
-            entering={FadeInDown.delay(500).duration(600).springify()}
-          >
-            <Text style={[typography.labelSmall, { color: colors.textSecondary, marginBottom: SPACING.sm }]}>
+          <Animated.View entering={FadeInDown.delay(500).duration(600).springify()}>
+            <Text
+              style={[
+                typography.labelSmall,
+                { color: colors.textSecondary, marginBottom: SPACING.sm },
+              ]}
+            >
               INSTRUCTOR (OPTIONAL)
             </Text>
             <Card style={styles.formCard}>
@@ -269,9 +270,7 @@ export default function NewClassScreen() {
                 placeholder="e.g., Dr. Smith"
                 value={instructorName}
                 onChangeText={setInstructorName}
-                leftIcon={
-                  <Ionicons name="person-outline" size={20} color={colors.cardTextMuted} />
-                }
+                leftIcon={<Ionicons name="person-outline" size={20} color={colors.cardTextMuted} />}
               />
 
               <Input
@@ -281,9 +280,7 @@ export default function NewClassScreen() {
                 onChangeText={setInstructorEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
-                leftIcon={
-                  <Ionicons name="mail-outline" size={20} color={colors.cardTextMuted} />
-                }
+                leftIcon={<Ionicons name="mail-outline" size={20} color={colors.cardTextMuted} />}
                 containerStyle={{ marginTop: SPACING.sm }}
               />
             </Card>
@@ -294,13 +291,7 @@ export default function NewClassScreen() {
             entering={FadeInDown.delay(600).duration(600).springify()}
             style={styles.footer}
           >
-            <Button
-              variant="primary"
-              size="lg"
-              fullWidth
-              loading={isLoading}
-              onPress={handleSave}
-            >
+            <Button variant="primary" size="lg" fullWidth loading={isLoading} onPress={handleSave}>
               Add Class
             </Button>
           </Animated.View>

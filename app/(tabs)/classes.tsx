@@ -14,7 +14,7 @@ import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useTheme } from '../../src/theme/ThemeContext';
 import { typography } from '../../src/theme/typography';
 import { SPACING, LAYOUT, RADIUS, SHADOWS } from '../../src/theme/spacing';
-import { Card, Button, Background } from '../../src/components/ui';
+import { Card, Button, Background, ErrorState } from '../../src/components/ui';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useClassStore } from '../../src/stores/classStore';
 import { ClassWithSessions } from '../../src/types/database';
@@ -25,7 +25,7 @@ const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 export default function ClassesScreen() {
   const { colors, colorScheme } = useTheme();
   const { profile } = useAuthStore();
-  const { classes, fetchClasses, deleteClass } = useClassStore();
+  const { classes, fetchClasses, deleteClass, error: classesError } = useClassStore();
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
@@ -138,8 +138,13 @@ export default function ClassesScreen() {
             </View>
           </Animated.View>
 
+          {/* Error State */}
+          {classesError && (
+            <ErrorState message={classesError} onRetry={onRefresh} />
+          )}
+
           {/* Classes list */}
-          {classes.length > 0 ? (
+          {!classesError && classes.length > 0 ? (
             classes.map((classData, index) => (
               <Animated.View
                 key={classData.id}
@@ -236,7 +241,7 @@ export default function ClassesScreen() {
                 </Card>
               </Animated.View>
             ))
-          ) : (
+          ) : !classesError ? (
             <Animated.View entering={FadeInUp.delay(300).duration(600).springify()}>
               <Card variant="default" padding="xl">
                 <View style={styles.emptyState}>
@@ -271,7 +276,7 @@ export default function ClassesScreen() {
                 </View>
               </Card>
             </Animated.View>
-          )}
+          ) : null}
         </ScrollView>
       </SafeAreaView>
     </Background>

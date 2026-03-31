@@ -28,10 +28,7 @@ export default function CompleteScreen() {
   const rotation = useSharedValue(0);
 
   useEffect(() => {
-    scale.value = withDelay(
-      200,
-      withSpring(1, { damping: 8, stiffness: 100 })
-    );
+    scale.value = withDelay(200, withSpring(1, { damping: 8, stiffness: 100 }));
     rotation.value = withDelay(
       200,
       withSequence(
@@ -43,10 +40,7 @@ export default function CompleteScreen() {
   }, []);
 
   const celebrationStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: scale.value },
-      { rotate: `${rotation.value}deg` },
-    ],
+    transform: [{ scale: scale.value }, { rotate: `${rotation.value}deg` }],
   }));
 
   const handleStart = () => {
@@ -72,15 +66,8 @@ export default function CompleteScreen() {
           </Animated.View>
 
           {/* Title */}
-          <Animated.View
-            entering={FadeInUp.delay(400).duration(600).springify()}
-          >
-            <Text
-              style={[
-                typography.displayMedium,
-                { color: colors.text, textAlign: 'center' },
-              ]}
-            >
+          <Animated.View entering={FadeInUp.delay(400).duration(600).springify()}>
+            <Text style={[typography.displayMedium, { color: colors.text, textAlign: 'center' }]}>
               You're all set!
             </Text>
 
@@ -95,9 +82,8 @@ export default function CompleteScreen() {
                 },
               ]}
             >
-              {profile?.assistant_name || 'Paly'} is ready to help you study
-              smarter. Your first study prompts will arrive after your next
-              class.
+              {profile?.assistant_name || 'Paly'} is ready to help you study smarter. Your first
+              study prompts will arrive after your next class.
             </Text>
           </Animated.View>
 
@@ -106,29 +92,14 @@ export default function CompleteScreen() {
             entering={FadeInUp.delay(600).duration(600).springify()}
             style={styles.featuresContainer}
           >
-            <FeatureCheck
-              icon="notifications"
-              text="Class reminders are enabled"
-              colors={colors}
-            />
-            <FeatureCheck
-              icon="sparkles"
-              text="AI synthesis ready to go"
-              colors={colors}
-            />
-            <FeatureCheck
-              icon="book"
-              text="Daily study prompts scheduled"
-              colors={colors}
-            />
+            <FeatureCheck icon="notifications" text="Class reminders are enabled" colors={colors} />
+            <FeatureCheck icon="sparkles" text="AI synthesis ready to go" colors={colors} />
+            <FeatureCheck icon="book" text="Daily study prompts scheduled" colors={colors} />
           </Animated.View>
         </View>
 
         {/* CTA */}
-        <Animated.View
-          entering={FadeIn.delay(800).duration(600)}
-          style={styles.cta}
-        >
+        <Animated.View entering={FadeIn.delay(800).duration(600)} style={styles.cta}>
           <Button variant="primary" size="lg" fullWidth onPress={handleStart}>
             Start Using Paly
           </Button>
@@ -206,5 +177,3 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xl,
   },
 });
-
-

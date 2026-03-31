@@ -2,10 +2,11 @@ import 'react-native-url-polyfill/auto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 import { Database } from '../types/database';
 
-const supabaseUrl = 'https://eftafqxzqijsueviocsv.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmdGFmcXh6cWlqc3VldmlvY3N2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY3OTc4MjIsImV4cCI6MjA4MjM3MzgyMn0.vHbK0Wc_tT2WJbqZevZjY2v41Wr0RC7MQTNmJ9czLNo';
+const supabaseUrl = Constants.expoConfig?.extra?.supabaseUrl as string;
+const supabaseAnonKey = Constants.expoConfig?.extra?.supabaseAnonKey as string;
 
 // Create a web-compatible storage wrapper
 const createStorage = () => {

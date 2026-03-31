@@ -1,11 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Dimensions,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import Animated, {
@@ -32,22 +26,22 @@ export default function FlashcardsScreen() {
   const { colors, colorScheme } = useTheme();
   const { synthesizedContent, awardPoints } = useStudyStore();
   const { profile } = useAuthStore();
-  
-  const content = synthesizedContent.find(c => c.id === id);
+
+  const content = synthesizedContent.find((c) => c.id === id);
   const flashcards = content?.flashcards || [];
-  
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [flippedCards, setFlippedCards] = useState<Set<number>>(new Set());
   const [pointsEarned, setPointsEarned] = useState(0);
-  
+
   const flipProgress = useSharedValue(0);
 
   const handleFlip = () => {
     flipProgress.value = withSpring(isFlipped ? 0 : 1, { damping: 15 });
     if (!isFlipped && !flippedCards.has(currentIndex)) {
-      setFlippedCards(prev => new Set(prev).add(currentIndex));
-      setPointsEarned(prev => prev + 5);
+      setFlippedCards((prev) => new Set(prev).add(currentIndex));
+      setPointsEarned((prev) => prev + 5);
       if (profile?.id) {
         awardPoints(profile.id, 5, 'flashcard_flip');
       }
@@ -92,10 +86,10 @@ export default function FlashcardsScreen() {
       <Background>
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.centered}>
-            <Ionicons 
-              name="layers-outline" 
-              size={64} 
-              color={colorScheme === 'dark' ? colors.text : colors.cardTextMuted} 
+            <Ionicons
+              name="layers-outline"
+              size={64}
+              color={colorScheme === 'dark' ? colors.text : colors.cardTextMuted}
             />
             <Text style={[typography.titleMedium, { color: colors.text, marginTop: SPACING.lg }]}>
               No flashcards available
@@ -117,17 +111,14 @@ export default function FlashcardsScreen() {
         <SafeAreaView style={styles.safeArea} edges={['top']}>
           {/* Header */}
           <View style={styles.header}>
-            <TouchableOpacity
-              onPress={() => router.back()}
-              style={styles.backButton}
-            >
+            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
               <Ionicons name="close" size={24} color={colors.text} />
             </TouchableOpacity>
-            
+
             <Text style={[typography.titleMedium, { color: colors.text }]}>
               {currentIndex + 1} / {flashcards.length}
             </Text>
-            
+
             <View style={{ flexDirection: 'row', alignItems: 'center', minWidth: 40 }}>
               {pointsEarned > 0 && (
                 <>
@@ -143,25 +134,21 @@ export default function FlashcardsScreen() {
           {/* Progress */}
           <View style={styles.progressContainer}>
             <View style={[styles.progressBar, { backgroundColor: colors.glassBackground }]}>
-              <View 
+              <View
                 style={[
-                  styles.progressFill, 
-                  { 
+                  styles.progressFill,
+                  {
                     backgroundColor: colors.card,
-                    width: `${((currentIndex + 1) / flashcards.length) * 100}%` 
-                  }
-                ]} 
+                    width: `${((currentIndex + 1) / flashcards.length) * 100}%`,
+                  },
+                ]}
               />
             </View>
           </View>
 
           {/* Flashcard */}
           <View style={styles.cardContainer}>
-            <TouchableOpacity
-              activeOpacity={0.9}
-              onPress={handleFlip}
-              style={styles.cardWrapper}
-            >
+            <TouchableOpacity activeOpacity={0.9} onPress={handleFlip} style={styles.cardWrapper}>
               {/* Front */}
               <Animated.View
                 style={[
@@ -170,13 +157,28 @@ export default function FlashcardsScreen() {
                   frontAnimatedStyle,
                 ]}
               >
-                <Text style={[typography.labelSmall, { color: colors.cardTextMuted, marginBottom: SPACING.md }]}>
+                <Text
+                  style={[
+                    typography.labelSmall,
+                    { color: colors.cardTextMuted, marginBottom: SPACING.md },
+                  ]}
+                >
                   QUESTION
                 </Text>
-                <Text style={[typography.headlineSmall, { color: colors.cardText, textAlign: 'center' }]}>
+                <Text
+                  style={[
+                    typography.headlineSmall,
+                    { color: colors.cardText, textAlign: 'center' },
+                  ]}
+                >
                   {currentCard.front}
                 </Text>
-                <Text style={[typography.bodySmall, { color: colors.cardTextMuted, marginTop: SPACING.xl }]}>
+                <Text
+                  style={[
+                    typography.bodySmall,
+                    { color: colors.cardTextMuted, marginTop: SPACING.xl },
+                  ]}
+                >
                   Tap to reveal answer
                 </Text>
               </Animated.View>
@@ -190,10 +192,17 @@ export default function FlashcardsScreen() {
                   backAnimatedStyle,
                 ]}
               >
-                <Text style={[typography.labelSmall, { color: colors.textSecondary, marginBottom: SPACING.md }]}>
+                <Text
+                  style={[
+                    typography.labelSmall,
+                    { color: colors.textSecondary, marginBottom: SPACING.md },
+                  ]}
+                >
                   ANSWER
                 </Text>
-                <Text style={[typography.headlineSmall, { color: colors.text, textAlign: 'center' }]}>
+                <Text
+                  style={[typography.headlineSmall, { color: colors.text, textAlign: 'center' }]}
+                >
                   {currentCard.back}
                 </Text>
               </Animated.View>
@@ -207,9 +216,9 @@ export default function FlashcardsScreen() {
               disabled={currentIndex === 0}
               style={[
                 styles.navButton,
-                { 
+                {
                   backgroundColor: colors.glassBackground,
-                  opacity: currentIndex === 0 ? 0.5 : 1 
+                  opacity: currentIndex === 0 ? 0.5 : 1,
                 },
               ]}
             >
@@ -228,9 +237,9 @@ export default function FlashcardsScreen() {
               disabled={currentIndex === flashcards.length - 1}
               style={[
                 styles.navButton,
-                { 
+                {
                   backgroundColor: colors.glassBackground,
-                  opacity: currentIndex === flashcards.length - 1 ? 0.5 : 1 
+                  opacity: currentIndex === flashcards.length - 1 ? 0.5 : 1,
                 },
               ]}
             >

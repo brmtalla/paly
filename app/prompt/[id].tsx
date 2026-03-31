@@ -1,11 +1,5 @@
 import React, { useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
@@ -25,9 +19,9 @@ export default function PromptDetailScreen() {
   const { studyPrompts, todaysPrompts, markPromptAsRead } = useStudyStore();
   const { classes } = useClassStore();
   const { profile } = useAuthStore();
-  
-  const prompt = [...studyPrompts, ...todaysPrompts].find(p => p.id === id);
-  const classData = classes.find(c => c.id === prompt?.class_id);
+
+  const prompt = [...studyPrompts, ...todaysPrompts].find((p) => p.id === id);
+  const classData = classes.find((c) => c.id === prompt?.class_id);
 
   useEffect(() => {
     if (id && prompt && !prompt.is_read) {
@@ -53,9 +47,7 @@ export default function PromptDetailScreen() {
       <Background>
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.centered}>
-            <Text style={[typography.bodyLarge, { color: colors.text }]}>
-              Prompt not found
-            </Text>
+            <Text style={[typography.bodyLarge, { color: colors.text }]}>Prompt not found</Text>
             <Button variant="ghost" onPress={() => router.back()}>
               Go Back
             </Button>
@@ -77,10 +69,7 @@ export default function PromptDetailScreen() {
             entering={FadeInDown.delay(100).duration(600).springify()}
             style={styles.header}
           >
-            <TouchableOpacity
-              onPress={() => router.back()}
-              style={styles.backButton}
-            >
+            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
               <Ionicons name="arrow-back" size={24} color={colors.text} />
             </TouchableOpacity>
           </Animated.View>
@@ -91,18 +80,25 @@ export default function PromptDetailScreen() {
             style={styles.content}
           >
             <View style={[styles.iconContainer, { backgroundColor: colors.card, ...SHADOWS.lg }]}>
-              <Ionicons 
-                name={getPromptIcon(prompt.prompt_type)} 
-                size={48} 
-                color={colors.background} 
+              <Ionicons
+                name={getPromptIcon(prompt.prompt_type)}
+                size={48}
+                color={colors.background}
               />
             </View>
 
-            <Text style={[typography.headlineMedium, { color: colors.text, textAlign: 'center', marginTop: SPACING.xl }]}>
+            <Text
+              style={[
+                typography.headlineMedium,
+                { color: colors.text, textAlign: 'center', marginTop: SPACING.xl },
+              ]}
+            >
               {classData?.name || 'Study Time'}
             </Text>
 
-            <Text style={[typography.bodySmall, { color: colors.textSecondary, marginTop: SPACING.sm }]}>
+            <Text
+              style={[typography.bodySmall, { color: colors.textSecondary, marginTop: SPACING.sm }]}
+            >
               {format(new Date(prompt.scheduled_for), 'EEEE, MMMM d • h:mm a')}
             </Text>
 
@@ -140,12 +136,7 @@ export default function PromptDetailScreen() {
                 </Button>
               )}
 
-              <Button
-                variant="ghost"
-                size="lg"
-                fullWidth
-                onPress={() => router.back()}
-              >
+              <Button variant="ghost" size="lg" fullWidth onPress={() => router.back()}>
                 Done
               </Button>
             </View>

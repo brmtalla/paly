@@ -17,9 +17,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.paly.app",
       "infoPlist": {
-        "UIBackgroundModes": [
-          "remote-notification"
-        ]
+        "UIBackgroundModes": ["remote-notification"]
       }
     },
     "android": {
@@ -28,10 +26,7 @@
         "backgroundColor": "#6366F1"
       },
       "package": "com.paly.app",
-      "permissions": [
-        "NOTIFICATIONS",
-        "RECEIVE_BOOT_COMPLETED"
-      ]
+      "permissions": ["NOTIFICATIONS", "RECEIVE_BOOT_COMPLETED"]
     },
     "web": {
       "bundler": "metro",

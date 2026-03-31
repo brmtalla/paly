@@ -52,9 +52,9 @@ export default function AvailabilityScreen() {
 
       if (data && data.length > 0) {
         // Update blocks based on stored data
-        const updatedBlocks = DEFAULT_BLOCKS.map(block => {
+        const updatedBlocks = DEFAULT_BLOCKS.map((block) => {
           const isBlocked = data.some(
-            d => d.start_time === block.start && d.end_time === block.end
+            (d) => d.start_time === block.start && d.end_time === block.end
           );
           return { ...block, isBlocked };
         });
@@ -66,7 +66,7 @@ export default function AvailabilityScreen() {
   };
 
   const toggleBlock = (id: string) => {
-    setBlocks(blocks.map(b => (b.id === id ? { ...b, isBlocked: !b.isBlocked } : b)));
+    setBlocks(blocks.map((b) => (b.id === id ? { ...b, isBlocked: !b.isBlocked } : b)));
     setHasChanges(true);
   };
 
@@ -83,10 +83,10 @@ export default function AvailabilityScreen() {
         .eq('is_recurring', true);
 
       // Insert new blocked times
-      const blockedTimes = blocks.filter(b => b.isBlocked);
+      const blockedTimes = blocks.filter((b) => b.isBlocked);
       if (blockedTimes.length > 0) {
         const { error } = await supabase.from('availability_blocks').insert(
-          blockedTimes.map(block => ({
+          blockedTimes.map((block) => ({
             user_id: profile.id,
             start_time: block.start,
             end_time: block.end,
@@ -107,22 +107,17 @@ export default function AvailabilityScreen() {
     }
   };
 
-  const availableCount = blocks.filter(b => !b.isBlocked).length;
+  const availableCount = blocks.filter((b) => !b.isBlocked).length;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         {/* Header */}
-        <Animated.View
-          entering={FadeInDown.delay(100).duration(400)}
-          style={styles.header}
-        >
+        <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[typography.titleLarge, { color: colors.text }]}>
-            Availability
-          </Text>
+          <Text style={[typography.titleLarge, { color: colors.text }]}>Availability</Text>
           <View style={{ width: 40 }} />
         </Animated.View>
 
@@ -145,10 +140,12 @@ export default function AvailabilityScreen() {
             entering={FadeInUp.delay(300).duration(600).springify()}
             style={styles.blocksSection}
           >
-            <Text style={[typography.labelSmall, { color: colors.textMuted, marginBottom: SPACING.sm }]}>
+            <Text
+              style={[typography.labelSmall, { color: colors.textMuted, marginBottom: SPACING.sm }]}
+            >
               TAP TO TOGGLE AVAILABILITY
             </Text>
-            
+
             {blocks.map((block, index) => (
               <Animated.View
                 key={block.id}
@@ -179,7 +176,7 @@ export default function AvailabilityScreen() {
                           {block.start} - {block.end}
                         </Text>
                       </View>
-                      
+
                       <View
                         style={[
                           styles.statusBadge,
@@ -220,17 +217,8 @@ export default function AvailabilityScreen() {
 
         {/* Save button */}
         {hasChanges && (
-          <Animated.View
-            entering={FadeInUp.duration(400)}
-            style={styles.footer}
-          >
-            <Button
-              variant="primary"
-              size="lg"
-              fullWidth
-              onPress={handleSave}
-              loading={isLoading}
-            >
+          <Animated.View entering={FadeInUp.duration(400)} style={styles.footer}>
+            <Button variant="primary" size="lg" fullWidth onPress={handleSave} loading={isLoading}>
               Save Changes
             </Button>
           </Animated.View>
@@ -300,5 +288,3 @@ const styles = StyleSheet.create({
     paddingBottom: SPACING.xl,
   },
 });
-
-

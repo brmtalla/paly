@@ -1,12 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Animated,
-  Dimensions,
-  Platform,
-} from 'react-native';
+import { View, Text, StyleSheet, Animated, Dimensions, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { THEME_COLORS } from '../theme/colors';
@@ -18,13 +11,10 @@ interface SplashScreenProps {
   accentColor?: string;
 }
 
-export const SplashScreen: React.FC<SplashScreenProps> = ({
-  onAnimationComplete,
-  accentColor,
-}) => {
+export const SplashScreen: React.FC<SplashScreenProps> = ({ onAnimationComplete, accentColor }) => {
   // Use provided accent color or default to Indigo
   const themeColor = accentColor
-    ? THEME_COLORS.find(c => c.value === accentColor) || THEME_COLORS[0]
+    ? THEME_COLORS.find((c) => c.value === accentColor) || THEME_COLORS[0]
     : THEME_COLORS[0];
 
   // Animation values
@@ -161,9 +151,27 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
       >
         {/* Decorative background elements */}
         <View style={styles.backgroundDecoration}>
-          <View style={[styles.bgCircle, styles.bgCircle1, { backgroundColor: themeColor.light + '10' }]} />
-          <View style={[styles.bgCircle, styles.bgCircle2, { backgroundColor: themeColor.light + '08' }]} />
-          <View style={[styles.bgCircle, styles.bgCircle3, { backgroundColor: themeColor.light + '05' }]} />
+          <View
+            style={[
+              styles.bgCircle,
+              styles.bgCircle1,
+              { backgroundColor: themeColor.light + '10' },
+            ]}
+          />
+          <View
+            style={[
+              styles.bgCircle,
+              styles.bgCircle2,
+              { backgroundColor: themeColor.light + '08' },
+            ]}
+          />
+          <View
+            style={[
+              styles.bgCircle,
+              styles.bgCircle3,
+              { backgroundColor: themeColor.light + '05' },
+            ]}
+          />
         </View>
 
         {/* Main content */}
@@ -356,5 +364,3 @@ const styles = StyleSheet.create({
 });
 
 export default SplashScreen;
-
-

@@ -1,11 +1,5 @@
 import React, { useRef, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
@@ -23,10 +17,10 @@ export default function QuizScreen() {
   const { synthesizedContent, awardPoints } = useStudyStore();
   const { profile } = useAuthStore();
   const pointsAwarded = useRef(false);
-  
-  const content = synthesizedContent.find(c => c.id === id);
+
+  const content = synthesizedContent.find((c) => c.id === id);
   const questions = content?.quiz_questions || [];
-  
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
@@ -40,7 +34,7 @@ export default function QuizScreen() {
 
   const handleSubmit = () => {
     if (selectedAnswer === null) return;
-    
+
     const isCorrect = selectedAnswer === questions[currentIndex].correct_index;
     if (isCorrect) {
       setScore(score + 1);
@@ -69,10 +63,10 @@ export default function QuizScreen() {
       <Background>
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.centered}>
-            <Ionicons 
-              name="help-circle-outline" 
-              size={64} 
-              color={colorScheme === 'dark' ? colors.text : colors.cardTextMuted} 
+            <Ionicons
+              name="help-circle-outline"
+              size={64}
+              color={colorScheme === 'dark' ? colors.text : colors.cardTextMuted}
             />
             <Text style={[typography.titleMedium, { color: colors.text, marginTop: SPACING.lg }]}>
               No quiz questions available
@@ -88,7 +82,7 @@ export default function QuizScreen() {
 
   if (isComplete) {
     const percentage = Math.round((score / questions.length) * 100);
-    
+
     return (
       <Background>
         <SafeAreaView style={styles.safeArea}>
@@ -97,22 +91,35 @@ export default function QuizScreen() {
               entering={FadeInUp.duration(600).springify()}
               style={[styles.scoreContainer, { backgroundColor: colors.card, ...SHADOWS.lg }]}
             >
-              <Ionicons 
-                name={percentage >= 70 ? "trophy" : "ribbon"} 
-                size={64} 
-                color={percentage >= 70 ? colors.warning : colors.background} 
+              <Ionicons
+                name={percentage >= 70 ? 'trophy' : 'ribbon'}
+                size={64}
+                color={percentage >= 70 ? colors.warning : colors.background}
               />
-              <Text style={[typography.displayMedium, { color: colors.cardText, marginTop: SPACING.lg }]}>
+              <Text
+                style={[
+                  typography.displayMedium,
+                  { color: colors.cardText, marginTop: SPACING.lg },
+                ]}
+              >
                 {percentage}%
               </Text>
               <Text style={[typography.titleMedium, { color: colors.cardTextSecondary }]}>
                 {score} / {questions.length} correct
               </Text>
-              <Text style={[typography.bodyMedium, { color: colors.cardTextTertiary, marginTop: SPACING.md, textAlign: 'center' }]}>
-                {percentage >= 90 ? "Excellent work!" : 
-                 percentage >= 70 ? "Great job! Keep it up!" :
-                 percentage >= 50 ? "Good effort! Review and try again!" :
-                 "Keep studying, you'll get there!"}
+              <Text
+                style={[
+                  typography.bodyMedium,
+                  { color: colors.cardTextTertiary, marginTop: SPACING.md, textAlign: 'center' },
+                ]}
+              >
+                {percentage >= 90
+                  ? 'Excellent work!'
+                  : percentage >= 70
+                    ? 'Great job! Keep it up!'
+                    : percentage >= 50
+                      ? 'Good effort! Review and try again!'
+                      : "Keep studying, you'll get there!"}
               </Text>
               {percentage >= 80 && (
                 <Animated.View
@@ -126,7 +133,7 @@ export default function QuizScreen() {
                 </Animated.View>
               )}
             </Animated.View>
-            
+
             <Button
               variant="primary"
               size="lg"
@@ -150,31 +157,28 @@ export default function QuizScreen() {
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={styles.backButton}
-          >
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="close" size={24} color={colors.text} />
           </TouchableOpacity>
-          
+
           <Text style={[typography.titleMedium, { color: colors.text }]}>
             Question {currentIndex + 1} / {questions.length}
           </Text>
-          
+
           <View style={{ width: 40 }} />
         </View>
 
         {/* Progress */}
         <View style={styles.progressContainer}>
           <View style={[styles.progressBar, { backgroundColor: colors.glassBackground }]}>
-            <View 
+            <View
               style={[
-                styles.progressFill, 
-                { 
+                styles.progressFill,
+                {
                   backgroundColor: colors.card,
-                  width: `${((currentIndex + 1) / questions.length) * 100}%` 
-                }
-              ]} 
+                  width: `${((currentIndex + 1) / questions.length) * 100}%`,
+                },
+              ]}
             />
           </View>
         </View>
@@ -195,10 +199,10 @@ export default function QuizScreen() {
             {currentQuestion.options.map((option, index) => {
               const isSelected = selectedAnswer === index;
               const isCorrect = index === currentQuestion.correct_index;
-              
+
               let backgroundColor = colors.card;
               let borderColor = 'transparent';
-              
+
               if (showResult) {
                 if (isCorrect) {
                   backgroundColor = colors.success + '20';
@@ -219,7 +223,7 @@ export default function QuizScreen() {
                   disabled={showResult}
                   style={[
                     styles.option,
-                    { 
+                    {
                       backgroundColor,
                       borderColor,
                       borderWidth: isSelected || (showResult && isCorrect) ? 2 : 0,
@@ -227,38 +231,44 @@ export default function QuizScreen() {
                     },
                   ]}
                 >
-                  <View style={[
-                    styles.optionLetter,
-                    { 
-                      backgroundColor: isSelected && !showResult 
-                        ? colors.text 
-                        : showResult && isCorrect 
-                          ? colors.success 
-                          : showResult && isSelected && !isCorrect
-                            ? colors.error
-                            : colors.cardSecondary 
-                    }
-                  ]}>
-                    <Text style={[
-                      typography.labelMedium, 
-                      { 
-                        color: isSelected || (showResult && (isCorrect || (isSelected && !isCorrect)))
-                          ? '#FFFFFF' 
-                          : colors.cardText 
-                      }
-                    ]}>
+                  <View
+                    style={[
+                      styles.optionLetter,
+                      {
+                        backgroundColor:
+                          isSelected && !showResult
+                            ? colors.text
+                            : showResult && isCorrect
+                              ? colors.success
+                              : showResult && isSelected && !isCorrect
+                                ? colors.error
+                                : colors.cardSecondary,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        typography.labelMedium,
+                        {
+                          color:
+                            isSelected || (showResult && (isCorrect || (isSelected && !isCorrect)))
+                              ? '#FFFFFF'
+                              : colors.cardText,
+                        },
+                      ]}
+                    >
                       {String.fromCharCode(65 + index)}
                     </Text>
                   </View>
-                  <Text style={[
-                    typography.bodyMedium, 
-                    { 
-                      color: isSelected && !showResult 
-                        ? colors.text 
-                        : colors.cardText,
-                      flex: 1 
-                    }
-                  ]}>
+                  <Text
+                    style={[
+                      typography.bodyMedium,
+                      {
+                        color: isSelected && !showResult ? colors.text : colors.cardText,
+                        flex: 1,
+                      },
+                    ]}
+                  >
                     {option}
                   </Text>
                   {showResult && isCorrect && (
@@ -278,11 +288,18 @@ export default function QuizScreen() {
               <Card style={[styles.explanationCard, { backgroundColor: colors.glassBackground }]}>
                 <View style={styles.explanationHeader}>
                   <Ionicons name="bulb-outline" size={20} color={colors.text} />
-                  <Text style={[typography.labelMedium, { color: colors.text, marginLeft: SPACING.sm }]}>
+                  <Text
+                    style={[typography.labelMedium, { color: colors.text, marginLeft: SPACING.sm }]}
+                  >
                     Explanation
                   </Text>
                 </View>
-                <Text style={[typography.bodyMedium, { color: colors.textSecondary, marginTop: SPACING.sm }]}>
+                <Text
+                  style={[
+                    typography.bodyMedium,
+                    { color: colors.textSecondary, marginTop: SPACING.sm },
+                  ]}
+                >
                   {currentQuestion.explanation}
                 </Text>
               </Card>

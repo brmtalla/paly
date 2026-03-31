@@ -11,6 +11,8 @@ import { useAuthStore } from '../../src/stores/authStore';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../src/lib/supabase';
 
+const SUPPORT_EMAIL = 'support@paly.app';
+
 export default function AccountScreen() {
   const { colors } = useTheme();
   const { profile, updateProfile, user } = useAuthStore();
@@ -44,12 +46,17 @@ export default function AccountScreen() {
       if (email !== originalEmail) {
         const { error } = await supabase.auth.updateUser({ email: email.trim() });
         if (error) {
-          Alert.alert('Email Update', 'Your profile was updated, but email change requires verification. Check your inbox.');
+          Alert.alert(
+            'Email Update',
+            'Your profile was updated, but email change requires verification. Check your inbox.'
+          );
           setEmailChanged(true);
         } else {
-          Alert.alert('Success', 'A confirmation email has been sent to your new address. Please verify to complete the change.', [
-            { text: 'OK', onPress: () => router.back() },
-          ]);
+          Alert.alert(
+            'Success',
+            'A confirmation email has been sent to your new address. Please verify to complete the change.',
+            [{ text: 'OK', onPress: () => router.back() }]
+          );
           setEmailChanged(true);
           return;
         }
@@ -70,20 +77,15 @@ export default function AccountScreen() {
     <Background>
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         {/* Header */}
-        <Animated.View
-          entering={FadeInDown.delay(100).duration(400)}
-          style={styles.header}
-        >
+        <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[typography.titleLarge, { color: colors.text }]}>
-            Account
-          </Text>
+          <Text style={[typography.titleLarge, { color: colors.text }]}>Account</Text>
           <View style={{ width: 40 }} />
         </Animated.View>
 
-        <ScrollView 
+        <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
@@ -113,7 +115,7 @@ export default function AccountScreen() {
           </Animated.View>
 
           {/* Email Input */}
-          <Animated.View 
+          <Animated.View
             entering={FadeInUp.delay(400).duration(600).springify()}
             style={{ marginTop: SPACING.lg }}
           >
@@ -128,7 +130,9 @@ export default function AccountScreen() {
               leftIcon={<Ionicons name="mail-outline" size={20} color={colors.cardTextMuted} />}
             />
             {email !== originalEmail && (
-              <Text style={[typography.bodySmall, { color: colors.warning, marginTop: SPACING.xs }]}>
+              <Text
+                style={[typography.bodySmall, { color: colors.warning, marginTop: SPACING.xs }]}
+              >
                 Changing your email will require verification
               </Text>
             )}
@@ -141,9 +145,19 @@ export default function AccountScreen() {
           >
             <Card variant="default" padding="lg">
               <View style={styles.infoRow}>
-                <Ionicons name="information-circle-outline" size={20} color={colors.cardTextMuted} />
-                <Text style={[typography.bodySmall, { color: colors.cardTextSecondary, flex: 1, marginLeft: SPACING.sm }]}>
-                  Your name will be used in greetings and throughout the app. Email changes require verification.
+                <Ionicons
+                  name="information-circle-outline"
+                  size={20}
+                  color={colors.cardTextMuted}
+                />
+                <Text
+                  style={[
+                    typography.bodySmall,
+                    { color: colors.cardTextSecondary, flex: 1, marginLeft: SPACING.sm },
+                  ]}
+                >
+                  Your name will be used in greetings and throughout the app. Email changes require
+                  verification.
                 </Text>
               </View>
             </Card>
@@ -164,6 +178,38 @@ export default function AccountScreen() {
             disabled={!hasChanges || !fullName.trim()}
           >
             Save Changes
+          </Button>
+          <Button
+            variant="ghost"
+            size="md"
+            fullWidth
+            style={{ marginTop: SPACING.xl }}
+            textStyle={{ color: colors.error }}
+            onPress={() => {
+              Alert.alert(
+                'Delete Account',
+                'This will permanently delete your account and all associated data. This action cannot be undone.',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Delete Account',
+                    style: 'destructive',
+                    onPress: async () => {
+                      const { deleteAccount } = useAuthStore.getState();
+                      const { error: delError } = await deleteAccount();
+                      if (delError) {
+                        Alert.alert(
+                          'Error',
+                          `Could not delete account. Please contact ${SUPPORT_EMAIL} for help.`
+                        );
+                      }
+                    },
+                  },
+                ]
+              );
+            }}
+          >
+            Delete Account
           </Button>
         </Animated.View>
       </SafeAreaView>
@@ -219,5 +265,3 @@ const styles = StyleSheet.create({
     paddingBottom: SPACING.xl,
   },
 });
-
-

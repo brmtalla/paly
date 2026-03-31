@@ -16,7 +16,7 @@ export const THEME_COLORS = [
   { name: 'Fuchsia', value: '#D946EF', light: '#E879F9', dark: '#C026D3', deepDark: '#A21CAF' },
 ] as const;
 
-export type ThemeColorName = typeof THEME_COLORS[number]['name'];
+export type ThemeColorName = (typeof THEME_COLORS)[number]['name'];
 
 // Card and surface colors (neutral)
 export const SURFACE_COLORS = {
@@ -72,7 +72,7 @@ export const getRandomThemeColor = () => {
 
 // Get theme color object by value
 export const getThemeColorByValue = (value: string) => {
-  return THEME_COLORS.find(c => c.value === value) || THEME_COLORS[0];
+  return THEME_COLORS.find((c) => c.value === value) || THEME_COLORS[0];
 };
 
 // Generate all derived colors from accent for accent-first design

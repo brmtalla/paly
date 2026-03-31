@@ -41,16 +41,11 @@ export default function CompanionScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         {/* Header */}
-        <Animated.View
-          entering={FadeInDown.delay(100).duration(400)}
-          style={styles.header}
-        >
+        <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[typography.titleLarge, { color: colors.text }]}>
-            Companion Name
-          </Text>
+          <Text style={[typography.titleLarge, { color: colors.text }]}>Companion Name</Text>
           <View style={{ width: 40 }} />
         </Animated.View>
 
@@ -61,11 +56,11 @@ export default function CompanionScreen() {
             style={styles.previewSection}
           >
             <View style={[styles.avatar, { backgroundColor: colors.accent }]}>
-              <Text style={styles.avatarText}>
-                {name.charAt(0).toUpperCase() || 'P'}
-              </Text>
+              <Text style={styles.avatarText}>{name.charAt(0).toUpperCase() || 'P'}</Text>
             </View>
-            <Text style={[typography.headlineMedium, { color: colors.text, marginTop: SPACING.md }]}>
+            <Text
+              style={[typography.headlineMedium, { color: colors.text, marginTop: SPACING.md }]}
+            >
               {name || 'Your Companion'}
             </Text>
           </Animated.View>
@@ -86,11 +81,13 @@ export default function CompanionScreen() {
             entering={FadeInUp.delay(400).duration(600).springify()}
             style={styles.suggestionsSection}
           >
-            <Text style={[typography.labelSmall, { color: colors.textMuted, marginBottom: SPACING.sm }]}>
+            <Text
+              style={[typography.labelSmall, { color: colors.textMuted, marginBottom: SPACING.sm }]}
+            >
               SUGGESTIONS
             </Text>
             <View style={styles.suggestions}>
-              {SUGGESTED_NAMES.map(suggestion => (
+              {SUGGESTED_NAMES.map((suggestion) => (
                 <Card
                   key={suggestion}
                   variant={name === suggestion ? 'elevated' : 'default'}
@@ -120,7 +117,12 @@ export default function CompanionScreen() {
             style={styles.previewMessage}
           >
             <Card variant="glass" padding="lg">
-              <Text style={[typography.bodyMedium, { color: colors.textSecondary, fontStyle: 'italic' }]}>
+              <Text
+                style={[
+                  typography.bodyMedium,
+                  { color: colors.textSecondary, fontStyle: 'italic' },
+                ]}
+              >
                 "Hey! {name || 'I'}'s here to help you study. Ready for today's review?"
               </Text>
             </Card>
@@ -205,5 +207,3 @@ const styles = StyleSheet.create({
     paddingBottom: SPACING.xl,
   },
 });
-
-

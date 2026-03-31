@@ -39,7 +39,7 @@ export default function NotificationsScreen() {
 
   const fetchPreferences = async () => {
     if (!profile?.id) return;
-    
+
     try {
       const { data, error } = await supabase
         .from('notification_preferences')
@@ -67,18 +67,14 @@ export default function NotificationsScreen() {
 
     // Check if SMS is premium feature
     if (key === 'sms_enabled' && value && !profile.is_premium) {
-      Alert.alert(
-        'Premium Feature',
-        'SMS notifications are available with Paly Premium.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Upgrade', onPress: () => router.push('/settings/subscription') },
-        ]
-      );
+      Alert.alert('Premium Feature', 'SMS notifications are available with Paly Premium.', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Upgrade', onPress: () => router.push('/settings/subscription') },
+      ]);
       return;
     }
 
-    setPrefs(prev => ({ ...prev, [key]: value }));
+    setPrefs((prev) => ({ ...prev, [key]: value }));
 
     try {
       const { error } = await supabase
@@ -90,7 +86,7 @@ export default function NotificationsScreen() {
     } catch (error) {
       console.error('Error updating preference:', error);
       // Revert on error
-      setPrefs(prev => ({ ...prev, [key]: !value }));
+      setPrefs((prev) => ({ ...prev, [key]: !value }));
       Alert.alert('Error', 'Failed to update preference');
     }
   };
@@ -99,23 +95,20 @@ export default function NotificationsScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         {/* Header */}
-        <Animated.View
-          entering={FadeInDown.delay(100).duration(400)}
-          style={styles.header}
-        >
+        <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[typography.titleLarge, { color: colors.text }]}>
-            Notifications
-          </Text>
+          <Text style={[typography.titleLarge, { color: colors.text }]}>Notifications</Text>
           <View style={{ width: 40 }} />
         </Animated.View>
 
         <View style={styles.content}>
           {/* Push Notifications */}
           <Animated.View entering={FadeInUp.delay(200).duration(600).springify()}>
-            <Text style={[typography.labelSmall, { color: colors.textMuted, marginBottom: SPACING.sm }]}>
+            <Text
+              style={[typography.labelSmall, { color: colors.textMuted, marginBottom: SPACING.sm }]}
+            >
               DELIVERY METHOD
             </Text>
             <Card variant="elevated" padding="none">
@@ -145,7 +138,9 @@ export default function NotificationsScreen() {
             entering={FadeInUp.delay(300).duration(600).springify()}
             style={styles.section}
           >
-            <Text style={[typography.labelSmall, { color: colors.textMuted, marginBottom: SPACING.sm }]}>
+            <Text
+              style={[typography.labelSmall, { color: colors.textMuted, marginBottom: SPACING.sm }]}
+            >
               NOTIFICATION TYPES
             </Text>
             <Card variant="elevated" padding="none">
@@ -182,7 +177,9 @@ export default function NotificationsScreen() {
             entering={FadeInUp.delay(400).duration(600).springify()}
             style={styles.section}
           >
-            <Text style={[typography.labelSmall, { color: colors.textMuted, marginBottom: SPACING.sm }]}>
+            <Text
+              style={[typography.labelSmall, { color: colors.textMuted, marginBottom: SPACING.sm }]}
+            >
               STUDY PREFERENCES
             </Text>
             <Card variant="elevated" padding="none">
@@ -191,7 +188,9 @@ export default function NotificationsScreen() {
                   <Ionicons name="sparkles" size={18} color={colors.text} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={[typography.titleSmall, { color: colors.text }]}>Auto-Synthesize</Text>
+                  <Text style={[typography.titleSmall, { color: colors.text }]}>
+                    Auto-Synthesize
+                  </Text>
                   <Text style={[typography.bodySmall, { color: colors.textSecondary }]}>
                     Automatically synthesize notes on upload
                   </Text>
@@ -224,7 +223,7 @@ export default function NotificationsScreen() {
               <Text style={[typography.bodySmall, { color: colors.textSecondary, flex: 1 }]}>
                 {autoSynthesize
                   ? 'Uploads are synthesized automatically. Study texts start arriving right away.'
-                  : 'With auto-synthesize off, tap the glowing Synthesize button on your class page when you\'re ready.'}
+                  : "With auto-synthesize off, tap the glowing Synthesize button on your class page when you're ready."}
               </Text>
             </View>
           </Animated.View>
@@ -275,9 +274,7 @@ function NotificationRow({
             </View>
           )}
         </View>
-        <Text style={[typography.bodySmall, { color: colors.textSecondary }]}>
-          {description}
-        </Text>
+        <Text style={[typography.bodySmall, { color: colors.textSecondary }]}>{description}</Text>
       </View>
       <Switch
         value={value}
@@ -353,5 +350,3 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.lg,
   },
 });
-
-

@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -23,26 +16,26 @@ export default function EditClassScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors, colorScheme } = useTheme();
   const { classes, updateClass } = useClassStore();
-  
-  const classData = classes.find(c => c.id === id);
-  
+
+  const classData = classes.find((c) => c.id === id);
+
   // Basic info
   const [name, setName] = useState('');
   const [location, setLocation] = useState('');
-  
+
   // Schedule
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('10:00');
-  
+
   // Semester dates
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  
+
   // Instructor
   const [instructorName, setInstructorName] = useState('');
   const [instructorEmail, setInstructorEmail] = useState('');
-  
+
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -53,9 +46,9 @@ export default function EditClassScreen() {
       setEndDate(classData.end_date || '');
       setInstructorName(classData.instructor_name || '');
       setInstructorEmail(classData.instructor_email || '');
-      
+
       if (classData.class_sessions?.length) {
-        setSelectedDays(classData.class_sessions.map(s => s.day_of_week));
+        setSelectedDays(classData.class_sessions.map((s) => s.day_of_week));
         setStartTime(classData.class_sessions[0].start_time);
         setEndTime(classData.class_sessions[0].end_time);
       }
@@ -63,10 +56,8 @@ export default function EditClassScreen() {
   }, [classData]);
 
   const toggleDay = (dayIndex: number) => {
-    setSelectedDays(prev =>
-      prev.includes(dayIndex)
-        ? prev.filter(d => d !== dayIndex)
-        : [...prev, dayIndex].sort()
+    setSelectedDays((prev) =>
+      prev.includes(dayIndex) ? prev.filter((d) => d !== dayIndex) : [...prev, dayIndex].sort()
     );
   };
 
@@ -107,9 +98,7 @@ export default function EditClassScreen() {
       <Background>
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.centered}>
-            <Text style={[typography.bodyLarge, { color: colors.text }]}>
-              Class not found
-            </Text>
+            <Text style={[typography.bodyLarge, { color: colors.text }]}>Class not found</Text>
             <Button variant="ghost" onPress={() => router.back()}>
               Go Back
             </Button>
@@ -132,25 +121,23 @@ export default function EditClassScreen() {
             entering={FadeInDown.delay(100).duration(600).springify()}
             style={styles.header}
           >
-            <TouchableOpacity
-              onPress={() => router.back()}
-              style={styles.backButton}
-            >
+            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
               <Ionicons name="close" size={24} color={colors.text} />
             </TouchableOpacity>
-            
-            <Text style={[typography.titleLarge, { color: colors.text }]}>
-              Edit Class
-            </Text>
-            
+
+            <Text style={[typography.titleLarge, { color: colors.text }]}>Edit Class</Text>
+
             <View style={{ width: 40 }} />
           </Animated.View>
 
           {/* Basic Info */}
-          <Animated.View
-            entering={FadeInDown.delay(200).duration(600).springify()}
-          >
-            <Text style={[typography.labelSmall, { color: colors.textSecondary, marginBottom: SPACING.sm }]}>
+          <Animated.View entering={FadeInDown.delay(200).duration(600).springify()}>
+            <Text
+              style={[
+                typography.labelSmall,
+                { color: colors.textSecondary, marginBottom: SPACING.sm },
+              ]}
+            >
               CLASS INFO
             </Text>
             <Card style={styles.formCard}>
@@ -159,9 +146,7 @@ export default function EditClassScreen() {
                 placeholder="e.g., Biology 101"
                 value={name}
                 onChangeText={setName}
-                leftIcon={
-                  <Ionicons name="book-outline" size={20} color={colors.cardTextMuted} />
-                }
+                leftIcon={<Ionicons name="book-outline" size={20} color={colors.cardTextMuted} />}
               />
 
               <Input
@@ -178,14 +163,22 @@ export default function EditClassScreen() {
           </Animated.View>
 
           {/* Schedule */}
-          <Animated.View
-            entering={FadeInDown.delay(300).duration(600).springify()}
-          >
-            <Text style={[typography.labelSmall, { color: colors.textSecondary, marginBottom: SPACING.sm }]}>
+          <Animated.View entering={FadeInDown.delay(300).duration(600).springify()}>
+            <Text
+              style={[
+                typography.labelSmall,
+                { color: colors.textSecondary, marginBottom: SPACING.sm },
+              ]}
+            >
               SCHEDULE
             </Text>
             <Card style={styles.formCard}>
-              <Text style={[typography.labelMedium, { color: colors.cardText, marginBottom: SPACING.sm }]}>
+              <Text
+                style={[
+                  typography.labelMedium,
+                  { color: colors.cardText, marginBottom: SPACING.sm },
+                ]}
+              >
                 Days
               </Text>
               <View style={styles.daysContainer}>
@@ -242,18 +235,26 @@ export default function EditClassScreen() {
                   />
                 </View>
               </View>
-              
-              <Text style={[typography.bodySmall, { color: colors.cardTextMuted, marginTop: SPACING.md }]}>
+
+              <Text
+                style={[
+                  typography.bodySmall,
+                  { color: colors.cardTextMuted, marginTop: SPACING.md },
+                ]}
+              >
                 Note: Schedule changes require recreating sessions (coming soon)
               </Text>
             </Card>
           </Animated.View>
 
           {/* Semester Dates */}
-          <Animated.View
-            entering={FadeInDown.delay(400).duration(600).springify()}
-          >
-            <Text style={[typography.labelSmall, { color: colors.textSecondary, marginBottom: SPACING.sm }]}>
+          <Animated.View entering={FadeInDown.delay(400).duration(600).springify()}>
+            <Text
+              style={[
+                typography.labelSmall,
+                { color: colors.textSecondary, marginBottom: SPACING.sm },
+              ]}
+            >
               SEMESTER DATES
             </Text>
             <Card style={styles.formCard}>
@@ -285,10 +286,13 @@ export default function EditClassScreen() {
           </Animated.View>
 
           {/* Instructor */}
-          <Animated.View
-            entering={FadeInDown.delay(500).duration(600).springify()}
-          >
-            <Text style={[typography.labelSmall, { color: colors.textSecondary, marginBottom: SPACING.sm }]}>
+          <Animated.View entering={FadeInDown.delay(500).duration(600).springify()}>
+            <Text
+              style={[
+                typography.labelSmall,
+                { color: colors.textSecondary, marginBottom: SPACING.sm },
+              ]}
+            >
               INSTRUCTOR
             </Text>
             <Card style={styles.formCard}>
@@ -297,9 +301,7 @@ export default function EditClassScreen() {
                 placeholder="e.g., Dr. Smith"
                 value={instructorName}
                 onChangeText={setInstructorName}
-                leftIcon={
-                  <Ionicons name="person-outline" size={20} color={colors.cardTextMuted} />
-                }
+                leftIcon={<Ionicons name="person-outline" size={20} color={colors.cardTextMuted} />}
               />
 
               <Input
@@ -309,9 +311,7 @@ export default function EditClassScreen() {
                 onChangeText={setInstructorEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
-                leftIcon={
-                  <Ionicons name="mail-outline" size={20} color={colors.cardTextMuted} />
-                }
+                leftIcon={<Ionicons name="mail-outline" size={20} color={colors.cardTextMuted} />}
                 containerStyle={{ marginTop: SPACING.sm }}
               />
             </Card>
@@ -322,13 +322,7 @@ export default function EditClassScreen() {
             entering={FadeInDown.delay(600).duration(600).springify()}
             style={styles.footer}
           >
-            <Button
-              variant="primary"
-              size="lg"
-              fullWidth
-              loading={isLoading}
-              onPress={handleSave}
-            >
+            <Button variant="primary" size="lg" fullWidth loading={isLoading} onPress={handleSave}>
               Save Changes
             </Button>
           </Animated.View>
