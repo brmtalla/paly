@@ -27,6 +27,7 @@ export default function StudyScreen() {
   const { classes, fetchClasses } = useClassStore();
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<'prompts' | 'flashcards' | 'quizzes'>('prompts');
+  const [showAllCompleted, setShowAllCompleted] = useState(false);
 
   useEffect(() => {
     if (profile?.id) {
@@ -192,7 +193,7 @@ export default function StudyScreen() {
                   >
                     COMPLETED ({readPrompts.length})
                   </Text>
-                  {readPrompts.slice(0, 5).map(prompt => (
+                  {(showAllCompleted ? readPrompts : readPrompts.slice(0, 5)).map(prompt => (
                     <Card
                       key={prompt.id}
                       variant="default"
@@ -220,6 +221,16 @@ export default function StudyScreen() {
                       </View>
                     </Card>
                   ))}
+                  {readPrompts.length > 5 && (
+                    <TouchableOpacity
+                      onPress={() => setShowAllCompleted(!showAllCompleted)}
+                      style={{ alignItems: 'center', paddingVertical: SPACING.md }}
+                    >
+                      <Text style={[typography.labelMedium, { color: colors.white }]}>
+                        {showAllCompleted ? 'Show Less' : `Show All ${readPrompts.length}`}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
                 </Animated.View>
               )}
 
@@ -263,6 +274,12 @@ export default function StudyScreen() {
                 synthesizedContent.map(content => {
                   const flashcards = content.flashcards as any[];
                   if (!flashcards || flashcards.length === 0) return null;
+
+                  const created = new Date(content.session_date + 'T00:00:00');
+                  const now = new Date();
+                  now.setHours(0, 0, 0, 0);
+                  const studyDay = Math.max(1, Math.floor((now.getTime() - created.getTime()) / 86400000) + 1);
+                  const unlockedCount = flashcards.filter((c: any) => !c.day || c.day <= studyDay).length;
                   
                   return (
                     <Card
@@ -300,7 +317,7 @@ export default function StudyScreen() {
                         </View>
                         <View style={[styles.countBadge, { backgroundColor: colors.background }]}>
                           <Text style={[typography.labelSmall, { color: colors.white }]}>
-                            {flashcards.length}
+                            {unlockedCount}/{flashcards.length}
                           </Text>
                         </View>
                       </View>

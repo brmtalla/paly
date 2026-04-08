@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -14,18 +14,33 @@ import { Ionicons } from '@expo/vector-icons';
 export default function QuizScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors, colorScheme } = useTheme();
-  const { synthesizedContent, awardPoints } = useStudyStore();
+  const {
+    synthesizedContent,
+    fetchSynthesizedContent,
+    awardPoints,
+    startQuiz,
+    answerQuestion,
+    completeQuiz,
+  } = useStudyStore();
   const { profile } = useAuthStore();
   const pointsAwarded = useRef(false);
+  const quizStarted = useRef(false);
 
   const content = synthesizedContent.find((c) => c.id === id);
-  const questions = content?.quiz_questions || [];
+  const questions = (content?.quiz_questions || []) as any[];
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [score, setScore] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
+
+  useEffect(() => {
+    if (content && profile?.id && !quizStarted.current && questions.length > 0) {
+      quizStarted.current = true;
+      startQuiz(content.class_id, profile.id, content.id).catch(console.error);
+    }
+  }, [content, profile?.id]);
 
   const handleSelectAnswer = (optionIndex: number) => {
     if (showResult) return;
@@ -39,10 +54,11 @@ export default function QuizScreen() {
     if (isCorrect) {
       setScore(score + 1);
     }
+    answerQuestion(isCorrect);
     setShowResult(true);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(currentIndex + 1);
       setSelectedAnswer(null);
@@ -53,6 +69,10 @@ export default function QuizScreen() {
       if (pct >= 0.8 && profile?.id && !pointsAwarded.current) {
         pointsAwarded.current = true;
         awardPoints(profile.id, 10, 'quiz_pass');
+      }
+      await completeQuiz();
+      if (profile?.id) {
+        fetchSynthesizedContent(profile.id);
       }
       setIsComplete(true);
     }

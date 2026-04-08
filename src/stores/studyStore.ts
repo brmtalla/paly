@@ -1,6 +1,9 @@
 import { create } from 'zustand';
+import Constants from 'expo-constants';
 import { supabase } from '../lib/supabase';
 import { SynthesizedContent, StudyPrompt, QuizAttempt, Flashcard, QuizQuestion } from '../types/database';
+
+const SUPABASE_URL = Constants.expoConfig?.extra?.supabaseUrl as string;
 
 interface StudyState {
   synthesizedContent: SynthesizedContent[];
@@ -41,6 +44,9 @@ interface StudyState {
 
   // Points
   awardPoints: (userId: string, points: number, reason: string) => Promise<void>;
+
+  // Advance chunk requests
+  requestNextChunk: (classId: string, userId: string, spendPoints?: boolean) => Promise<any>;
 }
 
 export const useStudyStore = create<StudyState>((set, get) => ({
@@ -143,12 +149,37 @@ export const useStudyStore = create<StudyState>((set, get) => ({
     try {
       set({ isSynthesizing: true });
 
-      // Fetch class info for context
+      // Fetch class info and sessions for context
       const { data: classData } = await supabase
         .from('classes')
         .select('name')
         .eq('id', classId)
         .single();
+
+      const { data: sessions } = await supabase
+        .from('class_sessions')
+        .select('day_of_week, start_time')
+        .eq('class_id', classId);
+
+      let numStudyDays = 7;
+      if (sessions && sessions.length > 0) {
+        const now = new Date();
+        const currentDay = now.getDay();
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        let minDaysAway = Infinity;
+
+        for (const session of sessions as any[]) {
+          const targetDay = session.day_of_week;
+          const [sh, sm] = session.start_time.split(':');
+          const sessionMinutes = parseInt(sh) * 60 + parseInt(sm);
+          let daysAway = targetDay - currentDay;
+          if (daysAway < 0) daysAway += 7;
+          if (daysAway === 0 && currentMinutes >= sessionMinutes) daysAway = 7;
+          if (daysAway < minDaysAway) minDaysAway = daysAway;
+        }
+        if (minDaysAway < 2) minDaysAway += 7;
+        numStudyDays = Math.max(1, Math.min(minDaysAway - 1, 14));
+      }
 
       // Fetch notes and uploads for this class/date
       const { data: notes } = await supabase
@@ -181,6 +212,7 @@ export const useStudyStore = create<StudyState>((set, get) => ({
           classId,
           sessionDate,
           className: classData?.name,
+          numStudyDays,
         },
       });
 
@@ -315,7 +347,21 @@ export const useStudyStore = create<StudyState>((set, get) => ({
 
       if (error) throw error;
 
-      set({ currentQuiz: null });
+      // Reset overdue status so the UI updates immediately
+      await supabase
+        .from('synthesized_content')
+        .update({ quiz_deadline_notified: 0 })
+        .eq('id', currentQuiz.attempt.synthesized_content_id);
+
+      // Update local state to clear overdue badge
+      set((state) => ({
+        currentQuiz: null,
+        synthesizedContent: state.synthesizedContent.map((c) =>
+          c.id === currentQuiz.attempt!.synthesized_content_id
+            ? { ...c, quiz_deadline_notified: 0 }
+            : c
+        ),
+      }));
     } catch (error) {
       console.error('Complete quiz error:', error);
     }
@@ -467,6 +513,34 @@ export const useStudyStore = create<StudyState>((set, get) => ({
     } catch (error) {
       console.error('Award points error:', error);
     }
+  },
+
+  requestNextChunk: async (classId: string, userId: string, spendPoints = false) => {
+    const response = await fetch(
+      `${SUPABASE_URL}/functions/v1/request-chunk`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+        body: JSON.stringify({ classId, userId, spendPoints }),
+      }
+    );
+
+    const data = await response.json();
+
+    const ts = new Date().toLocaleTimeString();
+    if (data?.success) {
+      console.log(`[${ts}] CHUNK DELIVERED — ${data.chunk.className} Day ${data.chunk.dayIndex} (${data.chunk.type})`);
+      console.log(`[${ts}] SMS: ${data.smsDelivered ? 'SENT' : 'FAILED'} | SID: ${data.smsSid || 'N/A'} | At: ${data.deliveredAt}`);
+      console.log(`[${ts}] Usage: ${data.usage.usedThisWeek}/${data.usage.weeklyLimit} this week${data.usage.pointsSpent > 0 ? ` (spent ${data.usage.pointsSpent} pts)` : ''}`);
+      console.log(`[${ts}] Preview: ${data.chunk.contentPreview}`);
+    } else {
+      console.log(`[${ts}] CHUNK REQUEST — ${data.error}: ${data.message || JSON.stringify(data)}`);
+    }
+
+    return data;
   },
 }));
 

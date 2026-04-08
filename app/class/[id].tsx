@@ -11,15 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
-import Animated, {
-  FadeInDown,
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  withSequence,
-  withTiming,
-  Easing,
-} from 'react-native-reanimated';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import * as DocumentPicker from 'expo-document-picker';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useTheme } from '../../src/theme/ThemeContext';
@@ -44,46 +36,20 @@ export default function ClassDetailScreen() {
     isSynthesizing,
     getOverdueQuizzes,
     getNextQuizDeadline,
+    requestNextChunk,
   } = useStudyStore();
   const { profile } = useAuthStore();
   const [isUploading, setIsUploading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [synthesizingUploadId, setSynthesizingUploadId] = useState<string | null>(null);
+  const [requestingChunk, setRequestingChunk] = useState(false);
   const [classUploadsData, setClassUploadsData] = useState<any[]>([]);
 
   const overdueQuizzes = id ? getOverdueQuizzes(id) : [];
   const nextQuizDeadline = id ? getNextQuizDeadline(id) : null;
   const streak = profile?.streak_count ?? 0;
 
-  // Detect unsynthesized uploads for this class
-  const classUploads = notes.flatMap((n) => n.uploads).filter((u) => u.class_id === id);
-  const synthesizedDates = new Set(
-    synthesizedContent.filter((c) => c.class_id === id).map((c) => c.session_date)
-  );
-  const uploadDates = new Set(classUploads.map((u) => u.session_date));
-  const hasUnsynthesized =
-    [...uploadDates].some((d) => !synthesizedDates.has(d)) ||
-    (classUploads.length > 0 && synthesizedContent.filter((c) => c.class_id === id).length === 0);
-
-  // Glow animation for Synthesize button
-  const glowOpacity = useSharedValue(0.4);
-  useEffect(() => {
-    if (hasUnsynthesized && !profile?.auto_synthesize) {
-      glowOpacity.value = withRepeat(
-        withSequence(
-          withTiming(1, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
-          withTiming(0.4, { duration: 1000, easing: Easing.inOut(Easing.ease) })
-        ),
-        -1,
-        false
-      );
-    } else {
-      glowOpacity.value = withTiming(0, { duration: 300 });
-    }
-  }, [hasUnsynthesized, profile?.auto_synthesize]);
-
-  const glowStyle = useAnimatedStyle(() => ({
-    opacity: glowOpacity.value,
-  }));
+  
 
   const classData = classes.find((c) => c.id === id);
   const classNotes = notes.filter((n) => n.class_id === id);
@@ -146,20 +112,21 @@ export default function ClassDetailScreen() {
     }
   };
 
-  const handleSynthesize = async () => {
+  const handleSynthesizeUpload = async (upload: any) => {
     if (!profile?.id || !id) return;
-    setIsProcessing(true);
+    setSynthesizingUploadId(upload.id);
     try {
-      const sessionDate = format(new Date(), 'yyyy-MM-dd');
+      const sessionDate = upload.session_date || format(new Date(), 'yyyy-MM-dd');
       const { data, error } = await supabase.functions.invoke('process-upload', {
         body: {
-          uploadId: 'manual-trigger',
+          uploadId: upload.id,
           filePath: '',
           fileType: '',
           classId: id,
           userId: profile.id,
           sessionDate,
           skipExtraction: true,
+          singleUploadId: upload.id,
         },
       });
       if (error) throw error;
@@ -170,18 +137,56 @@ export default function ClassDetailScreen() {
       } else {
         Alert.alert(
           'Synthesis Complete',
-          `Study materials generated! ${data?.promptsScheduled || 0} study texts scheduled over ${data?.studyDays || 0} days.`
+          `Study materials generated from "${upload.file_name}"! ${data?.promptsScheduled || 0} study texts scheduled over ${data?.studyDays || 0} days.`
         );
         fetchSynthesizedContent(profile.id, id);
+        fetchUploads();
       }
     } catch (error: any) {
       console.error('Synthesis error:', error);
       Alert.alert(
         'Synthesis Failed',
-        error.message || 'Make sure you have notes or uploaded files first.'
+        error.message || 'Make sure the file has been processed first.'
       );
     } finally {
-      setIsProcessing(false);
+      setSynthesizingUploadId(null);
+    }
+  };
+
+  const handleRequestChunk = async (spendPoints = false) => {
+    if (!profile?.id || !id) return;
+    setRequestingChunk(true);
+    try {
+      const result = await requestNextChunk(id, profile.id, spendPoints);
+      if (result?.success) {
+        Alert.alert(
+          'Chunk Sent!',
+          `Day ${result.chunk.dayIndex} ${result.chunk.type} for ${result.chunk.className} texted to you.`
+        );
+      } else if (result?.error === 'weekly_limit_reached') {
+        Alert.alert(
+          'Weekly Limit Reached',
+          result.message,
+          [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: `Spend ${result.pointsCost} pts`,
+              onPress: () => handleRequestChunk(true),
+            },
+          ]
+        );
+      } else if (result?.error === 'insufficient_points') {
+        Alert.alert('Not Enough Points', result.message);
+      } else if (result?.error === 'no_chunks_available') {
+        Alert.alert('No Chunks Left', result.message);
+      } else {
+        Alert.alert('Error', result?.message || result?.error || 'Something went wrong');
+      }
+    } catch (err: any) {
+      console.error('Request chunk error:', err);
+      Alert.alert('Failed', err.message || 'Could not request chunk');
+    } finally {
+      setRequestingChunk(false);
     }
   };
 
@@ -425,37 +430,19 @@ export default function ClassDetailScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[
-                styles.quickAction,
-                { backgroundColor: colors.card, ...SHADOWS.md, overflow: 'hidden' },
-              ]}
-              onPress={handleSynthesize}
-              disabled={isProcessing || isSynthesizing}
+              style={[styles.quickAction, { backgroundColor: colors.card, ...SHADOWS.md }]}
+              onPress={() => handleRequestChunk(false)}
+              disabled={requestingChunk}
             >
-              {hasUnsynthesized && !profile?.auto_synthesize && (
-                <Animated.View
-                  style={[StyleSheet.absoluteFill, { backgroundColor: '#8B5CF6' }, glowStyle]}
-                  pointerEvents="none"
-                />
-              )}
               <View style={[styles.quickActionIcon, { backgroundColor: colors.background }]}>
-                {isProcessing || isSynthesizing ? (
+                {requestingChunk ? (
                   <ActivityIndicator size="small" color={colors.text} />
                 ) : (
-                  <Ionicons
-                    name="sparkles-outline"
-                    size={24}
-                    color={hasUnsynthesized ? '#8B5CF6' : colors.text}
-                  />
+                  <Ionicons name="flash" size={24} color="#8B5CF6" />
                 )}
               </View>
-              <Text
-                style={[
-                  typography.labelMedium,
-                  { color: hasUnsynthesized ? '#fff' : colors.cardText },
-                ]}
-              >
-                {isProcessing || isSynthesizing ? 'Synthesizing...' : 'Synthesize'}
+              <Text style={[typography.labelMedium, { color: colors.cardText }]}>
+                {requestingChunk ? 'Requesting...' : 'Next Chunk'}
               </Text>
             </TouchableOpacity>
 
@@ -553,60 +540,100 @@ export default function ClassDetailScreen() {
                         : 'attach';
                 const hasText = !!upload.extracted_text;
                 const sizeKB = upload.file_size ? Math.round(upload.file_size / 1024) : null;
+                const isSynthesized = synthesizedContent.some(
+                  (c) => c.class_id === id && c.source_upload_ids?.includes(upload.id)
+                );
+                const isSynthesizingThis = synthesizingUploadId === upload.id;
 
                 return (
                   <Card key={upload.id} style={styles.uploadCard}>
-                    <View style={[styles.uploadIcon, { backgroundColor: colors.background }]}>
-                      <Ionicons name={iconName as any} size={22} color={colors.text} />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text
-                        style={[typography.titleSmall, { color: colors.cardText }]}
-                        numberOfLines={1}
-                      >
-                        {upload.file_name}
-                      </Text>
-                      <View
-                        style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 }}
-                      >
-                        <Text style={[typography.labelSmall, { color: colors.cardTextMuted }]}>
-                          {format(new Date(upload.created_at), 'MMM d')}
+                    <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                      <View style={[styles.uploadIcon, { backgroundColor: colors.background }]}>
+                        <Ionicons name={iconName as any} size={22} color={colors.text} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text
+                          style={[typography.titleSmall, { color: colors.cardText }]}
+                          numberOfLines={1}
+                        >
+                          {upload.file_name}
                         </Text>
-                        {sizeKB && (
+                        <View
+                          style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 }}
+                        >
                           <Text style={[typography.labelSmall, { color: colors.cardTextMuted }]}>
-                            {sizeKB > 1024 ? `${(sizeKB / 1024).toFixed(1)} MB` : `${sizeKB} KB`}
+                            {format(new Date(upload.created_at), 'MMM d')}
                           </Text>
-                        )}
-                        {hasText ? (
-                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Ionicons name="checkmark-circle" size={12} color="#34C759" />
-                            <Text
-                              style={[typography.labelSmall, { color: '#34C759', marginLeft: 3 }]}
-                            >
-                              Extracted
+                          {sizeKB && (
+                            <Text style={[typography.labelSmall, { color: colors.cardTextMuted }]}>
+                              {sizeKB > 1024 ? `${(sizeKB / 1024).toFixed(1)} MB` : `${sizeKB} KB`}
                             </Text>
-                          </View>
-                        ) : (
-                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Ionicons name="time-outline" size={12} color={colors.cardTextMuted} />
-                            <Text
-                              style={[
-                                typography.labelSmall,
-                                { color: colors.cardTextMuted, marginLeft: 3 },
-                              ]}
-                            >
-                              Processing
-                            </Text>
-                          </View>
-                        )}
+                          )}
+                          {hasText ? (
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                              <Ionicons name="checkmark-circle" size={12} color="#34C759" />
+                              <Text
+                                style={[typography.labelSmall, { color: '#34C759', marginLeft: 3 }]}
+                              >
+                                Extracted
+                              </Text>
+                            </View>
+                          ) : (
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                              <Ionicons name="time-outline" size={12} color={colors.cardTextMuted} />
+                              <Text
+                                style={[
+                                  typography.labelSmall,
+                                  { color: colors.cardTextMuted, marginLeft: 3 },
+                                ]}
+                              >
+                                Processing
+                              </Text>
+                            </View>
+                          )}
+                        </View>
                       </View>
                     </View>
-                    <TouchableOpacity
-                      onPress={() => handleDeleteUpload(upload)}
-                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                    >
-                      <Ionicons name="trash-outline" size={18} color={colors.cardTextMuted} />
-                    </TouchableOpacity>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.sm }}>
+                      {isSynthesized ? (
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                          <Ionicons name="sparkles" size={14} color={colors.success || '#34C759'} />
+                          <Text style={[typography.labelSmall, { color: colors.success || '#34C759', marginLeft: 3 }]}>
+                            Synthesized
+                          </Text>
+                        </View>
+                      ) : hasText ? (
+                        <TouchableOpacity
+                          onPress={() => handleSynthesizeUpload(upload)}
+                          disabled={isSynthesizingThis}
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            backgroundColor: '#8B5CF6',
+                            paddingHorizontal: SPACING.sm,
+                            paddingVertical: 4,
+                            borderRadius: RADIUS.md,
+                          }}
+                        >
+                          {isSynthesizingThis ? (
+                            <ActivityIndicator size="small" color="#fff" />
+                          ) : (
+                            <>
+                              <Ionicons name="sparkles-outline" size={14} color="#fff" />
+                              <Text style={[typography.labelSmall, { color: '#fff', marginLeft: 3 }]}>
+                                Synthesize
+                              </Text>
+                            </>
+                          )}
+                        </TouchableOpacity>
+                      ) : null}
+                      <TouchableOpacity
+                        onPress={() => handleDeleteUpload(upload)}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                      >
+                        <Ionicons name="trash-outline" size={18} color={colors.cardTextMuted} />
+                      </TouchableOpacity>
+                    </View>
                   </Card>
                 );
               })}

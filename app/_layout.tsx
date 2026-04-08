@@ -42,7 +42,7 @@ function RootLayoutNav() {
     } else if (user) {
       if (!profile?.onboarding_completed && !inOnboardingGroup) {
         // Redirect to onboarding if not completed
-        router.replace('/(onboarding)/assistant');
+        router.replace('/(onboarding)/activate-texts');
       } else if (profile?.onboarding_completed && (inAuthGroup || inOnboardingGroup)) {
         // Redirect to tabs if logged in and onboarded
         router.replace('/(tabs)');

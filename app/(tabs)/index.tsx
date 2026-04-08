@@ -229,7 +229,7 @@ export default function TodayScreen() {
               <Text style={[typography.headlineSmall, { color: colors.text }]}>
                 Study Prompts
               </Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => router.push('/(tabs)/study')}>
                 <Text style={[typography.labelMedium, { color: colors.white }]}>
                   See All
                 </Text>

@@ -1,33 +1,31 @@
-const TWILIO_ACCOUNT_SID = Deno.env.get("TWILIO_ACCOUNT_SID")!;
-const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN")!;
-const TWILIO_PHONE_NUMBER = Deno.env.get("TWILIO_PHONE_NUMBER")!;
+const SENDBLUE_API_KEY = Deno.env.get("SENDBLUE_API_KEY")!;
+const SENDBLUE_API_SECRET = Deno.env.get("SENDBLUE_API_SECRET")!;
+const SENDBLUE_PHONE_NUMBER = Deno.env.get("SENDBLUE_PHONE_NUMBER")!;
 
 export async function sendSms(to: string, body: string): Promise<{ success: boolean; sid?: string; error?: string }> {
   try {
-    const url = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`;
-
-    const params = new URLSearchParams();
-    params.append("To", to);
-    params.append("From", TWILIO_PHONE_NUMBER);
-    params.append("Body", body);
-
-    const response = await fetch(url, {
+    const response = await fetch("https://api.sendblue.co/api/send-message", {
       method: "POST",
       headers: {
-        "Authorization": "Basic " + btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`),
-        "Content-Type": "application/x-www-form-urlencoded",
+        "Content-Type": "application/json",
+        "sb-api-key-id": SENDBLUE_API_KEY,
+        "sb-api-secret-key": SENDBLUE_API_SECRET,
       },
-      body: params.toString(),
+      body: JSON.stringify({
+        number: to,
+        from_number: SENDBLUE_PHONE_NUMBER,
+        content: body,
+      }),
     });
 
     const data = await response.json();
 
-    if (!response.ok) {
-      console.error("Twilio error:", data);
-      return { success: false, error: data.message || "SMS send failed" };
+    if (!response.ok || data.status === "ERROR") {
+      console.error("SendBlue error:", data);
+      return { success: false, error: data.error_message || data.message || "SMS send failed" };
     }
 
-    return { success: true, sid: data.sid };
+    return { success: true, sid: data.message_handle };
   } catch (error) {
     console.error("SMS send error:", error);
     return { success: false, error: error.message };

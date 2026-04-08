@@ -32,9 +32,12 @@ export default function ClassStudyScreen() {
     fetchSynthesizedContent,
     fetchClassPrompts,
     getOverdueQuizzes,
+    requestNextChunk,
   } = useStudyStore();
   const { profile } = useAuthStore();
   const [sendingId, setSendingId] = useState<string | null>(null);
+  const [requestingChunk, setRequestingChunk] = useState(false);
+  const [weeklyUsage, setWeeklyUsage] = useState<{ used: number; limit: number } | null>(null);
   const [classPrompts, setClassPrompts] = useState<any[]>([]);
 
   const classData = classes.find((c) => c.id === id);
@@ -72,6 +75,45 @@ export default function ClassStudyScreen() {
       Alert.alert('Failed', err.message || 'Could not send text');
     } finally {
       setSendingId(null);
+    }
+  };
+
+  const handleRequestChunk = async (spendPoints = false) => {
+    if (!profile?.id || !id) return;
+    setRequestingChunk(true);
+    try {
+      const result = await requestNextChunk(id, profile.id, spendPoints);
+      if (result?.success) {
+        setWeeklyUsage({ used: result.usage.usedThisWeek, limit: result.usage.weeklyLimit });
+        Alert.alert(
+          'Chunk Sent!',
+          `Day ${result.chunk.dayIndex} ${result.chunk.type} for ${result.chunk.className} texted to you.`
+        );
+      } else if (result?.error === 'weekly_limit_reached') {
+        setWeeklyUsage({ used: result.usedThisWeek, limit: result.limit });
+        Alert.alert(
+          'Weekly Limit Reached',
+          result.message,
+          [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: `Spend ${result.pointsCost} pts`,
+              onPress: () => handleRequestChunk(true),
+            },
+          ]
+        );
+      } else if (result?.error === 'insufficient_points') {
+        Alert.alert('Not Enough Points', result.message);
+      } else if (result?.error === 'no_chunks_available') {
+        Alert.alert('No Chunks Left', result.message);
+      } else {
+        Alert.alert('Error', result?.message || result?.error || 'Something went wrong');
+      }
+    } catch (err: any) {
+      console.error('Request chunk error:', err);
+      Alert.alert('Failed', err.message || 'Could not request chunk');
+    } finally {
+      setRequestingChunk(false);
     }
   };
 
@@ -340,6 +382,50 @@ export default function ClassStudyScreen() {
                 })}
               </Animated.View>
 
+              {/* Request Next Chunk */}
+              <Animated.View
+                entering={FadeInDown.delay(250).duration(600).springify()}
+                style={{ marginTop: SPACING.xl }}
+              >
+                <TouchableOpacity
+                  onPress={() => handleRequestChunk(false)}
+                  disabled={requestingChunk}
+                  style={[
+                    styles.requestChunkButton,
+                    { backgroundColor: colors.card, ...SHADOWS.md },
+                  ]}
+                >
+                  <View style={[styles.studyIcon, { backgroundColor: colors.background }]}>
+                    {requestingChunk ? (
+                      <ActivityIndicator size="small" color={colors.text} />
+                    ) : (
+                      <Ionicons name="flash" size={24} color="#8B5CF6" />
+                    )}
+                  </View>
+                  <View style={styles.studyContent}>
+                    <Text style={[typography.titleSmall, { color: colors.cardText }]}>
+                      {requestingChunk ? 'Sending...' : 'Request Next Chunk'}
+                    </Text>
+                    <Text style={[typography.bodySmall, { color: colors.cardTextSecondary }]}>
+                      {weeklyUsage
+                        ? `${weeklyUsage.used}/${weeklyUsage.limit} used this week`
+                        : '5 free per week'}
+                    </Text>
+                  </View>
+                  <View
+                    style={[
+                      styles.textMeButton,
+                      { backgroundColor: '#8B5CF620' },
+                    ]}
+                  >
+                    <Ionicons name="paper-plane" size={14} color="#8B5CF6" />
+                    <Text style={[typography.labelSmall, { color: '#8B5CF6', marginLeft: 4 }]}>
+                      Send
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </Animated.View>
+
               {/* Text Me — on-demand SMS per session */}
               <Animated.View
                 entering={FadeInDown.delay(300).duration(600).springify()}
@@ -499,5 +585,11 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     minWidth: 20,
     alignItems: 'center',
+  },
+  requestChunkButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: SPACING.md,
+    borderRadius: RADIUS.lg,
   },
 });

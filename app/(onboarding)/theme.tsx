@@ -58,9 +58,9 @@ export default function ThemeScreen() {
         {/* Progress indicator */}
         <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.progress}>
           <View style={[styles.progressBar, { backgroundColor: colors.glassBackground }]}>
-            <View style={[styles.progressFill, { backgroundColor: colors.card, width: '50%' }]} />
+            <View style={[styles.progressFill, { backgroundColor: colors.card, width: '60%' }]} />
           </View>
-          <Text style={[typography.labelSmall, { color: colors.textSecondary }]}>2 OF 4</Text>
+          <Text style={[typography.labelSmall, { color: colors.textSecondary }]}>3 OF 5</Text>
         </Animated.View>
 
         <ScrollView

@@ -21,7 +21,7 @@ serve(async (req) => {
       );
     }
 
-    const { uploadId, filePath, fileType, classId, userId, sessionDate, skipExtraction, extractOnly } = await req.json();
+    const { uploadId, filePath, fileType, classId, userId, sessionDate, skipExtraction, extractOnly, singleUploadId } = await req.json();
 
     if (!classId || !userId) {
       return new Response(
@@ -173,24 +173,46 @@ serve(async (req) => {
       );
     }
 
-    // ── Step 4: Gather all content for this class/session date ────────
-    const { data: allUploads } = await supabaseAdmin
-      .from("uploads")
-      .select("extracted_text")
-      .eq("class_id", classId)
-      .eq("user_id", userId)
-      .eq("session_date", sessionDate || today.toISOString().split("T")[0])
-      .not("extracted_text", "is", null);
+    // ── Step 4: Gather content ────────────────────────────────────────
+    let uploadsContent = "";
+    let notesContent = "";
+    let targetUploadIds: string[] = [];
+    let noteIds: string[] = [];
 
-    const { data: notes } = await supabaseAdmin
-      .from("notes")
-      .select("id, content")
-      .eq("class_id", classId)
-      .eq("user_id", userId)
-      .eq("session_date", sessionDate || today.toISOString().split("T")[0]);
+    if (singleUploadId) {
+      const { data: singleUpload } = await supabaseAdmin
+        .from("uploads")
+        .select("id, extracted_text")
+        .eq("id", singleUploadId)
+        .single();
 
-    const notesContent = notes?.map((n: any) => n.content).filter(Boolean).join("\n\n") || "";
-    const uploadsContent = allUploads?.map((u: any) => u.extracted_text).filter(Boolean).join("\n\n") || "";
+      if (singleUpload?.extracted_text) {
+        uploadsContent = singleUpload.extracted_text;
+        targetUploadIds = [singleUpload.id];
+      }
+    } else {
+      const { data: allUploads } = await supabaseAdmin
+        .from("uploads")
+        .select("id, extracted_text")
+        .eq("class_id", classId)
+        .eq("user_id", userId)
+        .eq("session_date", sessionDate || today.toISOString().split("T")[0])
+        .not("extracted_text", "is", null);
+
+      uploadsContent = allUploads?.map((u: any) => u.extracted_text).filter(Boolean).join("\n\n") || "";
+      targetUploadIds = allUploads?.map((u: any) => u.id) || [];
+
+      const { data: fetchedNotes } = await supabaseAdmin
+        .from("notes")
+        .select("id, content")
+        .eq("class_id", classId)
+        .eq("user_id", userId)
+        .eq("session_date", sessionDate || today.toISOString().split("T")[0]);
+
+      notesContent = fetchedNotes?.map((n: any) => n.content).filter(Boolean).join("\n\n") || "";
+      noteIds = fetchedNotes?.map((n: any) => n.id) || [];
+    }
+
     const combinedContent = `${notesContent}\n\n${uploadsContent}`.trim();
 
     if (combinedContent.length < 50) {
@@ -206,13 +228,6 @@ serve(async (req) => {
     // ── Step 6: Save synthesized content ──────────────────────────────
     const effectiveSessionDate = sessionDate || today.toISOString().split("T")[0];
 
-    const { data: allSessionUploads } = await supabaseAdmin
-      .from("uploads")
-      .select("id")
-      .eq("class_id", classId)
-      .eq("user_id", userId)
-      .eq("session_date", effectiveSessionDate);
-
     const { data: savedContent, error: saveError } = await supabaseAdmin
       .from("synthesized_content")
       .insert({
@@ -224,8 +239,8 @@ serve(async (req) => {
         flashcards: synthesized.flashcards,
         quiz_questions: synthesized.quizQuestions,
         daily_chunks: synthesized.dailyChunks,
-        source_note_ids: notes?.map((n: any) => n.id) || [],
-        source_upload_ids: allSessionUploads?.map((u: any) => u.id) || [],
+        source_note_ids: noteIds,
+        source_upload_ids: targetUploadIds,
         next_class_date: nextClassDate.toISOString().split("T")[0],
         quiz_deadline_notified: 0,
       })
@@ -241,11 +256,11 @@ serve(async (req) => {
     }
 
     // Mark notes as synthesized
-    if (notes && notes.length > 0) {
+    if (noteIds.length > 0) {
       await supabaseAdmin
         .from("notes")
         .update({ is_synthesized: true })
-        .in("id", notes.map((n: any) => n.id));
+        .in("id", noteIds);
     }
 
     // ── Step 7: Schedule study prompts ────────────────────────────────
@@ -445,53 +460,76 @@ async function callOpenAI(
   className: string,
   numStudyDays: number
 ): Promise<any> {
-  const systemPrompt = `You are an expert study assistant that creates targeted study materials.
-Your task is to analyze lecture content and create study materials that will be drip-fed over ${numStudyDays} days.
+  const systemPrompt = `You are an expert study assistant that creates thorough, detailed study materials from lecture content.
+Your task is to deeply analyze ALL of the provided lecture material and produce comprehensive study materials that will be drip-fed over ${numStudyDays} days.
 
 You must respond with valid JSON only, no markdown or additional text. The JSON structure must be:
 {
-  "summary": "A 2-3 sentence summary of the main topic",
-  "keyTakeaways": ["takeaway 1", "takeaway 2", "takeaway 3", "takeaway 4"],
+  "summary": "A thorough 2-3 paragraph summary that covers the full scope of the material, key themes, and how concepts connect to each other",
+  "keyTakeaways": ["detailed takeaway 1", "detailed takeaway 2", ...8-12 takeaways],
   "flashcards": [
-    {"front": "Question", "back": "Answer"},
-    ...at least 5 flashcards
+    {"front": "Specific question testing a concept", "back": "Thorough answer with context and explanation", "day": 1},
+    ...15-25 flashcards covering every major concept, definition, relationship, and application
   ],
   "quizQuestions": [
     {
       "question": "Multiple choice question?",
       "options": ["A", "B", "C", "D"],
       "correct_index": 0,
-      "explanation": "Why this is correct"
+      "explanation": "Detailed explanation of why the correct answer is right and why each wrong answer is wrong"
     },
-    ...at least 5 questions for the pre-class quiz
+    ...10-15 questions at varying difficulty levels
   ],
   "dailyChunks": [
-    {"day": 1, "content": "Day 1 study content (280-400 chars, SMS-friendly)"},
-    {"day": 2, "content": "Day 2 study content"},
+    {"day": 1, "content": "Thorough day 1 study content (1000-1500 chars)"},
+    {"day": 2, "content": "Thorough day 2 study content (1000-1500 chars)"},
     ...exactly ${numStudyDays} chunks
   ]
 }
 
-Guidelines for dailyChunks:
-- Generate EXACTLY ${numStudyDays} daily chunks
-- Day 1 should cover foundational concepts and definitions
-- Middle days should progressively deepen understanding with relationships and applications
-- Final days should cover nuances, edge cases, and synthesis across topics
-- Each chunk must be self-contained and SMS-friendly (280-400 characters)
-- Use emojis sparingly to make them engaging
-- Each chunk should build on previous ones using spaced repetition principles
+Guidelines for summary:
+- Write 2-3 substantial paragraphs, not just a few sentences
+- Cover the full breadth of topics in the source material
+- Explain how concepts relate to each other
+
+Guidelines for keyTakeaways:
+- Generate 8-12 detailed takeaways
+- Each should be 1-3 sentences explaining the concept, not just naming it
+- Cover definitions, relationships, processes, and applications
+
+Guidelines for flashcards:
+- Generate 15-25 flashcards that comprehensively cover the material
+- Include cards for: definitions, processes/mechanisms, comparisons, cause-effect relationships, applications, and edge cases
+- Backs should be detailed explanations (2-4 sentences), not one-word answers
+- Test at multiple difficulty levels from basic recall to applied understanding
+- Each flashcard MUST have a "day" field (integer 1 to ${numStudyDays}) indicating when it unlocks
+- Distribute flashcards EVENLY across all ${numStudyDays} days — foundational cards on early days, advanced cards on later days
+- Cards that build on earlier concepts should have a higher day number
 
 Guidelines for quizQuestions:
-- Generate at least 5 comprehensive quiz questions
-- Cover the full breadth of the material
-- Include questions at different difficulty levels
-- These will be used as a mandatory pre-class review quiz`;
+- Generate 10-15 comprehensive quiz questions
+- Mix difficulty levels: ~30% basic recall, ~40% application/analysis, ~30% synthesis/evaluation
+- Wrong answer options should be plausible (common misconceptions)
+- Explanations should teach — explain the reasoning, not just state the answer
 
-  const userPrompt = `Analyze these lecture materials from ${className} and create ${numStudyDays} days of study content:
+Guidelines for dailyChunks:
+- Generate EXACTLY ${numStudyDays} daily chunks
+- Each chunk must be 1000-1500 characters — thorough and information-dense
+- Structure each chunk with clear formatting: use bullet points (•), key terms in ALL CAPS, and logical groupings
+- Day 1: foundational definitions, core vocabulary, and the big picture framework
+- Early days: detailed breakdowns of each major concept with examples
+- Middle days: relationships between concepts, processes, mechanisms, cause-and-effect
+- Later days: applications, edge cases, comparisons, and common misconceptions
+- Final day(s): synthesis across all topics, connections to broader themes, exam-style thinking
+- Each chunk should feel like a mini-lecture recap, not a tweet
+- Distribute the source material EVENLY across all ${numStudyDays} days — every section of the content should be covered
+- Use spaced repetition: briefly reference earlier concepts when introducing related ones`;
 
-${content.substring(0, 12000)}
+  const userPrompt = `Analyze these lecture materials from ${className} and create ${numStudyDays} days of thorough, detailed study content. Extract ALL important information — every definition, concept, process, relationship, and example. Do not summarize lightly; the student needs to learn this material in depth.
 
-Remember: respond with valid JSON only. Generate exactly ${numStudyDays} daily chunks.`;
+${content.substring(0, 100000)}
+
+Remember: respond with valid JSON only. Generate exactly ${numStudyDays} daily chunks, each 1000-1500 characters. Be thorough.`;
 
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -506,7 +544,7 @@ Remember: respond with valid JSON only. Generate exactly ${numStudyDays} daily c
         { role: "user", content: userPrompt },
       ],
       temperature: 0.7,
-      max_tokens: 4000,
+      max_tokens: 16000,
     }),
   });
 

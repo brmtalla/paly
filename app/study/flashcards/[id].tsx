@@ -1,15 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
   interpolate,
-  runOnJS,
+  FadeIn,
 } from 'react-native-reanimated';
-import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useTheme } from '../../../src/theme/ThemeContext';
 import { typography } from '../../../src/theme/typography';
 import { SPACING, LAYOUT, RADIUS, SHADOWS } from '../../../src/theme/spacing';
@@ -21,6 +22,16 @@ import { Ionicons } from '@expo/vector-icons';
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width - SPACING.xl * 2;
 
+function getStudyDay(sessionDate: string): number {
+  const created = new Date(sessionDate + 'T00:00:00');
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const diffMs = now.getTime() - created.getTime();
+  return Math.max(1, Math.floor(diffMs / 86400000) + 1);
+}
+
+const STORAGE_KEY_PREFIX = 'flipped_cards_';
+
 export default function FlashcardsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors, colorScheme } = useTheme();
@@ -28,19 +39,62 @@ export default function FlashcardsScreen() {
   const { profile } = useAuthStore();
 
   const content = synthesizedContent.find((c) => c.id === id);
-  const flashcards = content?.flashcards || [];
+  const allFlashcards = (content?.flashcards || []) as { front: string; back: string; day?: number }[];
 
+  const currentStudyDay = content?.session_date ? getStudyDay(content.session_date) : 1;
+
+  const [showAll, setShowAll] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [flippedCards, setFlippedCards] = useState<Set<number>>(new Set());
+  const [persistedFlipped, setPersistedFlipped] = useState<Set<number>>(new Set());
   const [pointsEarned, setPointsEarned] = useState(0);
+  const [loaded, setLoaded] = useState(false);
 
   const flipProgress = useSharedValue(0);
 
+  useEffect(() => {
+    if (!id) return;
+    AsyncStorage.getItem(STORAGE_KEY_PREFIX + id).then((val) => {
+      if (val) {
+        const indices: number[] = JSON.parse(val);
+        setPersistedFlipped(new Set(indices));
+        setFlippedCards(new Set(indices));
+      }
+      setLoaded(true);
+    });
+  }, [id]);
+
+  const persistFlipped = useCallback(
+    (updated: Set<number>) => {
+      if (!id) return;
+      AsyncStorage.setItem(STORAGE_KEY_PREFIX + id, JSON.stringify([...updated]));
+    },
+    [id]
+  );
+
+  const unlockedCards = allFlashcards.filter((card) => {
+    if (!card.day) return true;
+    return card.day <= currentStudyDay;
+  });
+
+  const visibleCards = showAll ? allFlashcards : unlockedCards;
+  const lockedCount = allFlashcards.length - unlockedCards.length;
+
+  const unflippedUnlockedCount = unlockedCards.filter(
+    (_, idx) => {
+      const globalIdx = allFlashcards.indexOf(unlockedCards[idx]);
+      return !flippedCards.has(globalIdx);
+    }
+  ).length;
+
   const handleFlip = () => {
     flipProgress.value = withSpring(isFlipped ? 0 : 1, { damping: 15 });
-    if (!isFlipped && !flippedCards.has(currentIndex)) {
-      setFlippedCards((prev) => new Set(prev).add(currentIndex));
+    const globalIndex = allFlashcards.indexOf(visibleCards[currentIndex]);
+    if (!isFlipped && !flippedCards.has(globalIndex)) {
+      const updated = new Set(flippedCards).add(globalIndex);
+      setFlippedCards(updated);
+      persistFlipped(updated);
       setPointsEarned((prev) => prev + 5);
       if (profile?.id) {
         awardPoints(profile.id, 5, 'flashcard_flip');
@@ -50,7 +104,7 @@ export default function FlashcardsScreen() {
   };
 
   const handleNext = () => {
-    if (currentIndex < flashcards.length - 1) {
+    if (currentIndex < visibleCards.length - 1) {
       setCurrentIndex(currentIndex + 1);
       setIsFlipped(false);
       flipProgress.value = 0;
@@ -65,11 +119,18 @@ export default function FlashcardsScreen() {
     }
   };
 
+  const toggleShowAll = () => {
+    setShowAll(!showAll);
+    setCurrentIndex(0);
+    setIsFlipped(false);
+    flipProgress.value = 0;
+  };
+
   const frontAnimatedStyle = useAnimatedStyle(() => {
     const rotateY = interpolate(flipProgress.value, [0, 1], [0, 180]);
     return {
       transform: [{ perspective: 1000 }, { rotateY: `${rotateY}deg` }],
-      backfaceVisibility: 'hidden',
+      backfaceVisibility: 'hidden' as const,
     };
   });
 
@@ -77,11 +138,13 @@ export default function FlashcardsScreen() {
     const rotateY = interpolate(flipProgress.value, [0, 1], [180, 360]);
     return {
       transform: [{ perspective: 1000 }, { rotateY: `${rotateY}deg` }],
-      backfaceVisibility: 'hidden',
+      backfaceVisibility: 'hidden' as const,
     };
   });
 
-  if (!content || flashcards.length === 0) {
+  if (!loaded) return null;
+
+  if (!content || allFlashcards.length === 0) {
     return (
       <Background>
         <SafeAreaView style={styles.safeArea}>
@@ -103,7 +166,40 @@ export default function FlashcardsScreen() {
     );
   }
 
-  const currentCard = flashcards[currentIndex];
+  if (visibleCards.length === 0) {
+    return (
+      <Background>
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.centered}>
+            <Ionicons
+              name="time-outline"
+              size={64}
+              color={colorScheme === 'dark' ? colors.text : colors.cardTextMuted}
+            />
+            <Text style={[typography.titleMedium, { color: colors.text, marginTop: SPACING.lg }]}>
+              No cards unlocked yet
+            </Text>
+            <Text
+              style={[
+                typography.bodyMedium,
+                { color: colors.textSecondary, textAlign: 'center', marginTop: SPACING.sm },
+              ]}
+            >
+              New flashcards unlock each day of your study schedule. Check back tomorrow!
+            </Text>
+            <Button variant="ghost" onPress={() => router.back()} style={{ marginTop: SPACING.lg }}>
+              Go Back
+            </Button>
+          </View>
+        </SafeAreaView>
+      </Background>
+    );
+  }
+
+  const currentCard = visibleCards[currentIndex];
+  const globalIdx = allFlashcards.indexOf(currentCard);
+  const isCurrentFlipped = flippedCards.has(globalIdx);
+  const isLocked = showAll && currentCard.day && currentCard.day > currentStudyDay;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -116,7 +212,7 @@ export default function FlashcardsScreen() {
             </TouchableOpacity>
 
             <Text style={[typography.titleMedium, { color: colors.text }]}>
-              {currentIndex + 1} / {flashcards.length}
+              {currentIndex + 1} / {visibleCards.length}
             </Text>
 
             <View style={{ flexDirection: 'row', alignItems: 'center', minWidth: 40 }}>
@@ -131,6 +227,40 @@ export default function FlashcardsScreen() {
             </View>
           </View>
 
+          {/* Day info + View All toggle */}
+          <View style={styles.dayInfoRow}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Ionicons name="calendar-outline" size={14} color={colors.textSecondary} />
+              <Text
+                style={[
+                  typography.labelSmall,
+                  { color: colors.textSecondary, marginLeft: 4 },
+                ]}
+              >
+                Day {currentStudyDay}
+                {unflippedUnlockedCount > 0 && !showAll
+                  ? ` · ${unflippedUnlockedCount} new`
+                  : ''}
+                {lockedCount > 0 && !showAll ? ` · ${lockedCount} locked` : ''}
+              </Text>
+            </View>
+            <TouchableOpacity onPress={toggleShowAll} style={styles.viewAllButton}>
+              <Ionicons
+                name={showAll ? 'lock-open-outline' : 'grid-outline'}
+                size={14}
+                color={colors.accent || colors.text}
+              />
+              <Text
+                style={[
+                  typography.labelSmall,
+                  { color: colors.accent || colors.text, marginLeft: 4 },
+                ]}
+              >
+                {showAll ? 'Scheduled Only' : 'View All'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
           {/* Progress */}
           <View style={styles.progressContainer}>
             <View style={[styles.progressBar, { backgroundColor: colors.glassBackground }]}>
@@ -139,7 +269,7 @@ export default function FlashcardsScreen() {
                   styles.progressFill,
                   {
                     backgroundColor: colors.card,
-                    width: `${((currentIndex + 1) / flashcards.length) * 100}%`,
+                    width: `${((currentIndex + 1) / visibleCards.length) * 100}%`,
                   },
                 ]}
               />
@@ -148,64 +278,114 @@ export default function FlashcardsScreen() {
 
           {/* Flashcard */}
           <View style={styles.cardContainer}>
-            <TouchableOpacity activeOpacity={0.9} onPress={handleFlip} style={styles.cardWrapper}>
-              {/* Front */}
-              <Animated.View
-                style={[
-                  styles.card,
-                  { backgroundColor: colors.card, ...SHADOWS.lg },
-                  frontAnimatedStyle,
-                ]}
-              >
-                <Text
+            <TouchableOpacity
+              activeOpacity={0.9}
+              onPress={isLocked ? undefined : handleFlip}
+              style={styles.cardWrapper}
+            >
+              {/* Locked overlay for future-day cards in "View All" mode */}
+              {isLocked ? (
+                <Animated.View
+                  entering={FadeIn.duration(200)}
                   style={[
-                    typography.labelSmall,
-                    { color: colors.cardTextMuted, marginBottom: SPACING.md },
+                    styles.card,
+                    {
+                      backgroundColor: colors.card,
+                      opacity: 0.6,
+                      ...SHADOWS.lg,
+                    },
                   ]}
                 >
-                  QUESTION
-                </Text>
-                <Text
-                  style={[
-                    typography.headlineSmall,
-                    { color: colors.cardText, textAlign: 'center' },
-                  ]}
-                >
-                  {currentCard.front}
-                </Text>
-                <Text
-                  style={[
-                    typography.bodySmall,
-                    { color: colors.cardTextMuted, marginTop: SPACING.xl },
-                  ]}
-                >
-                  Tap to reveal answer
-                </Text>
-              </Animated.View>
+                  <Ionicons name="lock-closed" size={32} color={colors.cardTextMuted} />
+                  <Text
+                    style={[
+                      typography.labelMedium,
+                      { color: colors.cardTextMuted, marginTop: SPACING.md },
+                    ]}
+                  >
+                    Unlocks Day {currentCard.day}
+                  </Text>
+                  <Text
+                    style={[
+                      typography.bodySmall,
+                      {
+                        color: colors.cardTextMuted,
+                        textAlign: 'center',
+                        marginTop: SPACING.sm,
+                        paddingHorizontal: SPACING.lg,
+                      },
+                    ]}
+                  >
+                    {currentCard.front}
+                  </Text>
+                </Animated.View>
+              ) : (
+                <>
+                  {/* Front */}
+                  <Animated.View
+                    style={[
+                      styles.card,
+                      { backgroundColor: colors.card, ...SHADOWS.lg },
+                      frontAnimatedStyle,
+                    ]}
+                  >
+                    {isCurrentFlipped && (
+                      <View style={[styles.completedDot, { backgroundColor: '#22C55E' }]} />
+                    )}
+                    <Text
+                      style={[
+                        typography.labelSmall,
+                        { color: colors.cardTextMuted, marginBottom: SPACING.md },
+                      ]}
+                    >
+                      QUESTION
+                    </Text>
+                    <Text
+                      style={[
+                        typography.headlineSmall,
+                        { color: colors.cardText, textAlign: 'center' },
+                      ]}
+                    >
+                      {currentCard.front}
+                    </Text>
+                    <Text
+                      style={[
+                        typography.bodySmall,
+                        { color: colors.cardTextMuted, marginTop: SPACING.xl },
+                      ]}
+                    >
+                      Tap to reveal answer
+                    </Text>
+                  </Animated.View>
 
-              {/* Back */}
-              <Animated.View
-                style={[
-                  styles.card,
-                  styles.cardBack,
-                  { backgroundColor: colors.background, ...SHADOWS.lg },
-                  backAnimatedStyle,
-                ]}
-              >
-                <Text
-                  style={[
-                    typography.labelSmall,
-                    { color: colors.textSecondary, marginBottom: SPACING.md },
-                  ]}
-                >
-                  ANSWER
-                </Text>
-                <Text
-                  style={[typography.headlineSmall, { color: colors.text, textAlign: 'center' }]}
-                >
-                  {currentCard.back}
-                </Text>
-              </Animated.View>
+                  {/* Back */}
+                  <Animated.View
+                    style={[
+                      styles.card,
+                      styles.cardBack,
+                      { backgroundColor: colors.background, ...SHADOWS.lg },
+                      backAnimatedStyle,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        typography.labelSmall,
+                        { color: colors.textSecondary, marginBottom: SPACING.md },
+                      ]}
+                    >
+                      ANSWER
+                    </Text>
+                    <Text
+                      style={[
+                        typography.headlineSmall,
+                        { color: colors.text, textAlign: 'center' },
+                      ]}
+                    >
+                      {currentCard.back}
+                    </Text>
+                  </Animated.View>
+                </>
+              )}
             </TouchableOpacity>
           </View>
 
@@ -225,21 +405,23 @@ export default function FlashcardsScreen() {
               <Ionicons name="arrow-back" size={24} color={colors.text} />
             </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={handleFlip}
-              style={[styles.flipButton, { backgroundColor: colors.card, ...SHADOWS.md }]}
-            >
-              <Ionicons name="refresh" size={24} color={colors.cardText} />
-            </TouchableOpacity>
+            {!isLocked && (
+              <TouchableOpacity
+                onPress={handleFlip}
+                style={[styles.flipButton, { backgroundColor: colors.card, ...SHADOWS.md }]}
+              >
+                <Ionicons name="refresh" size={24} color={colors.cardText} />
+              </TouchableOpacity>
+            )}
 
             <TouchableOpacity
               onPress={handleNext}
-              disabled={currentIndex === flashcards.length - 1}
+              disabled={currentIndex === visibleCards.length - 1}
               style={[
                 styles.navButton,
                 {
                   backgroundColor: colors.glassBackground,
-                  opacity: currentIndex === flashcards.length - 1 ? 0.5 : 1,
+                  opacity: currentIndex === visibleCards.length - 1 ? 0.5 : 1,
                 },
               ]}
             >
@@ -248,7 +430,7 @@ export default function FlashcardsScreen() {
           </View>
 
           {/* Complete Button */}
-          {currentIndex === flashcards.length - 1 && (
+          {currentIndex === visibleCards.length - 1 && (
             <View style={styles.completeContainer}>
               <Button
                 variant="primary"
@@ -287,6 +469,19 @@ const styles = StyleSheet.create({
   backButton: {
     padding: SPACING.sm,
   },
+  dayInfoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: LAYOUT.screenPadding,
+    marginBottom: SPACING.sm,
+  },
+  viewAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
   progressContainer: {
     paddingHorizontal: LAYOUT.screenPadding,
     marginBottom: SPACING.xl,
@@ -321,6 +516,14 @@ const styles = StyleSheet.create({
   },
   cardBack: {
     position: 'absolute',
+  },
+  completedDot: {
+    position: 'absolute',
+    top: SPACING.lg,
+    right: SPACING.lg,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
   navigation: {
     flexDirection: 'row',

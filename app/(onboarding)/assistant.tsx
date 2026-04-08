@@ -44,12 +44,12 @@ export default function AssistantScreen() {
             <View
               style={[
                 styles.progressFill,
-                { backgroundColor: colors.card, width: '25%' },
+                { backgroundColor: colors.card, width: '40%' },
               ]}
             />
           </View>
           <Text style={[typography.labelSmall, { color: colors.textSecondary }]}>
-            1 OF 4
+            2 OF 5
           </Text>
         </Animated.View>
 
