@@ -197,7 +197,9 @@ export default function ClassDetailScreen() {
         text: 'Delete',
         style: 'destructive',
         onPress: async () => {
-          await supabase.storage.from('uploads').remove([upload.file_path]);
+          if (upload.file_path) {
+            await supabase.storage.from('uploads').remove([upload.file_path]);
+          }
           await supabase.from('uploads').delete().eq('id', upload.id);
           fetchUploads();
         },
@@ -569,7 +571,7 @@ export default function ClassDetailScreen() {
                               {sizeKB > 1024 ? `${(sizeKB / 1024).toFixed(1)} MB` : `${sizeKB} KB`}
                             </Text>
                           )}
-                          {hasText ? (
+                          {isSynthesized ? null : hasText ? (
                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                               <Ionicons name="checkmark-circle" size={12} color="#34C759" />
                               <Text

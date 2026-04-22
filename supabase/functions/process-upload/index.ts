@@ -263,6 +263,37 @@ serve(async (req) => {
         .in("id", noteIds);
     }
 
+    // ── Copyright safety: delete raw PDF files and extracted text ─────
+    // Class lecture materials are often copyrighted, so we remove the raw
+    // content from storage once synthesis is complete. The upload row is
+    // kept (with metadata) so the UI can still show a "Synthesized" history.
+    if (targetUploadIds.length > 0) {
+      const { data: uploadsToClean } = await supabaseAdmin
+        .from("uploads")
+        .select("id, file_path")
+        .in("id", targetUploadIds);
+
+      if (uploadsToClean && uploadsToClean.length > 0) {
+        const paths = uploadsToClean
+          .map((u: any) => u.file_path)
+          .filter((p: any) => !!p);
+
+        if (paths.length > 0) {
+          const { error: removeError } = await supabaseAdmin.storage
+            .from("uploads")
+            .remove(paths);
+          if (removeError) {
+            console.error("Storage cleanup error:", removeError);
+          }
+        }
+
+        await supabaseAdmin
+          .from("uploads")
+          .update({ extracted_text: null, file_path: "" })
+          .in("id", targetUploadIds);
+      }
+    }
+
     // ── Step 7: Schedule study prompts ────────────────────────────────
     const { data: availabilityBlocks } = await supabaseAdmin
       .from("availability_blocks")
@@ -481,8 +512,8 @@ You must respond with valid JSON only, no markdown or additional text. The JSON 
     ...10-15 questions at varying difficulty levels
   ],
   "dailyChunks": [
-    {"day": 1, "content": "Thorough day 1 study content (1000-1500 chars)"},
-    {"day": 2, "content": "Thorough day 2 study content (1000-1500 chars)"},
+    {"day": 1, "content": "• KEY TERM: Definition and context\n• CONCEPT 2: Explanation\n• CONCEPT 3: Explanation with example\n...5-10 bullets per day"},
+    {"day": 2, "content": "• NEXT CONCEPT: Explanation\n..."},
     ...exactly ${numStudyDays} chunks
   ]
 }
@@ -494,7 +525,7 @@ Guidelines for summary:
 
 Guidelines for keyTakeaways:
 - Generate 8-12 detailed takeaways
-- Each should be 1-3 sentences explaining the concept, not just naming it
+- Each takeaway itself is a single bullet — write it as a concise, complete thought (1-3 sentences)
 - Cover definitions, relationships, processes, and applications
 
 Guidelines for flashcards:
@@ -514,16 +545,22 @@ Guidelines for quizQuestions:
 
 Guidelines for dailyChunks:
 - Generate EXACTLY ${numStudyDays} daily chunks
-- Each chunk must be 1000-1500 characters — thorough and information-dense
-- Structure each chunk with clear formatting: use bullet points (•), key terms in ALL CAPS, and logical groupings
+- Each chunk must be 800-1300 characters — thorough and information-dense
+- CRITICAL FORMAT: Each chunk MUST be formatted as bullet points ONLY, NOT dense paragraphs
+- Start each bullet with "• " (bullet character + space) on its own line, separated by "\\n"
+- Each chunk should contain 5-10 bullets covering that day's topic
+- Example format for a chunk's content field:
+  "• CONTRACT FORMATION: A binding agreement requires offer, acceptance, and consideration\\n• OFFER: A clear proposal showing intent to be bound by specific terms\\n• ACCEPTANCE: Unqualified agreement to the offer's exact terms (mirror image rule)\\n• CONSIDERATION: Something of value exchanged — money, goods, services, or a promise\\n• Without all three elements, no enforceable contract exists"
+- Each bullet should be a complete, standalone concept (1-2 sentences max)
+- Use ALL CAPS for key terms at the start of bullets when introducing a concept
 - Day 1: foundational definitions, core vocabulary, and the big picture framework
 - Early days: detailed breakdowns of each major concept with examples
 - Middle days: relationships between concepts, processes, mechanisms, cause-and-effect
 - Later days: applications, edge cases, comparisons, and common misconceptions
 - Final day(s): synthesis across all topics, connections to broader themes, exam-style thinking
-- Each chunk should feel like a mini-lecture recap, not a tweet
 - Distribute the source material EVENLY across all ${numStudyDays} days — every section of the content should be covered
-- Use spaced repetition: briefly reference earlier concepts when introducing related ones`;
+- Use spaced repetition: briefly reference earlier concepts when introducing related ones
+- NEVER write a chunk as a single flowing paragraph — ALWAYS use the bullet format described above`;
 
   const userPrompt = `Analyze these lecture materials from ${className} and create ${numStudyDays} days of thorough, detailed study content. Extract ALL important information — every definition, concept, process, relationship, and example. Do not summarize lightly; the student needs to learn this material in depth.
 
