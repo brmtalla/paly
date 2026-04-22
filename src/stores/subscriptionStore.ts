@@ -7,15 +7,16 @@ import Purchases, {
 import { Platform } from 'react-native';
 
 // ── RevenueCat config ────────────────────────────────────────────────────────
-// Replace with your actual RevenueCat public API key from the RC dashboard.
-// iOS key starts with "appl_", Android starts with "goog_".
+// Public SDK key (safe in the client). Project "Paly" — Test Store key for dev.
+// After you add iOS/Android apps in RevenueCat, swap to appl_… / goog_… from the dashboard.
 export const RC_API_KEY = Platform.select({
-  ios: 'REVENUECAT_IOS_API_KEY',
-  android: 'REVENUECAT_ANDROID_API_KEY',
-  default: 'REVENUECAT_IOS_API_KEY',
+  ios: 'test_aCvLqTsPsfFDCbBmqhceXATMQas',
+  android: 'test_aCvLqTsPsfFDCbBmqhceXATMQas',
+  default: 'test_aCvLqTsPsfFDCbBmqhceXATMQas',
 })!;
 
-export const ENTITLEMENT_PRO = 'pro';
+// Must match RevenueCat entitlement lookup key (Project → Entitlements).
+export const ENTITLEMENT_PRO = 'Paly Pro';
 export const PRODUCT_MONTHLY = 'paly_pro_monthly';
 export const PRODUCT_ANNUAL = 'paly_pro_annual';
 export const FREE_CLASS_LIMIT = 2;

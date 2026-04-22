@@ -4,7 +4,8 @@ import { supabaseAdmin } from "../_shared/supabase.ts";
 import { sendSms } from "../_shared/twilio.ts";
 
 const RC_SECRET_KEY = Deno.env.get("REVENUECAT_SECRET_KEY")!;
-const ENTITLEMENT_ID = "pro";
+/** RevenueCat entitlement lookup key (same as client ENTITLEMENT_PRO). */
+const ENTITLEMENT_LOOKUP_KEY = "Paly Pro";
 const POINTS_THRESHOLD = 500;
 
 serve(async (req) => {
@@ -57,12 +58,10 @@ serve(async (req) => {
       }
     }
 
-    // Grant 30-day Pro entitlement via RevenueCat REST API
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() + 30);
-
+    // Grant promotional access via RevenueCat REST API v1
+    const entitlementPath = encodeURIComponent(ENTITLEMENT_LOOKUP_KEY);
     const rcResponse = await fetch(
-      `https://api.revenuecat.com/v1/subscribers/${userId}/entitlements/${ENTITLEMENT_ID}/promotional`,
+      `https://api.revenuecat.com/v1/subscribers/${encodeURIComponent(userId)}/entitlements/${entitlementPath}/promotional`,
       {
         method: "POST",
         headers: {
