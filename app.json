@@ -44,7 +44,8 @@
         }
       ],
       "expo-document-picker",
-      "expo-font"
+      "expo-font",
+      "react-native-purchases"
     ],
     "experiments": {
       "typedRoutes": true

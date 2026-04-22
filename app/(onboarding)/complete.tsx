@@ -44,7 +44,7 @@ export default function CompleteScreen() {
   }));
 
   const handleStart = () => {
-    router.replace('/(tabs)');
+    router.push('/(onboarding)/paywall');
   };
 
   return (

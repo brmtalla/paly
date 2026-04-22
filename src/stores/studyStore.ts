@@ -485,11 +485,12 @@ export const useStudyStore = create<StudyState>((set, get) => ({
 
   awardPoints: async (userId: string, points: number, _reason: string) => {
     try {
+      const POINTS_THRESHOLD = 500;
       const currentMonth = new Date().toISOString().substring(0, 7);
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('paly_points, paly_points_month')
+        .select('paly_points, paly_points_month, free_month_granted_at')
         .eq('id', userId)
         .single();
 
@@ -503,13 +504,27 @@ export const useStudyStore = create<StudyState>((set, get) => ({
         month = currentMonth;
       }
 
+      const newPoints = currentPoints + points;
+
       await supabase
         .from('profiles')
         .update({
-          paly_points: currentPoints + points,
+          paly_points: newPoints,
           paly_points_month: month,
         })
         .eq('id', userId);
+
+      // Check if threshold crossed for a free month — call edge function
+      const alreadyGrantedThisMonth =
+        profile.free_month_granted_at &&
+        profile.free_month_granted_at.substring(0, 7) === currentMonth;
+
+      if (newPoints >= POINTS_THRESHOLD && !alreadyGrantedThisMonth) {
+        console.log('[Paly Points] Threshold reached — granting free month');
+        supabase.functions
+          .invoke('grant-free-month', { body: { userId } })
+          .catch((err) => console.error('grant-free-month error:', err));
+      }
     } catch (error) {
       console.error('Award points error:', error);
     }

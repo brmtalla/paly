@@ -9,6 +9,7 @@ import { ThemeProvider, useTheme } from '../src/theme/ThemeContext';
 import { useAuthStore } from '../src/stores/authStore';
 import { useNotifications } from '../src/hooks/useNotifications';
 import { SplashScreen } from '../src/components/SplashScreen';
+import { useSubscriptionStore } from '../src/stores/subscriptionStore';
 
 // Prevent the native splash screen from auto-hiding
 NativeSplashScreen.preventAutoHideAsync();
@@ -25,10 +26,18 @@ const queryClient = new QueryClient({
 function RootLayoutNav() {
   const { colors, colorScheme } = useTheme();
   const { isInitialized, profile, user, isLoading } = useAuthStore();
+  const { initialize: initSubscription } = useSubscriptionStore();
   const segments = useSegments();
 
   // Initialize notifications
   useNotifications();
+
+  // Initialize RevenueCat when user is authenticated
+  useEffect(() => {
+    if (user?.id) {
+      initSubscription(user.id);
+    }
+  }, [user?.id]);
 
   useEffect(() => {
     if (!isInitialized || isLoading) return;

@@ -17,6 +17,7 @@ import { SPACING, LAYOUT, RADIUS, SHADOWS } from '../../src/theme/spacing';
 import { Card, Button, Background, ErrorState } from '../../src/components/ui';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useClassStore } from '../../src/stores/classStore';
+import { useSubscriptionStore, FREE_CLASS_LIMIT } from '../../src/stores/subscriptionStore';
 import { ClassWithSessions } from '../../src/types/database';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -26,7 +27,23 @@ export default function ClassesScreen() {
   const { colors, colorScheme } = useTheme();
   const { profile } = useAuthStore();
   const { classes, fetchClasses, deleteClass, error: classesError } = useClassStore();
+  const { isPro } = useSubscriptionStore();
   const [refreshing, setRefreshing] = useState(false);
+
+  const handleAddClass = () => {
+    if (!isPro && classes.length >= FREE_CLASS_LIMIT) {
+      Alert.alert(
+        'Upgrade to Pro',
+        `Free accounts are limited to ${FREE_CLASS_LIMIT} classes. Upgrade to Paly Pro for unlimited classes.`,
+        [
+          { text: 'Maybe Later', style: 'cancel' },
+          { text: 'Upgrade', onPress: () => router.push('/paywall' as any) },
+        ]
+      );
+      return;
+    }
+    router.push('/class/new');
+  };
 
   useEffect(() => {
     if (profile?.id) {
@@ -98,7 +115,7 @@ export default function ClassesScreen() {
           </Text>
           <TouchableOpacity
             style={[styles.addButton, { backgroundColor: colors.white, ...SHADOWS.md }]}
-            onPress={() => router.push('/class/new')}
+            onPress={handleAddClass}
           >
             <Ionicons name="add" size={24} color={colors.background} />
           </TouchableOpacity>
@@ -268,7 +285,7 @@ export default function ClassesScreen() {
                     variant="primary"
                     size="md"
                     style={{ marginTop: SPACING.xl }}
-                    onPress={() => router.push('/class/new')}
+                    onPress={handleAddClass}
                     icon={<Ionicons name="add" size={20} color={colors.background} />}
                   >
                     Add Class

@@ -17,6 +17,7 @@ import { typography } from '../../src/theme/typography';
 import { SPACING, LAYOUT, RADIUS, SHADOWS } from '../../src/theme/spacing';
 import { Card, Button, Background } from '../../src/components/ui';
 import { useAuthStore } from '../../src/stores/authStore';
+import { useSubscriptionStore } from '../../src/stores/subscriptionStore';
 import { Ionicons } from '@expo/vector-icons';
 
 const SUPPORT_EMAIL = 'support@paly.app';
@@ -27,6 +28,7 @@ const FAQ_URL = 'https://paly.app/faq';
 export default function ProfileScreen() {
   const { colors, setAccentColor, accentColor, toggleColorScheme, colorScheme } = useTheme();
   const { profile, signOut, updateProfile } = useAuthStore();
+  const { isPro } = useSubscriptionStore();
 
   const handleSignOut = () => {
     Alert.alert(
@@ -165,8 +167,8 @@ export default function ProfileScreen() {
                 label="Subscription"
                 onPress={() => router.push('/settings/subscription')}
                 colors={colors}
-                badge={profile?.is_premium ? 'Premium' : 'Free'}
-                badgeColor={profile?.is_premium ? colors.background : colors.cardTextMuted}
+                badge={isPro ? 'Pro' : 'Free'}
+                badgeColor={isPro ? '#6366F1' : colors.cardTextMuted}
                 isLast
               />
             </Card>

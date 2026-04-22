@@ -18,6 +18,7 @@ export default function OnboardingLayout() {
       <Stack.Screen name="schedule" />
       <Stack.Screen name="availability" />
       <Stack.Screen name="complete" />
+      <Stack.Screen name="paywall" />
     </Stack>
   );
 }
