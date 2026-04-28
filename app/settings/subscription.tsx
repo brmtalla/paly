@@ -22,7 +22,6 @@ import {
   PALY_POINTS_FREE_MONTH_THRESHOLD,
 } from '../../src/stores/subscriptionStore';
 import { Ionicons } from '@expo/vector-icons';
-import Purchases from 'react-native-purchases';
 
 const PRO_FEATURES = [
   { icon: 'infinite', title: 'Unlimited Classes', description: `Free plan is limited to ${FREE_CLASS_LIMIT} classes` },
@@ -47,6 +46,8 @@ export default function SubscriptionScreen() {
     purchaseAnnual,
     restorePurchases,
     refreshCustomerInfo,
+    presentPaywall,
+    presentCustomerCenter,
   } = useSubscriptionStore();
 
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual'>('annual');
@@ -58,8 +59,9 @@ export default function SubscriptionScreen() {
   }, []);
 
   const handleSubscribe = async () => {
-    const success =
-      selectedPlan === 'annual' ? await purchaseAnnual() : await purchaseMonthly();
+    // Use the RevenueCat-hosted paywall — fully styled, A/B-testable, includes
+    // the trial copy and product list configured in the RC dashboard.
+    const success = await presentPaywall();
     if (success) {
       Alert.alert('Welcome to Pro!', 'You now have access to all Paly Pro features.');
     }
@@ -68,9 +70,9 @@ export default function SubscriptionScreen() {
   const handleManage = async () => {
     setManagingLoading(true);
     try {
-      await Purchases.showManageSubscriptions();
-    } catch {
-      Alert.alert('Manage Subscription', 'Open your App Store subscription settings to manage or cancel.');
+      // RevenueCat Customer Center: cancel, refund, swap plan, billing-issue UI,
+      // promo offers — all RC-hosted with no extra UI work.
+      await presentCustomerCenter();
     } finally {
       setManagingLoading(false);
     }

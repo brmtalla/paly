@@ -27,20 +27,14 @@ export default function ClassesScreen() {
   const { colors, colorScheme } = useTheme();
   const { profile } = useAuthStore();
   const { classes, fetchClasses, deleteClass, error: classesError } = useClassStore();
-  const { isPro } = useSubscriptionStore();
+  const { isPro, presentPaywallIfNeeded } = useSubscriptionStore();
   const [refreshing, setRefreshing] = useState(false);
 
-  const handleAddClass = () => {
+  const handleAddClass = async () => {
     if (!isPro && classes.length >= FREE_CLASS_LIMIT) {
-      Alert.alert(
-        'Upgrade to Pro',
-        `Free accounts are limited to ${FREE_CLASS_LIMIT} classes. Upgrade to Paly Pro for unlimited classes.`,
-        [
-          { text: 'Maybe Later', style: 'cancel' },
-          { text: 'Upgrade', onPress: () => router.push('/paywall' as any) },
-        ]
-      );
-      return;
+      // RevenueCat-hosted paywall — auto-skips if entitlement is already active.
+      const unlocked = await presentPaywallIfNeeded();
+      if (!unlocked) return;
     }
     router.push('/class/new');
   };
