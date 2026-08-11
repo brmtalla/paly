@@ -33,29 +33,35 @@ Status as of the last automated check (2026-08-11).
 
 ## 🔴 Blocking submission
 
-### 1. App Store Connect — Business tab
+### 1. DSA trader status — decide the address first
 
-Both live at **appstoreconnect.apple.com → Business** (top nav).
+**Paid Apps Agreement is Active** (Aug 11 – Dec 5, 2026), bank account and W-9
+both Active. The In-App Purchase Key is uploaded. Only the trader declaration
+is left, at **appstoreconnect.apple.com → Business → Complete Compliance
+Requirements**.
 
-- [ ] **Paid Apps Agreement.** Status is currently *New → View and Agree to
-      Terms*. Until it is active, IAP products do not appear at all and nothing
-      in the purchase flow can be tested. Requires banking + tax identity, so it
-      has to be you. The Free Apps Agreement is already Active
-      (Jul 2 2026 – Dec 5 2026).
-- [ ] **DSA trader status.** Same page: *"To make your content available on the
-      App Store in the European Union (EU), you need to let us know whether or
-      not you are a trader"* → **Complete Compliance Requirements**. Without it
-      the app cannot be distributed in the EU at all. Easy to miss because it
-      reads like a notice rather than a blocker.
+- [ ] Decide what address is on file, **then** declare.
 
-The In-App Purchase Key is done. Note RevenueCat still reports
-`duration: null` for both products — that is expected and not a problem with the
-key: Apple does not expose product metadata until the Paid Apps Agreement is
-active. It should populate on its own once signed.
+Selling $9.99/mo subscriptions is commercial activity, so under the DSA
+definition — "acting for purposes relating to their trade, business, craft or
+profession" — the answer is trader. That part is not really a judgement call.
 
-Both subscriptions sit at *Prepare for Submission*. Apple requires the first
-subscription group to ship **with** a new app version, so they go out attached to
-the 1.0 build.
+The part that is: **Apple publicly displays trader contact details on the EU App
+Store listing** — name, address, phone, email. The account is registered to an
+individual at a residential address, so declaring as-is publishes a home address
+and phone number. Options, in rough order of how most indie devs handle it:
+
+1. Form an LLC (or use a registered-agent / business mailing address), update the
+   entity in App Store Connect, then declare.
+2. Accept publication of the personal address.
+3. Drop EU distribution — rejected; EU is wanted.
+
+Apple verifies the details and may make contact, so whatever is on file has to be
+real and reachable.
+
+> Not legal advice — the declaration is an attestation about your own status.
+> Flagged here because the address becomes public the moment it is submitted,
+> and that is hard to walk back.
 
 ### 1b. Subscription level order (2-second manual fix)
 
@@ -83,16 +89,22 @@ Without this, no one can link a phone number and Pro's texting does nothing.
       downgrades to SMS for recipients who aren't on iMessage, and those messages
       do ride carrier channels.
 
-### 3. App Review demo account
+### 3. App Review demo account — created
 
-Apple **rejects** apps that require login without working demo credentials.
+Apple rejects apps requiring login without working credentials.
 
-- [ ] Create a real account, complete onboarding, add a class and a note so the
-      reviewer sees a populated app rather than empty state.
-- [ ] Put the credentials in App Store Connect → *App Review Information*.
-- [ ] In the review notes, explain that study texts are a Pro feature requiring
-      the user to text a link code first, so the reviewer doesn't flag the
-      onboarding step as broken. Draft copy is in `legal/store-listing.md`.
+- [x] Account created: **brandonmtalla+appreview@gmail.com** (password handed
+      over separately — it is not committed to this repo). Sign-in verified
+      against the live auth endpoint, not just inserted into the table.
+- [x] Populated so the reviewer sees a working app rather than empty state:
+      2 classes with weekly schedules, 2 notes, one fully synthesized set
+      (summary, 5 takeaways, 6 flashcards, 5 quiz questions, 4 daily chunks),
+      5 study prompts (3 read, 2 unread), a 4-day reading streak and 90 Paly
+      Points backed by real ledger rows.
+- [x] No phone number linked — the reviewer never needs SMS, and push is the
+      default channel on every plan.
+- [ ] Paste the credentials into App Store Connect → *App Review Information*,
+      along with the notes from `legal/store-listing.md`.
 
 ### 4. Submit credentials
 

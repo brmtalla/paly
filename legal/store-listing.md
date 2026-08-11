@@ -77,8 +77,10 @@ Paly is an educational study companion app. Key points for review:
 5. **Minimum Age**: The app is designed for students aged 13+.
 
 6. **Demo Account**: Credentials are provided in App Review Information. The
-   account is pre-populated with a class, notes, and generated study material so
-   the app's core loop is visible immediately rather than from empty state.
+   account is pre-populated with two classes and their weekly schedules, lecture
+   notes, a full set of AI-generated study material (summary, flashcards, quiz,
+   and daily chunks), delivered study prompts, and an active reading streak — so
+   the core loop is visible immediately rather than from empty state.
 
 7. **Onboarding step 1 ("Activate texts")**: This screen is optional and can be
    skipped with "I'll do this later" — it is not a gate. Study texts are a Paly
