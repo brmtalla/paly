@@ -33,31 +33,51 @@ Status as of the last automated check (2026-08-11).
 
 ## 🔴 Blocking submission
 
-### 1. App Store Connect — two items only you can do
+### 1. App Store Connect — Business tab
 
-Products, pricing and trials are all set up. Two things remain, both requiring
-credentials or agreements I should not handle on your behalf:
+Both live at **appstoreconnect.apple.com → Business** (top nav).
 
-- [ ] **Business → Paid Applications agreement**: sign it. It requires banking
-      and tax-identity details. **Until it is active, IAP products do not appear
-      at all** — this is the most common cause of an empty paywall, and nothing
-      else in the purchase flow can be tested until it is done.
-- [ ] **Users and Access → Integrations → In-App Purchase Key**: create it,
-      download the `.p8`, and upload it to RevenueCat (Project settings → Apps →
-      Paly (App Store)). Without it RevenueCat cannot validate receipts, so
-      entitlements never sync. The `.p8` is a private key — handle it yourself.
+- [ ] **Paid Apps Agreement.** Status is currently *New → View and Agree to
+      Terms*. Until it is active, IAP products do not appear at all and nothing
+      in the purchase flow can be tested. Requires banking + tax identity, so it
+      has to be you. The Free Apps Agreement is already Active
+      (Jul 2 2026 – Dec 5 2026).
+- [ ] **DSA trader status.** Same page: *"To make your content available on the
+      App Store in the European Union (EU), you need to let us know whether or
+      not you are a trader"* → **Complete Compliance Requirements**. Without it
+      the app cannot be distributed in the EU at all. Easy to miss because it
+      reads like a notice rather than a blocker.
 
-Both subscriptions currently sit at *Prepare for Submission*. Apple requires the
-first subscription group to be submitted **with** a new app version, so they go
-out attached to the 1.0 build rather than separately.
+The In-App Purchase Key is done. Note RevenueCat still reports
+`duration: null` for both products — that is expected and not a problem with the
+key: Apple does not expose product metadata until the Paid Apps Agreement is
+active. It should populate on its own once signed.
+
+Both subscriptions sit at *Prepare for Submission*. Apple requires the first
+subscription group to ship **with** a new app version, so they go out attached to
+the 1.0 build.
+
+### 1b. Subscription level order (2-second manual fix)
+
+Monthly is Level 1 and Annual is Level 2. Apple treats Level 1 as the *higher*
+service tier, so monthly→annual is currently a deferred downgrade rather than an
+immediate upgrade — backwards from what you want.
+
+Subscription group → **Edit** → **Edit Level** → drag *Paly Pro Annual* above
+*Paly Pro Monthly* → Save.
+
+> I could not do this one by automation: the reorder list only responds to real
+> pointer-drag sequences, and synthetic drags leave Save disabled.
 
 ### 2. SendBlue inbound webhook
 
 Without this, no one can link a phone number and Pro's texting does nothing.
 
-- [ ] **SendBlue → Settings → Webhooks → Inbound**: paste the URL from
-      `sendblue-webhook-url.txt` (in the session scratchpad). Treat it as a
-      credential — anyone holding it can post forged inbound messages.
+- [x] **SendBlue → Settings → Webhooks → Inbound**: URL configured.
+- [ ] **Verify it end to end.** `profiles.sms_linked_at` is still null, so
+      nothing has come through the webhook yet — the existing number was set by
+      hand before any of this existed. Text `8T666A` to `+19293649402` from the
+      handset you want linked, then check that `sms_linked_at` populates.
 - [ ] Check whether SMS fallback can be disabled on the number. iMessage does not
       touch carrier A2P channels, so 10DLC does not apply to it — but SendBlue
       downgrades to SMS for recipients who aren't on iMessage, and those messages
