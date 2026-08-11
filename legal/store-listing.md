@@ -75,3 +75,18 @@ Paly is an educational study companion app. Key points for review:
 4. **No Third-Party Tracking**: We do not use any advertising SDKs or tracking tools.
 
 5. **Minimum Age**: The app is designed for students aged 13+.
+
+6. **Demo Account**: Credentials are provided in App Review Information. The
+   account is pre-populated with a class, notes, and generated study material so
+   the app's core loop is visible immediately rather than from empty state.
+
+7. **Onboarding step 1 ("Activate texts")**: This screen is optional and can be
+   skipped with "I'll do this later" — it is not a gate. Study texts are a Paly
+   Pro feature. To receive them a user texts their account's link code to our
+   number from the handset they want messages on; that inbound message is the
+   only way we ever record a phone number. Push notifications are the default
+   delivery channel on every plan, so no reviewer action is needed to see the
+   app working.
+
+8. **Account Deletion**: Settings > Account > Delete Account permanently removes
+   the account, all study data, and uploaded files, per Guideline 5.1.1(v).

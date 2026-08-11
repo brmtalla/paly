@@ -54,7 +54,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     backgroundColor: '#6366F1',
   },
   ios: {
-    supportsTablet: true,
+    // iPhone-only for v1. Declaring iPad support means App Review tests on an
+    // iPad, and every layout here is phone-first and untested at that size —
+    // an avoidable rejection. The app still installs on iPad in compatibility
+    // mode. Flip to true once the layouts have actually been checked there.
+    supportsTablet: false,
     bundleIdentifier: 'com.paly.app',
     infoPlist: {
       UIBackgroundModes: ['remote-notification'],
