@@ -1,0 +1,18 @@
+# Normalise line endings to LF everywhere.
+#
+# Without this, core.autocrlf=true on Windows checks out CRLF working copies
+# while the committed blobs stay LF. Prettier defaults to endOfLine: "lf", so
+# `npm run format:check` fails locally on every file while passing in CI (which
+# runs on Linux) — a confusing split that hides real formatting problems.
+* text=auto eol=lf
+
+# Binary assets must never be touched.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.p8 binary
+*.p12 binary
+*.jks binary
+*.keystore binary
