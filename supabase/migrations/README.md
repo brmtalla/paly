@@ -17,6 +17,7 @@ remote history do not line up one-to-one.
 | `20260810030000_free_trial_support.sql` | ✅ (as `free_trial_support`) | ⚠️ Remote recorded it as `20260810141052`; the local prefix differs. |
 | `20260811000000_sms_link_codes.sql` | ✅ | Versions match remote. Adds `sms_link_code`, normalises `phone_number` to E.164, and moves `phone_number`/`sms_opted_in` out of the client-writable grant so only the inbound webhook can set them. |
 | `20260811010000_revoke_trigger_function_execute.sql` | ✅ | Versions match remote. Takes the `assign_sms_link_code` trigger function off the PostgREST RPC surface. |
+| `20260811020000_sms_opt_out_rpc.sql` | ✅ | Versions match remote. Adds `revoke_sms_consent()` so the settings screen can actually turn study texts off. |
 
 ## Consequences
 

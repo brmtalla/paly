@@ -435,6 +435,15 @@ export interface Database {
         Args: { p_prompt_id: string };
         Returns: RecordChunkReadResult;
       };
+      /**
+       * Turns off study texts for the calling user. One-way by design: opting
+       * back in needs proof the handset is theirs, which only an inbound text
+       * can provide.
+       */
+      revoke_sms_consent: {
+        Args: Record<string, never>;
+        Returns: boolean;
+      };
     };
   };
 }
