@@ -10,11 +10,26 @@
     h2 { font-size: 20px; margin-top: 32px; }
     .date { color: #666; font-size: 14px; margin-bottom: 32px; }
     a { color: #6366F1; }
+    nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 20px; margin-bottom: 28px; border-bottom: 1px solid #e6e6ef; flex-wrap: wrap; }
+    nav .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; color: #1a1a2e; text-decoration: none; }
+    nav .mark { width: 30px; height: 30px; border-radius: 8px; background: #6366F1; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 700; }
+    nav .links { display: flex; gap: 20px; }
+    nav .links a { font-size: 15px; }
+    nav .links a[aria-current] { font-weight: 600; text-decoration: none; }
   </style>
 </head>
 <body>
+  <nav>
+    <a class="brand" href="/"><span class="mark">P</span> Paly</a>
+    <span class="links">
+      <a href="/privacy-policy.html">Privacy</a>
+      <a href="/terms-of-service.html" aria-current="page">Terms</a>
+      <a href="mailto:support@paly.app">Support</a>
+    </span>
+  </nav>
+
   <h1>Terms of Service</h1>
-  <p class="date">Last updated: July 2026</p>
+  <p class="date">Last updated: August 2026</p>
 
   <p>Welcome to Paly. By using our mobile application, you agree to these Terms of Service. Please read them carefully.</p>
 
