@@ -23,7 +23,9 @@ Status as of the last automated check (2026-08-11).
 | Vercel auth disabled | Deployment protection was on by default and was blocking Apple from fetching the privacy URL |
 | `appl_` key set | `EXPO_PUBLIC_REVENUECAT_IOS_KEY` created in EAS `production` and `preview` |
 | RevenueCat wiring | `paly_pro_monthly` + `paly_pro_annual` created under the App Store app, attached to the `Paly Pro` entitlement and to `$rc_monthly` / `$rc_annual` |
-| App icons | Regenerated from the brand mark; the placeholder rings would have failed Guideline 4.0 |
+| App icons | Built from the supplied Paly logo (`assets/paly-logo-source.png`); the Expo placeholder rings would have failed Guideline 4.0 |
+| App Store Connect products | Subscription group `Paly Pro`, `paly_pro_monthly` ($9.99/mo) and `paly_pro_annual` ($69.99/yr), both localized, both with a 7-day free trial across 175 regions, no end date |
+| RevenueCat paywall | `Paly Pro Paywall` published and attached to the `default` offering (`pw0458effe05bf49ff`) |
 | Build guard | An EAS build now fails if the RevenueCat key for that platform is missing |
 | CI green | typecheck clean · lint at its 18-warning budget · format clean · 38 tests |
 
@@ -31,30 +33,23 @@ Status as of the last automated check (2026-08-11).
 
 ## 🔴 Blocking submission
 
-### 1. App Store Connect — nothing exists on Apple's side yet
+### 1. App Store Connect — two items only you can do
 
-RevenueCat is fully wired (I did that via their API). But RevenueCat only
-*mirrors* Apple — the products have to exist in App Store Connect or there is
-nothing to sell.
+Products, pricing and trials are all set up. Two things remain, both requiring
+credentials or agreements I should not handle on your behalf:
 
-- [ ] **Subscriptions**: create a subscription group containing
-      `paly_pro_monthly` and `paly_pro_annual`. The identifiers must match
-      exactly — RevenueCat is already pointed at those strings.
-- [ ] Add a **7-day free trial** as an *Introductory Offer* on each. This is what
-      `TRIAL_DAYS` describes; the app has no trial logic of its own.
-- [ ] **Business → Paid Applications agreement**: sign it. Until it is active,
-      IAP products do not appear at all. This is the most common cause of an
-      empty paywall and it is easy to miss.
+- [ ] **Business → Paid Applications agreement**: sign it. It requires banking
+      and tax-identity details. **Until it is active, IAP products do not appear
+      at all** — this is the most common cause of an empty paywall, and nothing
+      else in the purchase flow can be tested until it is done.
 - [ ] **Users and Access → Integrations → In-App Purchase Key**: create it,
-      download the `.p8`, upload to RevenueCat so it can validate receipts.
+      download the `.p8`, and upload it to RevenueCat (Project settings → Apps →
+      Paly (App Store)). Without it RevenueCat cannot validate receipts, so
+      entitlements never sync. The `.p8` is a private key — handle it yourself.
 
-### 1b. RevenueCat paywall
-
-- [ ] **RevenueCat → Paywalls**: build one and attach it to the `default`
-      offering. It still has `paywall_id: null`, and the app calls
-      `RevenueCatUI.presentPaywall()` — with nothing attached there is nothing to
-      render. This is the only part of RevenueCat that has no API; the Paywall
-      Editor is dashboard-only.
+Both subscriptions currently sit at *Prepare for Submission*. Apple requires the
+first subscription group to be submitted **with** a new app version, so they go
+out attached to the 1.0 build rather than separately.
 
 ### 2. SendBlue inbound webhook
 

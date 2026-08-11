@@ -48,10 +48,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   scheme: 'paly',
   userInterfaceStyle: 'automatic',
   newArchEnabled: true,
+  // The brand mark is navy-on-white, so it needs a white field — the previous
+  // #6366F1 indigo was chosen for the placeholder icon and clashes with it.
   splash: {
     image: './assets/splash-icon.png',
     resizeMode: 'contain',
-    backgroundColor: '#6366F1',
+    backgroundColor: '#FFFFFF',
   },
   ios: {
     // iPhone-only for v1. Declaring iPad support means App Review tests on an
@@ -67,7 +69,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   android: {
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
-      backgroundColor: '#6366F1',
+      backgroundColor: '#FFFFFF',
     },
     package: 'com.paly.app',
     permissions: ['NOTIFICATIONS', 'RECEIVE_BOOT_COMPLETED'],
@@ -84,7 +86,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'expo-notifications',
       {
         icon: './assets/notification-icon.png',
-        color: '#6366F1',
+        // Android tints the notification mask with this; sampled from the mark.
+        color: '#2050B0',
       },
     ],
     'expo-document-picker',
