@@ -1,13 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-  Linking,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
@@ -21,9 +13,13 @@ import { useSubscriptionStore } from '../../src/stores/subscriptionStore';
 import { Ionicons } from '@expo/vector-icons';
 
 const SUPPORT_EMAIL = 'support@paly.app';
-const PRIVACY_URL = 'https://paly.app/privacy';
-const TERMS_URL = 'https://paly.app/terms';
-const FAQ_URL = 'https://paly.app/faq';
+// These resolve to the static pages in landing/public, which ship with the
+// landing site. App Store Connect requires the privacy URL to be reachable at
+// review time, so they must point at files that actually deploy.
+const PRIVACY_URL = 'https://paly.app/privacy-policy.html';
+const TERMS_URL = 'https://paly.app/terms-of-service.html';
+// No dedicated FAQ page exists yet; the landing page covers how Paly works.
+const FAQ_URL = 'https://paly.app';
 
 export default function ProfileScreen() {
   const { colors, setAccentColor, accentColor, toggleColorScheme, colorScheme } = useTheme();
@@ -31,14 +27,10 @@ export default function ProfileScreen() {
   const { isPro } = useSubscriptionStore();
 
   const handleSignOut = () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Sign Out', style: 'destructive', onPress: signOut },
-      ]
-    );
+    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Sign Out', style: 'destructive', onPress: signOut },
+    ]);
   };
 
   const handleColorChange = async (newColor: string) => {
@@ -62,14 +54,16 @@ export default function ProfileScreen() {
             entering={FadeInDown.delay(100).duration(600).springify()}
             style={styles.header}
           >
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => router.push('/settings/account')}
               style={styles.headerContent}
               activeOpacity={0.7}
             >
               <View style={[styles.avatar, { backgroundColor: colors.card, ...SHADOWS.lg }]}>
                 <Text style={[styles.avatarText, { color: colors.background }]}>
-                  {profile?.full_name?.charAt(0).toUpperCase() || profile?.email?.charAt(0).toUpperCase() || 'U'}
+                  {profile?.full_name?.charAt(0).toUpperCase() ||
+                    profile?.email?.charAt(0).toUpperCase() ||
+                    'U'}
                 </Text>
               </View>
               <View style={styles.headerText}>
@@ -77,7 +71,12 @@ export default function ProfileScreen() {
                   <Text style={[typography.headlineMedium, { color: colors.text }]}>
                     {profile?.full_name || 'Tap to add name'}
                   </Text>
-                  <Ionicons name="pencil" size={16} color={colors.textMuted} style={{ marginLeft: SPACING.xs }} />
+                  <Ionicons
+                    name="pencil"
+                    size={16}
+                    color={colors.textMuted}
+                    style={{ marginLeft: SPACING.xs }}
+                  />
                 </View>
                 <Text style={[typography.bodyMedium, { color: colors.textSecondary }]}>
                   {profile?.email}
@@ -91,12 +90,17 @@ export default function ProfileScreen() {
             entering={FadeInUp.delay(200).duration(600).springify()}
             style={styles.section}
           >
-            <Text style={[typography.labelSmall, { color: colors.textSecondary, marginBottom: SPACING.sm }]}>
+            <Text
+              style={[
+                typography.labelSmall,
+                { color: colors.textSecondary, marginBottom: SPACING.sm },
+              ]}
+            >
               YOUR COLOR
             </Text>
             <Card variant="default" padding="lg">
               <View style={styles.colorGrid}>
-                {THEME_COLORS.map(color => (
+                {THEME_COLORS.map((color) => (
                   <TouchableOpacity
                     key={color.value}
                     onPress={() => handleColorChange(color.value)}
@@ -120,7 +124,12 @@ export default function ProfileScreen() {
             entering={FadeInUp.delay(300).duration(600).springify()}
             style={styles.section}
           >
-            <Text style={[typography.labelSmall, { color: colors.textSecondary, marginBottom: SPACING.sm }]}>
+            <Text
+              style={[
+                typography.labelSmall,
+                { color: colors.textSecondary, marginBottom: SPACING.sm },
+              ]}
+            >
               SETTINGS
             </Text>
             <Card variant="default" padding="none">
@@ -142,11 +151,24 @@ export default function ProfileScreen() {
                 onPress={toggleColorScheme}
                 colors={colors}
                 rightElement={
-                  <View style={[styles.toggle, { backgroundColor: colorScheme === 'dark' ? colors.background : colors.cardTertiary }]}>
-                    <View style={[styles.toggleKnob, { 
-                      backgroundColor: '#FFFFFF',
-                      transform: [{ translateX: colorScheme === 'dark' ? 20 : 0 }]
-                    }]} />
+                  <View
+                    style={[
+                      styles.toggle,
+                      {
+                        backgroundColor:
+                          colorScheme === 'dark' ? colors.background : colors.cardTertiary,
+                      },
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.toggleKnob,
+                        {
+                          backgroundColor: '#FFFFFF',
+                          transform: [{ translateX: colorScheme === 'dark' ? 20 : 0 }],
+                        },
+                      ]}
+                    />
                   </View>
                 }
               />
@@ -179,7 +201,12 @@ export default function ProfileScreen() {
             entering={FadeInUp.delay(400).duration(600).springify()}
             style={styles.section}
           >
-            <Text style={[typography.labelSmall, { color: colors.textSecondary, marginBottom: SPACING.sm }]}>
+            <Text
+              style={[
+                typography.labelSmall,
+                { color: colors.textSecondary, marginBottom: SPACING.sm },
+              ]}
+            >
               SUPPORT
             </Text>
             <Card variant="default" padding="none">
@@ -227,7 +254,12 @@ export default function ProfileScreen() {
             </Button>
           </Animated.View>
 
-          <Text style={[typography.bodySmall, { color: colors.textMuted, textAlign: 'center', marginTop: SPACING.lg }]}>
+          <Text
+            style={[
+              typography.bodySmall,
+              { color: colors.textMuted, textAlign: 'center', marginTop: SPACING.lg },
+            ]}
+          >
             Paly v1.0.0
           </Text>
         </ScrollView>
@@ -268,9 +300,7 @@ function SettingsItem({
       <View style={[styles.settingsIcon, { backgroundColor: colors.background }]}>
         <Ionicons name={icon} size={18} color={colors.text} />
       </View>
-      <Text style={[typography.bodyLarge, { color: colors.cardText, flex: 1 }]}>
-        {label}
-      </Text>
+      <Text style={[typography.bodyLarge, { color: colors.cardText, flex: 1 }]}>{label}</Text>
       {badge && (
         <View style={[styles.badge, { backgroundColor: badgeColor + '20' }]}>
           <Text style={[typography.labelSmall, { color: badgeColor }]}>{badge}</Text>

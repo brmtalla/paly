@@ -14,7 +14,7 @@
 </head>
 <body>
   <h1>Privacy Policy</h1>
-  <p class="date">Last updated: March 2026</p>
+  <p class="date">Last updated: July 2026</p>
 
   <p>Paly ("we", "our", or "us") operates the Paly mobile application. This page informs you of our policies regarding the collection, use, and disclosure of personal data when you use our app.</p>
 
@@ -23,7 +23,7 @@
   <ul>
     <li><strong>Account Information:</strong> Email address and password (managed by Supabase Auth). Optionally, your full name.</li>
     <li><strong>Class & Study Data:</strong> Class schedules, notes you create, uploaded documents (PDFs, DOCX, PPTX, text files), AI-synthesized study content, quiz attempts, and study prompts.</li>
-    <li><strong>Phone Number:</strong> If you opt in to SMS study reminders, we store your phone number to deliver messages via Twilio.</li>
+    <li><strong>Phone Number:</strong> Only recorded if you text us first. To receive Paly Pro study texts you send us a message containing your account's link code; we store the number that message came from so we can deliver to it via SendBlue. You can stop at any time by replying STOP, and we never obtain your number any other way.</li>
     <li><strong>Device Information:</strong> Push notification tokens for delivering in-app notifications. We collect your device platform (iOS/Android) for notification delivery.</li>
     <li><strong>Usage Data:</strong> Reading streaks, Paly Points, prompt read status, and quiz completion data to personalize your study experience.</li>
   </ul>
@@ -42,7 +42,8 @@
   <ul>
     <li><strong>Supabase:</strong> Database hosting and authentication</li>
     <li><strong>OpenAI:</strong> AI-powered content synthesis (your notes and uploads are sent to OpenAI's API for processing)</li>
-    <li><strong>Twilio:</strong> SMS delivery for study reminders (only if you opt in)</li>
+    <li><strong>SendBlue:</strong> SMS/iMessage delivery for study reminders (only if you opt in)</li>
+    <li><strong>RevenueCat:</strong> Subscription and purchase management for Paly Pro</li>
     <li><strong>Expo:</strong> Push notification delivery</li>
   </ul>
 
