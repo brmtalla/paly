@@ -10,8 +10,7 @@ import { Card, Button, Input, Background } from '../../src/components/ui';
 import { useAuthStore } from '../../src/stores/authStore';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../src/lib/supabase';
-
-const SUPPORT_EMAIL = 'support@paly.app';
+import { SUPPORT_EMAIL } from '../../src/lib/constants';
 
 export default function AccountScreen() {
   const { colors } = useTheme();

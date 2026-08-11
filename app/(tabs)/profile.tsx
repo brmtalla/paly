@@ -11,15 +11,11 @@ import { Card, Button, Background } from '../../src/components/ui';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useSubscriptionStore } from '../../src/stores/subscriptionStore';
 import { Ionicons } from '@expo/vector-icons';
+import { PALY_SITE_URL, PRIVACY_URL, SUPPORT_EMAIL, TERMS_URL } from '../../src/lib/constants';
 
-const SUPPORT_EMAIL = 'support@paly.app';
-// These resolve to the static pages in landing/public, which ship with the
-// landing site. App Store Connect requires the privacy URL to be reachable at
-// review time, so they must point at files that actually deploy.
-const PRIVACY_URL = 'https://paly.app/privacy-policy.html';
-const TERMS_URL = 'https://paly.app/terms-of-service.html';
-// No dedicated FAQ page exists yet; the landing page covers how Paly works.
-const FAQ_URL = 'https://paly.app';
+// No dedicated FAQ page exists yet; the site root lists the legal pages and
+// support contact.
+const FAQ_URL = PALY_SITE_URL;
 
 export default function ProfileScreen() {
   const { colors, setAccentColor, accentColor, toggleColorScheme, colorScheme } = useTheme();
