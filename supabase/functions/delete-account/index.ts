@@ -31,6 +31,28 @@ serve(async (req) => {
 
     const userId = user.id;
 
+    // Purge the stored files first. Deleting the `uploads` rows below loses the
+    // paths, so doing this afterwards would strand the student's lecture slides
+    // in the bucket — which the privacy policy says we delete.
+    const { data: userUploads } = await supabaseAdmin
+      .from('uploads')
+      .select('file_path')
+      .eq('user_id', userId);
+
+    const filePaths = (userUploads ?? [])
+      .map((u: { file_path: string | null }) => u.file_path)
+      .filter((p): p is string => !!p);
+
+    if (filePaths.length > 0) {
+      const { error: storageError } = await supabaseAdmin.storage.from('uploads').remove(filePaths);
+
+      // Not fatal: an orphaned object is better than an account we refuse to
+      // delete, and Apple requires the deletion itself to succeed.
+      if (storageError) {
+        console.error('Storage cleanup failed during account deletion:', storageError);
+      }
+    }
+
     // Delete user data in order (respecting foreign keys)
     const tables = [
       'push_tokens',

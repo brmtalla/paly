@@ -19,7 +19,7 @@ Paly is your personal study companion that transforms your lecture notes into bi
 1. Add your classes and schedule
 2. Take notes or upload lecture slides (PDF, DOCX, PPTX)
 3. Paly's AI synthesizes your content into summaries, flashcards, quizzes, and daily study chunks
-4. Receive personalized study prompts throughout the week via push notifications or SMS
+4. Receive personalized study prompts throughout the week as notifications — or as texts with Paly Pro
 5. Complete a quiz before your next class to reinforce what you've learned
 
 **Key Features:**
@@ -28,7 +28,8 @@ Paly is your personal study companion that transforms your lecture notes into bi
 - Daily Study Prompts: Bite-sized content delivered at the right time
 - Pre-Class Quizzes: Mandatory review quizzes to ensure you're prepared
 - Streak Tracking: Build study habits with streaks and Paly Points
-- SMS & Push Notifications: Choose how you want to receive reminders
+- Notifications: Every plan gets each study chunk as a push notification
+- Study Texts (Paly Pro): Get the same chunks delivered to your Messages thread
 - Dark Mode: Study comfortably day or night
 
 **Built for students who want to:**
@@ -52,7 +53,7 @@ Education
 
 ### Data Linked to You
 - Email Address (Account creation)
-- Phone Number (SMS reminders, optional)
+- Phone Number (Paly Pro study texts, optional — only recorded if the user texts us first)
 - Study content (Notes, uploads)
 
 ### Data Not Linked to You
@@ -69,7 +70,7 @@ Paly is an educational study companion app. Key points for review:
 
 2. **AI Usage**: The app uses OpenAI's API to process user-uploaded educational content and generate study materials. No user data is used to train AI models.
 
-3. **SMS Feature**: SMS study reminders are entirely optional and require explicit opt-in. Users provide their phone number voluntarily.
+3. **SMS Feature**: SMS study reminders are a Paly Pro feature and are entirely optional. They require double opt-in: the user must send us a text containing their account's link code from the handset they want to use, which is the only way a phone number is ever recorded. STOP/START/HELP keywords are honoured. Push notifications are the default delivery channel on every plan, so no user needs SMS to use the app.
 
 4. **No Third-Party Tracking**: We do not use any advertising SDKs or tracking tools.
 

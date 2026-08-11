@@ -57,30 +57,30 @@ export const supabase = new Proxy({} as SupabaseClient<Database>, {
 
 // Helper functions for common operations
 export const getCurrentUser = async () => {
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   return user;
 };
 
 export const getProfile = async (userId: string) => {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', userId)
-    .single();
-  
+  const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
+
   if (error) throw error;
   return data;
 };
 
-export const updateProfile = async (userId: string, updates: Partial<Database['public']['Tables']['profiles']['Update']>) => {
+export const updateProfile = async (
+  userId: string,
+  updates: Partial<Database['public']['Tables']['profiles']['Update']>
+) => {
   const { data, error } = await supabase
     .from('profiles')
     .update(updates)
     .eq('id', userId)
     .select()
     .single();
-  
+
   if (error) throw error;
   return data;
 };
-

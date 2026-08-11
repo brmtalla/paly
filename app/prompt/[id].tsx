@@ -10,24 +10,22 @@ import { SPACING, LAYOUT, RADIUS, SHADOWS } from '../../src/theme/spacing';
 import { Card, Button, Background } from '../../src/components/ui';
 import { useStudyStore } from '../../src/stores/studyStore';
 import { useClassStore } from '../../src/stores/classStore';
-import { useAuthStore } from '../../src/stores/authStore';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function PromptDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { colors, colorScheme } = useTheme();
+  const { colors } = useTheme();
   const { studyPrompts, todaysPrompts, markPromptAsRead } = useStudyStore();
   const { classes } = useClassStore();
-  const { profile } = useAuthStore();
 
   const prompt = [...studyPrompts, ...todaysPrompts].find((p) => p.id === id);
   const classData = classes.find((c) => c.id === prompt?.class_id);
 
   useEffect(() => {
-    if (id && prompt && !prompt.is_read) {
+    if (id && prompt && !prompt.read_at) {
       markPromptAsRead(id);
     }
-  }, [id, prompt?.is_read]);
+  }, [id, prompt?.read_at]);
 
   const getPromptIcon = (type: string) => {
     switch (type) {

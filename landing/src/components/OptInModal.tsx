@@ -78,7 +78,7 @@ export default function OptInModal({ phone, onClose }: OptInModalProps) {
               Like what you saw?
             </h3>
             <p className="mt-2 text-gray-500 leading-relaxed">
-              We're launching soon. Want to get app updates and early access info
+              We&apos;re launching soon. Want to get app updates and early access info
               texted directly to your number?
             </p>
 
@@ -102,10 +102,10 @@ export default function OptInModal({ phone, onClose }: OptInModalProps) {
         {step === 'form' && (
           <div>
             <h3 className="text-xl font-bold text-gray-900">
-              You're in
+              You&apos;re in
             </h3>
             <p className="mt-2 text-gray-500 leading-relaxed">
-              We'll text you updates at the number you used. Optionally, add your
+              We&apos;ll text you updates at the number you used. Optionally, add your
               email for launch announcements too.
             </p>
 
@@ -156,10 +156,10 @@ export default function OptInModal({ phone, onClose }: OptInModalProps) {
             </div>
 
             <h3 className="text-xl font-bold text-gray-900">
-              You're on the list
+              You&apos;re on the list
             </h3>
             <p className="mt-2 text-gray-500 leading-relaxed">
-              We'll keep you posted on launch updates and early access.
+              We&apos;ll keep you posted on launch updates and early access.
               In the meantime, come hang out with us:
             </p>
 

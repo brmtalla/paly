@@ -54,22 +54,18 @@ export default function ClassesScreen() {
   };
 
   const handleClassMenu = (classData: ClassWithSessions) => {
-    Alert.alert(
-      classData.name,
-      'What would you like to do?',
-      [
-        { 
-          text: 'Edit', 
-          onPress: () => router.push(`/class/${classData.id}/edit` as any),
-        },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => confirmDeleteClass(classData),
-        },
-        { text: 'Cancel', style: 'cancel' },
-      ]
-    );
+    Alert.alert(classData.name, 'What would you like to do?', [
+      {
+        text: 'Edit',
+        onPress: () => router.push(`/class/${classData.id}/edit` as any),
+      },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => confirmDeleteClass(classData),
+      },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
   };
 
   const confirmDeleteClass = (classData: ClassWithSessions) => {
@@ -88,10 +84,10 @@ export default function ClassesScreen() {
   };
 
   const getScheduleSummary = (classData: ClassWithSessions) => {
-    const days = [...new Set(classData.class_sessions.map(s => s.day_of_week))].sort();
+    const days = [...new Set(classData.class_sessions.map((s) => s.day_of_week))].sort();
     if (days.length === 0) return 'No schedule set';
-    
-    const dayNames = days.map(d => DAYS[d]).join(', ');
+
+    const dayNames = days.map((d) => DAYS[d]).join(', ');
     const firstSession = classData.class_sessions[0];
     return `${dayNames} at ${firstSession?.start_time?.slice(0, 5) || 'TBD'}`;
   };
@@ -104,9 +100,7 @@ export default function ClassesScreen() {
           entering={FadeInDown.delay(100).duration(600).springify()}
           style={styles.header}
         >
-          <Text style={[typography.displaySmall, { color: colors.text }]}>
-            Classes
-          </Text>
+          <Text style={[typography.displaySmall, { color: colors.text }]}>Classes</Text>
           <TouchableOpacity
             style={[styles.addButton, { backgroundColor: colors.white, ...SHADOWS.md }]}
             onPress={handleAddClass}
@@ -119,8 +113,8 @@ export default function ClassesScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl 
-              refreshing={refreshing} 
+            <RefreshControl
+              refreshing={refreshing}
               onRefresh={onRefresh}
               tintColor={colors.white}
             />
@@ -135,11 +129,18 @@ export default function ClassesScreen() {
               <Text style={[typography.headlineLarge, { color: colors.background }]}>
                 {classes.length}
               </Text>
-              <Text style={[typography.labelSmall, { color: colorScheme === 'dark' ? colors.background : colors.cardTextSecondary }]}>
+              <Text
+                style={[
+                  typography.labelSmall,
+                  { color: colorScheme === 'dark' ? colors.background : colors.cardTextSecondary },
+                ]}
+              >
                 ACTIVE CLASSES
               </Text>
             </View>
-            <View style={[styles.statCard, { backgroundColor: colors.glassBackground, ...SHADOWS.md }]}>
+            <View
+              style={[styles.statCard, { backgroundColor: colors.glassBackground, ...SHADOWS.md }]}
+            >
               <Text style={[typography.headlineLarge, { color: colors.white }]}>
                 {classes.reduce((acc, c) => acc + c.class_sessions.length, 0)}
               </Text>
@@ -150,9 +151,7 @@ export default function ClassesScreen() {
           </Animated.View>
 
           {/* Error State */}
-          {classesError && (
-            <ErrorState message={classesError} onRetry={onRefresh} />
-          )}
+          {classesError && <ErrorState message={classesError} onRetry={onRefresh} />}
 
           {/* Classes list */}
           {!classesError && classes.length > 0 ? (
@@ -191,7 +190,11 @@ export default function ClassesScreen() {
                       onPress={() => handleClassMenu(classData)}
                       style={styles.menuButton}
                     >
-                      <Ionicons name="ellipsis-vertical" size={20} color={colors.cardTextTertiary} />
+                      <Ionicons
+                        name="ellipsis-vertical"
+                        size={20}
+                        color={colors.cardTextTertiary}
+                      />
                     </TouchableOpacity>
                   </View>
 
@@ -199,7 +202,7 @@ export default function ClassesScreen() {
                   <View style={styles.daysContainer}>
                     {DAYS.map((day, dayIndex) => {
                       const hasSession = classData.class_sessions.some(
-                        s => s.day_of_week === dayIndex
+                        (s) => s.day_of_week === dayIndex
                       );
                       return (
                         <View
@@ -208,7 +211,7 @@ export default function ClassesScreen() {
                             styles.dayDot,
                             {
                               backgroundColor: hasSession
-                                ? (classData.color || colors.background)
+                                ? classData.color || colors.background
                                 : colors.cardSecondary,
                             },
                           ]}
@@ -235,18 +238,14 @@ export default function ClassesScreen() {
                       onPress={() => router.push(`/notes/new?classId=${classData.id}`)}
                     >
                       <Ionicons name="create-outline" size={16} color={colors.white} />
-                      <Text style={[typography.labelSmall, { color: colors.white }]}>
-                        New Note
-                      </Text>
+                      <Text style={[typography.labelSmall, { color: colors.white }]}>New Note</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[styles.actionButton, { backgroundColor: colors.cardSecondary }]}
                       onPress={() => router.push(`/class/${classData.id}/study`)}
                     >
                       <Ionicons name="sparkles-outline" size={16} color={colors.cardText} />
-                      <Text style={[typography.labelSmall, { color: colors.cardText }]}>
-                        Study
-                      </Text>
+                      <Text style={[typography.labelSmall, { color: colors.cardText }]}>Study</Text>
                     </TouchableOpacity>
                   </View>
                 </Card>
@@ -270,7 +269,11 @@ export default function ClassesScreen() {
                   <Text
                     style={[
                       typography.bodyMedium,
-                      { color: colors.cardTextSecondary, textAlign: 'center', marginTop: SPACING.sm },
+                      {
+                        color: colors.cardTextSecondary,
+                        textAlign: 'center',
+                        marginTop: SPACING.sm,
+                      },
                     ]}
                   >
                     Add your first class to start receiving personalized study reminders

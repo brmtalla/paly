@@ -6,7 +6,7 @@ import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useTheme } from '../../src/theme/ThemeContext';
 import { typography } from '../../src/theme/typography';
 import { SPACING, LAYOUT, SHADOWS, RADIUS } from '../../src/theme/spacing';
-import { Button, Input, Card, GlassCard } from '../../src/components/ui';
+import { Button, Input, GlassCard } from '../../src/components/ui';
 import { useAuthStore } from '../../src/stores/authStore';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -36,21 +36,11 @@ export default function AssistantScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SafeAreaView style={styles.safeArea}>
         {/* Progress indicator */}
-        <Animated.View
-          entering={FadeInDown.delay(100).duration(400)}
-          style={styles.progress}
-        >
+        <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.progress}>
           <View style={[styles.progressBar, { backgroundColor: colors.glassBackground }]}>
-            <View
-              style={[
-                styles.progressFill,
-                { backgroundColor: colors.card, width: '40%' },
-              ]}
-            />
+            <View style={[styles.progressFill, { backgroundColor: colors.card, width: '40%' }]} />
           </View>
-          <Text style={[typography.labelSmall, { color: colors.textSecondary }]}>
-            2 OF 5
-          </Text>
+          <Text style={[typography.labelSmall, { color: colors.textSecondary }]}>2 OF 5</Text>
         </Animated.View>
 
         {/* Content */}
@@ -61,12 +51,7 @@ export default function AssistantScreen() {
               <Ionicons name="chatbubbles" size={40} color={colors.text} />
             </View>
 
-            <Text
-              style={[
-                typography.displaySmall,
-                { color: colors.text, textAlign: 'center' },
-              ]}
-            >
+            <Text style={[typography.displaySmall, { color: colors.text, textAlign: 'center' }]}>
               Name your{'\n'}study companion
             </Text>
 
@@ -80,8 +65,7 @@ export default function AssistantScreen() {
                 },
               ]}
             >
-              Your companion will send you personalized study prompts and help
-              you stay consistent.
+              Your companion will send you personalized study prompts and help you stay consistent.
             </Text>
           </Animated.View>
 
@@ -108,16 +92,15 @@ export default function AssistantScreen() {
               SUGGESTIONS
             </Text>
             <View style={styles.suggestions}>
-              {SUGGESTED_NAMES.map(name => (
+              {SUGGESTED_NAMES.map((name) => (
                 <TouchableOpacity
                   key={name}
                   onPress={() => setAssistantName(name)}
                   style={[
                     styles.suggestionChip,
                     {
-                      backgroundColor: assistantName === name 
-                        ? colors.card 
-                        : colors.glassBackground,
+                      backgroundColor:
+                        assistantName === name ? colors.card : colors.glassBackground,
                       ...SHADOWS.sm,
                     },
                   ]}
@@ -126,9 +109,7 @@ export default function AssistantScreen() {
                     style={[
                       typography.labelMedium,
                       {
-                        color: assistantName === name
-                          ? colors.cardText
-                          : colors.text,
+                        color: assistantName === name ? colors.cardText : colors.text,
                       },
                     ]}
                   >
@@ -157,17 +138,14 @@ export default function AssistantScreen() {
               </Text>
             </View>
             <Text style={[typography.bodyMedium, { color: colors.textSecondary }]}>
-              "Hey! Time for a quick review of your Biology notes. Ready to
-              reinforce what you learned?"
+              &quot;Hey! Time for a quick review of your Biology notes. Ready to reinforce what you
+              learned?&quot;
             </Text>
           </GlassCard>
         </Animated.View>
 
         {/* CTA */}
-        <Animated.View
-          entering={FadeInUp.delay(800).duration(600).springify()}
-          style={styles.cta}
-        >
+        <Animated.View entering={FadeInUp.delay(800).duration(600).springify()} style={styles.cta}>
           <Button
             variant="primary"
             size="lg"

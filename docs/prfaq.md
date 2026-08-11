@@ -90,7 +90,7 @@ This randomness improves retention and prevents avoidance behavior.
 * Server-side cron / job queue (Inngest or Temporal)
 * Randomized scheduling logic within safe bounds
 * Expo Push Notifications
-* Optional SMS delivery via Twilio
+* Optional SMS delivery via SendBlue
 
 ---
 
@@ -102,7 +102,7 @@ Paly optionally delivers study prompts via SMS so learning appears where student
 
 **Technology used:**
 
-* Twilio Programmable SMS
+* SendBlue SMS/iMessage API
 * User opt-in + STOP compliance
 * Link previews pointing back to in-app content
 
@@ -186,7 +186,7 @@ Yes. Paly is built entirely with Expo.
 * Supabase (Auth, DB, Storage)
 * LLM API (OpenAI-compatible)
 * Inngest / Temporal for background jobs
-* Twilio for SMS delivery
+* SendBlue for SMS/iMessage delivery
 
 ---
 

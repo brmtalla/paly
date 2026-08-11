@@ -153,7 +153,7 @@ export default function Demo({ onComplete }: DemoProps) {
             See it in action
           </h2>
           <p className="mt-4 text-lg text-gray-500 max-w-xl mx-auto">
-            Upload any lecture PDF and enter your number. We'll text you a
+            Upload any lecture PDF and enter your number. We&apos;ll text you a
             synthesis — on the house.
           </p>
         </div>
@@ -168,7 +168,7 @@ export default function Demo({ onComplete }: DemoProps) {
               </div>
               <h3 className="text-2xl font-bold text-gray-900">Sent!</h3>
               <p className="mt-3 text-gray-500 max-w-sm mx-auto">
-                Check your texts — your synthesis is on its way. That's just a
+                Check your texts — your synthesis is on its way. That&apos;s just a
                 taste of what Paly does every day, automatically.
               </p>
             </div>
@@ -262,7 +262,7 @@ export default function Demo({ onComplete }: DemoProps) {
                   />
                 </div>
                 <p className="text-xs text-gray-400 mt-2">
-                  We'll text you the synthesis once. No spam, ever.
+                  We&apos;ll text you the synthesis once. No spam, ever.
                 </p>
               </div>
 

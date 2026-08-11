@@ -13,7 +13,7 @@ import { useTheme } from '../../src/theme/ThemeContext';
 import { THEME_COLORS, getRandomThemeColor, getDerivedColors } from '../../src/theme/colors';
 import { typography } from '../../src/theme/typography';
 import { SPACING, LAYOUT, RADIUS, SHADOWS } from '../../src/theme/spacing';
-import { Button, Card } from '../../src/components/ui';
+import { Button } from '../../src/components/ui';
 import { useAuthStore } from '../../src/stores/authStore';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -24,7 +24,7 @@ export default function ThemeScreen() {
   const [isLoading, setIsLoading] = useState(false);
 
   // Get derived colors for preview
-  const derivedColors = getDerivedColors(selectedColor);
+  const _derivedColors = getDerivedColors(selectedColor);
 
   // Randomly assign a color on first load if not already set
   useEffect(() => {
@@ -90,7 +90,7 @@ export default function ThemeScreen() {
                 },
               ]}
             >
-              This color will be your app's signature look. It becomes the main background with
+              This color will be your app&apos;s signature look. It becomes the main background with
               white cards as accents.
             </Text>
           </Animated.View>
@@ -133,7 +133,7 @@ export default function ThemeScreen() {
                   <Text style={[typography.titleSmall, { color: '#1A1A1A' }]}>Biology 101</Text>
                 </View>
                 <Text style={[typography.bodySmall, { color: '#4A4A4A', marginTop: SPACING.xs }]}>
-                  Today's study prompt is ready!
+                  Today&apos;s study prompt is ready!
                 </Text>
                 <View style={styles.previewProgress}>
                   <View

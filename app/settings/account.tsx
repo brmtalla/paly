@@ -19,7 +19,7 @@ export default function AccountScreen() {
   const [fullName, setFullName] = useState(profile?.full_name || '');
   const [email, setEmail] = useState(profile?.email || user?.email || '');
   const [isLoading, setIsLoading] = useState(false);
-  const [emailChanged, setEmailChanged] = useState(false);
+  const [_emailChanged, setEmailChanged] = useState(false);
 
   const originalEmail = profile?.email || user?.email || '';
   const originalName = profile?.full_name || '';

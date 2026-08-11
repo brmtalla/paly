@@ -1,5 +1,43 @@
 import { ExpoConfig, ConfigContext } from 'expo/config';
 
+/**
+ * Asserts a required public env var is present. Failing the build is
+ * deliberate: a binary built without these silently points at nothing, which is
+ * far harder to diagnose after it ships than a broken build is now.
+ */
+function required(name: string, value: string | undefined): string {
+  if (!value) {
+    throw new Error(
+      `Missing required environment variable ${name}. ` +
+        'Set it in your .env file for local development, or in the EAS build profile / EAS secrets for builds.'
+    );
+  }
+
+  return value;
+}
+
+/**
+ * Like `required`, but only enforced inside an EAS build.
+ *
+ * Local `expo start` stays usable without a RevenueCat key — the store just
+ * reports that subscriptions are unavailable. A *build*, though, is a binary
+ * someone could ship, and one without a key shows an empty paywall that can
+ * never complete a purchase. Apple rejects that, so fail the build instead.
+ */
+function requiredForBuild(name: string, value: string | undefined): string | undefined {
+  if (process.env.EAS_BUILD === 'true' && !value) {
+    throw new Error(
+      `Missing ${name}. A store build without it ships a paywall that cannot ` +
+        'complete a purchase. Set it with `eas env:create` or in the build profile.'
+    );
+  }
+
+  return value;
+}
+
+// Only the key for the platform being built is needed; a local run needs neither.
+const buildPlatform = process.env.EAS_BUILD_PLATFORM;
+
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'Paly',
@@ -52,10 +90,27 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     typedRoutes: true,
   },
   extra: {
-    supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL ?? 'https://eftafqxzqijsueviocsv.supabase.co',
-    supabaseAnonKey:
-      process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ??
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmdGFmcXh6cWlqc3VldmlvY3N2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY3OTc4MjIsImV4cCI6MjA4MjM3MzgyMn0.vHbK0Wc_tT2WJbqZevZjY2v41Wr0RC7MQTNmJ9czLNo',
+    supabaseUrl: required('EXPO_PUBLIC_SUPABASE_URL', process.env.EXPO_PUBLIC_SUPABASE_URL),
+    supabaseAnonKey: required(
+      'EXPO_PUBLIC_SUPABASE_ANON_KEY',
+      process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY
+    ),
+    revenueCat: {
+      iosKey:
+        buildPlatform === 'ios'
+          ? requiredForBuild(
+              'EXPO_PUBLIC_REVENUECAT_IOS_KEY',
+              process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY
+            )
+          : process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY,
+      androidKey:
+        buildPlatform === 'android'
+          ? requiredForBuild(
+              'EXPO_PUBLIC_REVENUECAT_ANDROID_KEY',
+              process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY
+            )
+          : process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY,
+    },
     router: {
       origin: false,
     },

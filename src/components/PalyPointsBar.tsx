@@ -19,7 +19,7 @@ export function PalyPointsBar() {
   const { colors } = useTheme();
   const { profile } = useAuthStore();
   const [points, setPoints] = useState(0);
-  const [month, setMonth] = useState('');
+  const [_month, setMonth] = useState('');
   const progressWidth = useSharedValue(0);
 
   useEffect(() => {

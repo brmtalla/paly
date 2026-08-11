@@ -1,13 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-  Platform,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeInUp, FadeIn } from 'react-native-reanimated';
@@ -137,7 +129,7 @@ export default function ScheduleScreen() {
             <Text
               style={[typography.bodyLarge, { color: colors.textSecondary, marginTop: SPACING.md }]}
             >
-              We'll remind you to take notes during class and send study prompts based on your
+              We&apos;ll remind you to take notes during class and send study prompts based on your
               schedule.
             </Text>
           </Animated.View>

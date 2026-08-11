@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useTheme } from '../../src/theme/ThemeContext';
 import { typography } from '../../src/theme/typography';
-import { SPACING, LAYOUT, RADIUS, SHADOWS } from '../../src/theme/spacing';
+import { SPACING, LAYOUT, RADIUS } from '../../src/theme/spacing';
 import { Button, Card } from '../../src/components/ui';
 import { useAuthStore } from '../../src/stores/authStore';
 import { supabase } from '../../src/lib/supabase';
@@ -99,8 +99,8 @@ export default function AvailabilityScreen() {
                 { color: colors.textSecondary, textAlign: 'center', marginTop: SPACING.md },
               ]}
             >
-              Block off times when you're too busy for study reminders. We'll only send prompts
-              during your available hours.
+              Block off times when you&apos;re too busy for study reminders. We&apos;ll only send
+              prompts during your available hours.
             </Text>
           </Animated.View>
 

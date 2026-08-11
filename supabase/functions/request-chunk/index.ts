@@ -1,7 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { requireUserId, unauthorizedResponse } from "../_shared/auth.ts";
 import { supabaseAdmin } from "../_shared/supabase.ts";
-import { sendSms } from "../_shared/twilio.ts";
+import { sendSmsToProfile } from "../_shared/sms.ts";
+import { isPro } from "../_shared/entitlement.ts";
 
 const BASE_WEEKLY_LIMIT = 5;
 const POINTS_PER_EXTRA = 25;
@@ -11,19 +13,52 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  let userId: string;
   try {
-    const { classId, userId, spendPoints } = await req.json();
+    userId = await requireUserId(req);
+  } catch (error) {
+    return unauthorizedResponse(error);
+  }
 
-    if (!classId || !userId) {
+  try {
+    const { classId, spendPoints } = await req.json();
+
+    if (!classId) {
       return new Response(
-        JSON.stringify({ error: "Missing classId or userId" }),
+        JSON.stringify({ error: "Missing classId" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // The class must belong to the caller.
+    const { data: ownedClass } = await supabaseAdmin
+      .from("classes")
+      .select("id")
+      .eq("id", classId)
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (!ownedClass) {
+      return new Response(
+        JSON.stringify({ error: "Class not found" }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Pulling tomorrow's chunk early is delivered by text — a Paly Pro feature.
+    if (!(await isPro(userId))) {
+      return new Response(
+        JSON.stringify({
+          error: "pro_required",
+          message: "Requesting your next chunk early is a Paly Pro feature.",
+        }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     const { data: profile } = await supabaseAdmin
       .from("profiles")
-      .select("phone_number, assistant_name, paly_points, paly_points_month")
+      .select("phone_number, sms_opted_in, assistant_name, paly_points, paly_points_month")
       .eq("id", userId)
       .single();
 
@@ -121,7 +156,7 @@ serve(async (req) => {
     const typeLabel = typeLabels[nextPrompt.prompt_type] || "Study Chunk";
     const smsBody = `${assistantName} here! 📚\n\n[${typeLabel} - Day ${nextPrompt.day_index}]\n${className}\n\n${nextPrompt.content}`;
 
-    const smsResult = await sendSms(profile.phone_number, smsBody);
+    const smsResult = await sendSmsToProfile(profile, smsBody);
     const deliveredAt = new Date().toISOString();
 
     await supabaseAdmin

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Switch, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Switch, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
@@ -21,7 +21,7 @@ interface NotificationPrefs {
 
 export default function NotificationsScreen() {
   const { colors } = useTheme();
-  const { profile, updateProfile } = useAuthStore();
+  const { profile, updateProfile, fetchProfile } = useAuthStore();
   const [prefs, setPrefs] = useState<NotificationPrefs>({
     push_enabled: true,
     sms_enabled: false,
@@ -30,7 +30,7 @@ export default function NotificationsScreen() {
     quiz_reminders: true,
   });
   const [autoSynthesize, setAutoSynthesize] = useState(profile?.auto_synthesize ?? false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [_isLoading, _setIsLoading] = useState(false);
 
   useEffect(() => {
     fetchPreferences();
@@ -62,17 +62,43 @@ export default function NotificationsScreen() {
     }
   };
 
-  const updatePreference = async (key: keyof NotificationPrefs, value: boolean) => {
-    if (!profile?.id) return;
+  // profiles.sms_opted_in is the flag the delivery job actually consults;
+  // notification_preferences.sms_enabled is read by nothing. Showing the latter
+  // here meant a student could switch texts "off" and keep receiving them.
+  const smsLinked = !!profile?.phone_number;
+  const smsOptedIn = smsLinked && !!profile?.sms_opted_in;
 
-    // Check if SMS is premium feature
-    if (key === 'sms_enabled' && value && !profile.is_premium) {
-      Alert.alert('Premium Feature', 'SMS notifications are available with Paly Premium.', [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Upgrade', onPress: () => router.push('/settings/subscription') },
-      ]);
+  const smsDescription = !smsLinked
+    ? 'Text your link code from Onboarding to receive study texts'
+    : smsOptedIn
+      ? 'Study chunks are delivered to your Messages thread'
+      : "You've opted out. Reply START to any Paly text to resume.";
+
+  /**
+   * Opting out is one-way from here: opting back in requires proof the handset
+   * is theirs, which only arrives through an inbound text.
+   */
+  const handleSmsToggle = async (value: boolean) => {
+    if (value) {
+      Alert.alert(
+        'Turn study texts back on',
+        'Reply START to any Paly text from the phone you linked, and texts will resume.'
+      );
       return;
     }
+
+    try {
+      const { error } = await supabase.rpc('revoke_sms_consent');
+      if (error) throw error;
+      await fetchProfile();
+    } catch (error) {
+      console.error('Error opting out of SMS:', error);
+      Alert.alert('Error', 'Could not turn off study texts. Please try again.');
+    }
+  };
+
+  const updatePreference = async (key: keyof NotificationPrefs, value: boolean) => {
+    if (!profile?.id) return;
 
     setPrefs((prev) => ({ ...prev, [key]: value }));
 
@@ -122,12 +148,11 @@ export default function NotificationsScreen() {
               />
               <NotificationRow
                 icon="chatbubble"
-                title="SMS Notifications"
-                description="Get study prompts via text message"
-                value={prefs.sms_enabled}
-                onToggle={(value) => updatePreference('sms_enabled', value)}
+                title="Study Texts"
+                description={smsDescription}
+                value={smsOptedIn}
+                onToggle={handleSmsToggle}
                 colors={colors}
-                isPremium={!profile?.is_premium}
                 isLast
               />
             </Card>
@@ -200,7 +225,7 @@ export default function NotificationsScreen() {
                   onValueChange={async (value) => {
                     setAutoSynthesize(value);
                     try {
-                      await updateProfile({ auto_synthesize: value } as any);
+                      await updateProfile({ auto_synthesize: value });
                     } catch {
                       setAutoSynthesize(!value);
                       Alert.alert('Error', 'Failed to update preference');

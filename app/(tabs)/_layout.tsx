@@ -1,12 +1,11 @@
 import { Tabs } from 'expo-router';
-import { View, StyleSheet, Platform } from 'react-native';
-import { BlurView } from 'expo-blur';
+import { Platform } from 'react-native';
 import { useTheme } from '../../src/theme/ThemeContext';
 import { LAYOUT, SHADOWS } from '../../src/theme/spacing';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function TabsLayout() {
-  const { colors, colorScheme } = useTheme();
+  const { colors } = useTheme();
 
   return (
     <Tabs

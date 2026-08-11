@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, ViewStyle, Pressable, Platform } from 'react-native';
+import { View, StyleSheet, StyleProp, ViewStyle, Pressable, Platform } from 'react-native';
 import { useTheme } from '../../theme/ThemeContext';
 import { SPACING, RADIUS, SHADOWS } from '../../theme/spacing';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
@@ -8,10 +8,10 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 interface CardProps {
   children: React.ReactNode;
-  variant?: 'default' | 'elevated' | 'glass' | 'solid';
+  variant?: 'default' | 'elevated' | 'glass' | 'solid' | 'accent';
   padding?: 'none' | 'sm' | 'md' | 'lg' | 'xl';
   onPress?: () => void;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }
 
 export function Card({ children, variant = 'default', padding = 'md', onPress, style }: CardProps) {
@@ -50,6 +50,8 @@ export function Card({ children, variant = 'default', padding = 'md', onPress, s
         return colors.glassBackground;
       case 'solid':
         return colors.backgroundSecondary;
+      case 'accent':
+        return colors.card;
       default:
         return colors.card;
     }
@@ -61,6 +63,8 @@ export function Card({ children, variant = 'default', padding = 'md', onPress, s
         return colors.glassBorder;
       case 'solid':
         return colors.border;
+      case 'accent':
+        return colors.accent;
       default:
         return 'transparent';
     }

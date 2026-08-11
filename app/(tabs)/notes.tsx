@@ -1,12 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  RefreshControl,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
@@ -45,22 +38,25 @@ export default function NotesScreen() {
   };
 
   const filteredNotes = selectedClassId
-    ? notes.filter(n => n.class_id === selectedClassId)
+    ? notes.filter((n) => n.class_id === selectedClassId)
     : notes;
 
   const getClassName = (classId: string) => {
-    return classes.find(c => c.id === classId)?.name || 'Unknown Class';
+    return classes.find((c) => c.id === classId)?.name || 'Unknown Class';
   };
 
-  const groupedNotes = filteredNotes.reduce((acc, note) => {
-    const date = note.session_date;
-    if (!acc[date]) acc[date] = [];
-    acc[date].push(note);
-    return acc;
-  }, {} as Record<string, NoteWithUploads[]>);
+  const groupedNotes = filteredNotes.reduce(
+    (acc, note) => {
+      const date = note.session_date;
+      if (!acc[date]) acc[date] = [];
+      acc[date].push(note);
+      return acc;
+    },
+    {} as Record<string, NoteWithUploads[]>
+  );
 
-  const sortedDates = Object.keys(groupedNotes).sort((a, b) => 
-    new Date(b).getTime() - new Date(a).getTime()
+  const sortedDates = Object.keys(groupedNotes).sort(
+    (a, b) => new Date(b).getTime() - new Date(a).getTime()
   );
 
   return (
@@ -71,9 +67,7 @@ export default function NotesScreen() {
           entering={FadeInDown.delay(100).duration(600).springify()}
           style={styles.header}
         >
-          <Text style={[typography.displaySmall, { color: colors.text }]}>
-            Notes
-          </Text>
+          <Text style={[typography.displaySmall, { color: colors.text }]}>Notes</Text>
           <TouchableOpacity
             style={[styles.addButton, { backgroundColor: colors.white, ...SHADOWS.md }]}
             onPress={() => router.push('/notes/new')}
@@ -83,9 +77,7 @@ export default function NotesScreen() {
         </Animated.View>
 
         {/* Filter tabs */}
-        <Animated.View
-          entering={FadeInUp.delay(200).duration(600).springify()}
-        >
+        <Animated.View entering={FadeInUp.delay(200).duration(600).springify()}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -96,9 +88,7 @@ export default function NotesScreen() {
               style={[
                 styles.filterChip,
                 {
-                  backgroundColor: !selectedClassId
-                    ? colors.white
-                    : colors.whiteAlpha,
+                  backgroundColor: !selectedClassId ? colors.white : colors.whiteAlpha,
                 },
               ]}
             >
@@ -111,7 +101,7 @@ export default function NotesScreen() {
                 All Notes
               </Text>
             </TouchableOpacity>
-            {classes.map(classData => (
+            {classes.map((classData) => (
               <TouchableOpacity
                 key={classData.id}
                 onPress={() => setSelectedClassId(classData.id)}
@@ -119,9 +109,7 @@ export default function NotesScreen() {
                   styles.filterChip,
                   {
                     backgroundColor:
-                      selectedClassId === classData.id
-                        ? colors.white
-                        : colors.whiteAlpha,
+                      selectedClassId === classData.id ? colors.white : colors.whiteAlpha,
                   },
                 ]}
               >
@@ -130,9 +118,7 @@ export default function NotesScreen() {
                     typography.labelMedium,
                     {
                       color:
-                        selectedClassId === classData.id
-                          ? colors.background
-                          : colors.textSecondary,
+                        selectedClassId === classData.id ? colors.background : colors.textSecondary,
                     },
                   ]}
                 >
@@ -147,8 +133,8 @@ export default function NotesScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl 
-              refreshing={refreshing} 
+            <RefreshControl
+              refreshing={refreshing}
               onRefresh={onRefresh}
               tintColor={colors.white}
             />
@@ -172,7 +158,7 @@ export default function NotesScreen() {
                   {format(parseISO(date), 'EEEE, MMMM d, yyyy').toUpperCase()}
                 </Text>
 
-                {groupedNotes[date].map(note => (
+                {groupedNotes[date].map((note) => (
                   <Card
                     key={note.id}
                     variant="default"
@@ -221,17 +207,8 @@ export default function NotesScreen() {
                     {/* Attachments indicator */}
                     {note.uploads && note.uploads.length > 0 && (
                       <View style={styles.attachments}>
-                        <Ionicons
-                          name="attach"
-                          size={14}
-                          color={colors.cardTextMuted}
-                        />
-                        <Text
-                          style={[
-                            typography.labelSmall,
-                            { color: colors.cardTextMuted },
-                          ]}
-                        >
+                        <Ionicons name="attach" size={14} color={colors.cardTextMuted} />
+                        <Text style={[typography.labelSmall, { color: colors.cardTextMuted }]}>
                           {note.uploads.length} attachment
                           {note.uploads.length !== 1 ? 's' : ''}
                         </Text>
@@ -259,7 +236,11 @@ export default function NotesScreen() {
                   <Text
                     style={[
                       typography.bodyMedium,
-                      { color: colors.cardTextSecondary, textAlign: 'center', marginTop: SPACING.sm },
+                      {
+                        color: colors.cardTextSecondary,
+                        textAlign: 'center',
+                        marginTop: SPACING.sm,
+                      },
                     ]}
                   >
                     Start taking notes during your classes to build your study materials

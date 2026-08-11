@@ -4,6 +4,7 @@ import {
   TextInput,
   Text,
   StyleSheet,
+  StyleProp,
   ViewStyle,
   TextInputProps,
   TouchableOpacity,
@@ -21,7 +22,7 @@ interface InputProps extends TextInputProps {
   hint?: string;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
-  containerStyle?: ViewStyle;
+  containerStyle?: StyleProp<ViewStyle>;
   isPassword?: boolean;
 }
 
@@ -86,9 +87,9 @@ export function Input({
             backgroundColor: colors.card,
             borderColor:
               Platform.OS === 'web' ? getBorderColor() : error ? colors.error : colors.border,
-            // Add CSS transition for web
+            // `transition` is a web-only CSS property with no RN equivalent.
             ...(Platform.OS === 'web' ? { transition: 'border-color 150ms ease' } : {}),
-          },
+          } as ViewStyle,
           SHADOWS.sm,
           animatedBorderStyle,
         ]}
@@ -105,8 +106,8 @@ export function Input({
               color: colors.cardText,
               lineHeight: undefined,
             },
-            leftIcon && { paddingLeft: 0 },
-            (rightIcon || isPassword) && { paddingRight: 0 },
+            !!leftIcon && { paddingLeft: 0 },
+            !!(rightIcon || isPassword) && { paddingRight: 0 },
             props.style,
           ]}
           placeholderTextColor={colors.cardTextMuted}

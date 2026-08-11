@@ -1,20 +1,32 @@
 import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
-import { Class, ClassSession, ClassWithSessions } from '../types/database';
+import {
+  Class,
+  ClassSession,
+  ClassWithSessions,
+  ClassInsert,
+  ClassSessionInsert,
+} from '../types/database';
 
 interface ClassState {
   classes: ClassWithSessions[];
   currentClass: ClassWithSessions | null;
   isLoading: boolean;
   error: string | null;
-  
+
   // Actions
   fetchClasses: (userId: string) => Promise<void>;
-  createClass: (classData: Omit<Class, 'id' | 'created_at' | 'updated_at' | 'is_active'>, sessions: Omit<ClassSession, 'id' | 'class_id' | 'created_at'>[]) => Promise<ClassWithSessions>;
-  addClass: (classData: Omit<Class, 'id' | 'created_at' | 'updated_at' | 'is_active'>, sessions: Omit<ClassSession, 'id' | 'class_id' | 'created_at'>[]) => Promise<ClassWithSessions>;
+  createClass: (
+    classData: ClassInsert,
+    sessions: Omit<ClassSessionInsert, 'class_id'>[]
+  ) => Promise<ClassWithSessions>;
+  addClass: (
+    classData: ClassInsert,
+    sessions: Omit<ClassSessionInsert, 'class_id'>[]
+  ) => Promise<ClassWithSessions>;
   updateClass: (classId: string, updates: Partial<Class>) => Promise<void>;
   deleteClass: (classId: string) => Promise<void>;
-  addSession: (classId: string, session: Omit<ClassSession, 'id' | 'class_id' | 'created_at'>) => Promise<void>;
+  addSession: (classId: string, session: Omit<ClassSessionInsert, 'class_id'>) => Promise<void>;
   updateSession: (sessionId: string, updates: Partial<ClassSession>) => Promise<void>;
   deleteSession: (sessionId: string) => Promise<void>;
   setCurrentClass: (classData: ClassWithSessions | null) => void;
@@ -31,19 +43,21 @@ export const useClassStore = create<ClassState>((set, get) => ({
   fetchClasses: async (userId: string) => {
     try {
       set({ isLoading: true, error: null });
-      
+
       const { data, error } = await supabase
         .from('classes')
-        .select(`
+        .select(
+          `
           *,
           class_sessions (*)
-        `)
+        `
+        )
         .eq('user_id', userId)
         .eq('is_active', true)
         .order('name');
 
       if (error) throw error;
-      set({ classes: data as ClassWithSessions[], isLoading: false });
+      set({ classes: data as unknown as ClassWithSessions[], isLoading: false });
     } catch (error) {
       console.error('Fetch classes error:', error);
       set({ isLoading: false, error: 'Failed to load classes. Pull down to retry.' });
@@ -53,7 +67,7 @@ export const useClassStore = create<ClassState>((set, get) => ({
   createClass: async (classData, sessions) => {
     try {
       set({ isLoading: true });
-      
+
       // Create the class
       const { data: newClass, error: classError } = await supabase
         .from('classes')
@@ -65,7 +79,7 @@ export const useClassStore = create<ClassState>((set, get) => ({
 
       // Create sessions if provided
       if (sessions.length > 0) {
-        const sessionsWithClassId = sessions.map(s => ({
+        const sessionsWithClassId = sessions.map((s) => ({
           ...s,
           class_id: newClass.id,
         }));
@@ -82,7 +96,7 @@ export const useClassStore = create<ClassState>((set, get) => ({
           class_sessions: newSessions,
         };
 
-        set(state => ({
+        set((state) => ({
           classes: [...state.classes, classWithSessions],
           isLoading: false,
         }));
@@ -95,7 +109,7 @@ export const useClassStore = create<ClassState>((set, get) => ({
         class_sessions: [],
       };
 
-      set(state => ({
+      set((state) => ({
         classes: [...state.classes, classWithSessions],
         isLoading: false,
       }));
@@ -114,17 +128,12 @@ export const useClassStore = create<ClassState>((set, get) => ({
 
   updateClass: async (classId: string, updates: Partial<Class>) => {
     try {
-      const { error } = await supabase
-        .from('classes')
-        .update(updates)
-        .eq('id', classId);
+      const { error } = await supabase.from('classes').update(updates).eq('id', classId);
 
       if (error) throw error;
 
-      set(state => ({
-        classes: state.classes.map(c =>
-          c.id === classId ? { ...c, ...updates } : c
-        ),
+      set((state) => ({
+        classes: state.classes.map((c) => (c.id === classId ? { ...c, ...updates } : c)),
       }));
     } catch (error) {
       console.error('Update class error:', error);
@@ -141,8 +150,8 @@ export const useClassStore = create<ClassState>((set, get) => ({
 
       if (error) throw error;
 
-      set(state => ({
-        classes: state.classes.filter(c => c.id !== classId),
+      set((state) => ({
+        classes: state.classes.filter((c) => c.id !== classId),
       }));
     } catch (error) {
       console.error('Delete class error:', error);
@@ -160,11 +169,9 @@ export const useClassStore = create<ClassState>((set, get) => ({
 
       if (error) throw error;
 
-      set(state => ({
-        classes: state.classes.map(c =>
-          c.id === classId
-            ? { ...c, class_sessions: [...c.class_sessions, data] }
-            : c
+      set((state) => ({
+        classes: state.classes.map((c) =>
+          c.id === classId ? { ...c, class_sessions: [...c.class_sessions, data] } : c
         ),
       }));
     } catch (error) {
@@ -175,17 +182,14 @@ export const useClassStore = create<ClassState>((set, get) => ({
 
   updateSession: async (sessionId: string, updates: Partial<ClassSession>) => {
     try {
-      const { error } = await supabase
-        .from('class_sessions')
-        .update(updates)
-        .eq('id', sessionId);
+      const { error } = await supabase.from('class_sessions').update(updates).eq('id', sessionId);
 
       if (error) throw error;
 
-      set(state => ({
-        classes: state.classes.map(c => ({
+      set((state) => ({
+        classes: state.classes.map((c) => ({
           ...c,
-          class_sessions: c.class_sessions.map(s =>
+          class_sessions: c.class_sessions.map((s) =>
             s.id === sessionId ? { ...s, ...updates } : s
           ),
         })),
@@ -198,17 +202,14 @@ export const useClassStore = create<ClassState>((set, get) => ({
 
   deleteSession: async (sessionId: string) => {
     try {
-      const { error } = await supabase
-        .from('class_sessions')
-        .delete()
-        .eq('id', sessionId);
+      const { error } = await supabase.from('class_sessions').delete().eq('id', sessionId);
 
       if (error) throw error;
 
-      set(state => ({
-        classes: state.classes.map(c => ({
+      set((state) => ({
+        classes: state.classes.map((c) => ({
           ...c,
-          class_sessions: c.class_sessions.filter(s => s.id !== sessionId),
+          class_sessions: c.class_sessions.filter((s) => s.id !== sessionId),
         })),
       }));
     } catch (error) {
@@ -225,9 +226,7 @@ export const useClassStore = create<ClassState>((set, get) => ({
     const { classes } = get();
     const today = new Date().getDay(); // 0 = Sunday
 
-    return classes.filter(c =>
-      c.class_sessions.some(s => s.day_of_week === today)
-    );
+    return classes.filter((c) => c.class_sessions.some((s) => s.day_of_week === today));
   },
 
   getUpcomingClass: () => {
@@ -239,10 +238,7 @@ export const useClassStore = create<ClassState>((set, get) => ({
     // Find the next class
     for (const classData of classes) {
       for (const session of classData.class_sessions) {
-        if (
-          session.day_of_week === currentDay &&
-          session.start_time > currentTime
-        ) {
+        if (session.day_of_week === currentDay && session.start_time > currentTime) {
           return { classData, session };
         }
       }
@@ -251,5 +247,3 @@ export const useClassStore = create<ClassState>((set, get) => ({
     return null;
   },
 }));
-
-

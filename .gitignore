@@ -31,7 +31,12 @@ yarn-error.*
 *.pem
 
 # local env files
-.env*.local
+.env
+.env.*
+!.env.example
+
+# Supabase CLI scratch state (link target, cached versions, pooler URL)
+supabase/.temp/
 
 # typescript
 *.tsbuildinfo

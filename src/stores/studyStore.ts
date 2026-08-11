@@ -1,9 +1,34 @@
 import { create } from 'zustand';
-import Constants from 'expo-constants';
 import { supabase } from '../lib/supabase';
-import { SynthesizedContent, StudyPrompt, QuizAttempt, Flashcard, QuizQuestion } from '../types/database';
+import { PALY_POINTS_FREE_MONTH_THRESHOLD, QUIZ_PASS_THRESHOLD } from '../lib/constants';
+import { useAuthStore } from './authStore';
+import {
+  SynthesizedContent,
+  StudyPrompt,
+  QuizAttempt,
+  Flashcard,
+  QuizQuestion,
+  Profile,
+  AwardPointsResult,
+  RecordChunkReadResult,
+} from '../types/database';
 
-const SUPABASE_URL = Constants.expoConfig?.extra?.supabaseUrl as string;
+/** Keeps the cached profile in the auth store in step with server-side totals. */
+function patchProfile(patch: Partial<Profile>) {
+  const { profile, setProfile } = useAuthStore.getState();
+  if (profile) setProfile({ ...profile, ...patch });
+}
+
+/**
+ * Reasons a client may claim points for. The point value for each lives on the
+ * server (see the award_paly_points migration) — the client only reports what
+ * happened, never how much it is worth. 'reading_streak' is deliberately absent:
+ * it is awarded only by record_chunk_read.
+ */
+export type PointsReason = 'flashcard_flip' | 'quiz_pass';
+
+export type PointsResult = AwardPointsResult;
+export type ChunkReadResult = RecordChunkReadResult;
 
 interface StudyState {
   synthesizedContent: SynthesizedContent[];
@@ -17,19 +42,24 @@ interface StudyState {
   isLoading: boolean;
   isSynthesizing: boolean;
   error: string | null;
-  
+
   // Actions
   fetchSynthesizedContent: (userId: string, classId?: string) => Promise<void>;
   fetchStudyPrompts: (userId: string) => Promise<void>;
   fetchTodaysPrompts: (userId: string) => Promise<void>;
   markPromptAsRead: (promptId: string) => Promise<void>;
-  synthesizeContent: (classId: string, userId: string, sessionDate: string) => Promise<SynthesizedContent>;
-  
+  synthesizeContent: (
+    classId: string,
+    userId: string,
+    sessionDate: string
+  ) => Promise<SynthesizedContent>;
+
   // Quiz actions
   startQuiz: (classId: string, userId: string, synthesizedContentId: string) => Promise<void>;
   answerQuestion: (isCorrect: boolean) => void;
-  completeQuiz: () => Promise<void>;
-  
+  /** Returns the finished attempt's id so the caller can claim points for it. */
+  completeQuiz: () => Promise<string | null>;
+
   // Flashcard actions
   getFlashcardsForClass: (classId: string) => Flashcard[];
 
@@ -40,13 +70,13 @@ interface StudyState {
 
   // Reading streak
   fetchClassPrompts: (userId: string, classId: string) => Promise<StudyPrompt[]>;
-  markPromptScrolledToBottom: (promptId: string, userId: string) => Promise<void>;
+  recordChunkRead: (promptId: string) => Promise<ChunkReadResult | null>;
 
   // Points
-  awardPoints: (userId: string, points: number, reason: string) => Promise<void>;
+  awardPoints: (reason: PointsReason, refId: string) => Promise<PointsResult | null>;
 
   // Advance chunk requests
-  requestNextChunk: (classId: string, userId: string, spendPoints?: boolean) => Promise<any>;
+  requestNextChunk: (classId: string, spendPoints?: boolean) => Promise<any>;
 }
 
 export const useStudyStore = create<StudyState>((set, get) => ({
@@ -61,7 +91,7 @@ export const useStudyStore = create<StudyState>((set, get) => ({
   fetchSynthesizedContent: async (userId: string, classId?: string) => {
     try {
       set({ isLoading: true, error: null });
-      
+
       let query = supabase
         .from('synthesized_content')
         .select('*')
@@ -85,7 +115,7 @@ export const useStudyStore = create<StudyState>((set, get) => ({
   fetchStudyPrompts: async (userId: string) => {
     try {
       set({ isLoading: true, error: null });
-      
+
       const { data, error } = await supabase
         .from('study_prompts')
         .select('*')
@@ -132,11 +162,11 @@ export const useStudyStore = create<StudyState>((set, get) => ({
 
       if (error) throw error;
 
-      set(state => ({
-        studyPrompts: state.studyPrompts.map(p =>
+      set((state) => ({
+        studyPrompts: state.studyPrompts.map((p) =>
           p.id === promptId ? { ...p, read_at: new Date().toISOString() } : p
         ),
-        todaysPrompts: state.todaysPrompts.map(p =>
+        todaysPrompts: state.todaysPrompts.map((p) =>
           p.id === promptId ? { ...p, read_at: new Date().toISOString() } : p
         ),
       }));
@@ -197,8 +227,16 @@ export const useStudyStore = create<StudyState>((set, get) => ({
         .eq('session_date', sessionDate);
 
       // Combine all text content
-      const notesContent = notes?.map(n => n.content).filter(Boolean).join('\n\n') || '';
-      const uploadsText = uploads?.map(u => u.extracted_text).filter(Boolean).join('\n\n') || '';
+      const notesContent =
+        notes
+          ?.map((n) => n.content)
+          .filter(Boolean)
+          .join('\n\n') || '';
+      const uploadsText =
+        uploads
+          ?.map((u) => u.extracted_text)
+          .filter(Boolean)
+          .join('\n\n') || '';
       const combinedContent = `${notesContent}\n\n${uploadsText}`.trim();
 
       if (!combinedContent) {
@@ -206,15 +244,18 @@ export const useStudyStore = create<StudyState>((set, get) => ({
       }
 
       // Call AI synthesis endpoint (Edge Function)
-      const { data: synthesisResult, error: synthesisError } = await supabase.functions.invoke('synthesize-content', {
-        body: {
-          content: combinedContent,
-          classId,
-          sessionDate,
-          className: classData?.name,
-          numStudyDays,
-        },
-      });
+      const { data: synthesisResult, error: synthesisError } = await supabase.functions.invoke(
+        'synthesize-content',
+        {
+          body: {
+            content: combinedContent,
+            classId,
+            sessionDate,
+            className: classData?.name,
+            numStudyDays,
+          },
+        }
+      );
 
       if (synthesisError) throw synthesisError;
 
@@ -230,8 +271,8 @@ export const useStudyStore = create<StudyState>((set, get) => ({
           flashcards: synthesisResult.flashcards,
           quiz_questions: synthesisResult.quizQuestions,
           daily_chunks: synthesisResult.dailyChunks,
-          source_note_ids: notes?.map(n => n.id) || [],
-          source_upload_ids: uploads?.map(u => u.id) || [],
+          source_note_ids: notes?.map((n) => n.id) || [],
+          source_upload_ids: uploads?.map((u) => u.id) || [],
         })
         .select()
         .single();
@@ -243,7 +284,6 @@ export const useStudyStore = create<StudyState>((set, get) => ({
         try {
           await supabase.functions.invoke('schedule-prompts', {
             body: {
-              userId,
               classId,
               className: classData?.name,
               synthesizedContentId: data.id,
@@ -262,10 +302,13 @@ export const useStudyStore = create<StudyState>((set, get) => ({
         await supabase
           .from('notes')
           .update({ is_synthesized: true })
-          .in('id', notes.map(n => n.id));
+          .in(
+            'id',
+            notes.map((n) => n.id)
+          );
       }
 
-      set(state => ({
+      set((state) => ({
         synthesizedContent: [data, ...state.synthesizedContent],
         isSynthesizing: false,
       }));
@@ -280,7 +323,7 @@ export const useStudyStore = create<StudyState>((set, get) => ({
   startQuiz: async (classId: string, userId: string, synthesizedContentId: string) => {
     try {
       // Get the synthesized content
-      const content = get().synthesizedContent.find(c => c.id === synthesizedContentId);
+      const content = get().synthesizedContent.find((c) => c.id === synthesizedContentId);
       if (!content) throw new Error('Content not found');
 
       const questions = content.quiz_questions as QuizQuestion[];
@@ -333,52 +376,72 @@ export const useStudyStore = create<StudyState>((set, get) => ({
 
   completeQuiz: async () => {
     const { currentQuiz } = get();
-    if (!currentQuiz || !currentQuiz.attempt) return;
+    if (!currentQuiz || !currentQuiz.attempt) return null;
+
+    const {
+      id: attemptId,
+      questions_answered,
+      correct_answers,
+      synthesized_content_id,
+    } = currentQuiz.attempt;
+    const passed =
+      questions_answered > 0 && correct_answers / questions_answered >= QUIZ_PASS_THRESHOLD;
 
     try {
       const { error } = await supabase
         .from('quiz_attempts')
         .update({
-          questions_answered: currentQuiz.attempt.questions_answered,
-          correct_answers: currentQuiz.attempt.correct_answers,
+          questions_answered,
+          correct_answers,
           completed_at: new Date().toISOString(),
         })
-        .eq('id', currentQuiz.attempt.id);
+        .eq('id', attemptId);
 
       if (error) throw error;
 
-      // Reset overdue status so the UI updates immediately
-      await supabase
-        .from('synthesized_content')
-        .update({ quiz_deadline_notified: 0 })
-        .eq('id', currentQuiz.attempt.synthesized_content_id);
+      // Only a pass clears the block. The server re-verifies this from
+      // quiz_attempts, so this optimistic reset is just for immediate UI feedback
+      // — a failing attempt leaves the overdue badge in place.
+      if (passed && synthesized_content_id) {
+        await supabase
+          .from('synthesized_content')
+          .update({ quiz_deadline_notified: 0 })
+          .eq('id', synthesized_content_id);
+      }
 
-      // Update local state to clear overdue badge
       set((state) => ({
         currentQuiz: null,
-        synthesizedContent: state.synthesizedContent.map((c) =>
-          c.id === currentQuiz.attempt!.synthesized_content_id
-            ? { ...c, quiz_deadline_notified: 0 }
-            : c
-        ),
+        synthesizedContent:
+          passed && synthesized_content_id
+            ? state.synthesizedContent.map((c) =>
+                c.id === synthesized_content_id ? { ...c, quiz_deadline_notified: 0 } : c
+              )
+            : state.synthesizedContent,
       }));
+
+      return attemptId;
     } catch (error) {
       console.error('Complete quiz error:', error);
+      return null;
     }
   },
 
   getFlashcardsForClass: (classId: string) => {
     const { synthesizedContent } = get();
-    const classContent = synthesizedContent.filter(c => c.class_id === classId);
-    
-    return classContent.flatMap(c => (c.flashcards as Flashcard[]) || []);
+    const classContent = synthesizedContent.filter((c) => c.class_id === classId);
+
+    return classContent.flatMap((c) => (c.flashcards as Flashcard[]) || []);
   },
 
   getOverdueQuizzes: (classId: string) => {
     const { synthesizedContent } = get();
     const today = new Date().toISOString().split('T')[0];
     return synthesizedContent.filter(
-      c => c.class_id === classId && c.next_class_date && c.next_class_date <= today && c.quiz_deadline_notified > 0
+      (c) =>
+        c.class_id === classId &&
+        c.next_class_date &&
+        c.next_class_date <= today &&
+        c.quiz_deadline_notified > 0
     );
   },
 
@@ -386,7 +449,7 @@ export const useStudyStore = create<StudyState>((set, get) => ({
     const { synthesizedContent } = get();
     const today = new Date().toISOString().split('T')[0];
     return synthesizedContent.filter(
-      c => c.next_class_date && c.next_class_date <= today && c.quiz_deadline_notified > 0
+      (c) => c.next_class_date && c.next_class_date <= today && c.quiz_deadline_notified > 0
     );
   },
 
@@ -394,7 +457,7 @@ export const useStudyStore = create<StudyState>((set, get) => ({
     const { synthesizedContent } = get();
     const today = new Date().toISOString().split('T')[0];
     const upcoming = synthesizedContent
-      .filter(c => c.class_id === classId && c.next_class_date && c.next_class_date > today)
+      .filter((c) => c.class_id === classId && c.next_class_date && c.next_class_date > today)
       .sort((a, b) => (a.next_class_date || '').localeCompare(b.next_class_date || ''));
     return upcoming.length > 0 ? upcoming[0].next_class_date : null;
   },
@@ -416,147 +479,75 @@ export const useStudyStore = create<StudyState>((set, get) => ({
     }
   },
 
-  markPromptScrolledToBottom: async (promptId: string, userId: string) => {
+  recordChunkRead: async (promptId: string) => {
     try {
-      const now = new Date();
-      const todayStr = now.toISOString().split('T')[0];
+      const { data, error } = await supabase.rpc('record_chunk_read', {
+        p_prompt_id: promptId,
+      });
 
-      // Mark this prompt as scrolled to bottom
-      await supabase
-        .from('study_prompts')
-        .update({ read_at_bottom: now.toISOString() })
-        .eq('id', promptId);
+      if (error) throw error;
 
-      // Update reading streak
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('reading_streak, last_read_date, paly_points, paly_points_month')
-        .eq('id', userId)
-        .single();
-
-      if (!profile) return;
-
-      const lastRead = profile.last_read_date;
-      const currentMonth = todayStr.substring(0, 7);
-      let newStreak = profile.reading_streak || 0;
-      let points = profile.paly_points || 0;
-      let pointsMonth = profile.paly_points_month || currentMonth;
-
-      // Reset points if new month
-      if (pointsMonth !== currentMonth) {
-        points = 0;
-        pointsMonth = currentMonth;
-      }
-
-      if (lastRead === todayStr) {
-        // Already read today, no streak change
-        return;
-      }
-
-      const yesterday = new Date(now);
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayStr = yesterday.toISOString().split('T')[0];
-
-      if (lastRead === yesterdayStr) {
-        // Consecutive day, increment streak
-        newStreak += 1;
-        points += 25; // streak maintenance bonus
-      } else if (!lastRead) {
-        // First ever read
-        newStreak = 1;
-      } else {
-        // Streak broken, start over
-        newStreak = 1;
-      }
-
-      await supabase
-        .from('profiles')
-        .update({
-          reading_streak: newStreak,
-          last_read_date: todayStr,
-          paly_points: points,
-          paly_points_month: pointsMonth,
-        })
-        .eq('id', userId);
+      const result = data as unknown as ChunkReadResult;
+      patchProfile({ paly_points: result.total, reading_streak: result.reading_streak });
+      return result;
     } catch (error) {
-      console.error('Mark scrolled to bottom error:', error);
+      console.error('Record chunk read error:', error);
+      return null;
     }
   },
 
-  awardPoints: async (userId: string, points: number, _reason: string) => {
+  awardPoints: async (reason: PointsReason, refId: string) => {
     try {
-      const POINTS_THRESHOLD = 500;
-      const currentMonth = new Date().toISOString().substring(0, 7);
+      const { data, error } = await supabase.rpc('award_paly_points', {
+        p_reason: reason,
+        p_ref_id: refId,
+      });
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('paly_points, paly_points_month, free_month_granted_at')
-        .eq('id', userId)
-        .single();
+      if (error) throw error;
 
-      if (!profile) return;
+      const result = data as unknown as PointsResult;
+      patchProfile({ paly_points: result.total });
 
-      let currentPoints = profile.paly_points || 0;
-      let month = profile.paly_points_month || currentMonth;
-
-      if (month !== currentMonth) {
-        currentPoints = 0;
-        month = currentMonth;
-      }
-
-      const newPoints = currentPoints + points;
-
-      await supabase
-        .from('profiles')
-        .update({
-          paly_points: newPoints,
-          paly_points_month: month,
-        })
-        .eq('id', userId);
-
-      // Check if threshold crossed for a free month — call edge function
-      const alreadyGrantedThisMonth =
-        profile.free_month_granted_at &&
-        profile.free_month_granted_at.substring(0, 7) === currentMonth;
-
-      if (newPoints >= POINTS_THRESHOLD && !alreadyGrantedThisMonth) {
-        console.log('[Paly Points] Threshold reached — granting free month');
+      // The server grants the free month once the monthly threshold is crossed;
+      // it re-verifies the balance, so a spoofed call here achieves nothing.
+      if (result.awarded && result.total >= PALY_POINTS_FREE_MONTH_THRESHOLD) {
         supabase.functions
-          .invoke('grant-free-month', { body: { userId } })
+          .invoke('grant-free-month')
           .catch((err) => console.error('grant-free-month error:', err));
       }
+
+      return result;
     } catch (error) {
       console.error('Award points error:', error);
+      return null;
     }
   },
 
-  requestNextChunk: async (classId: string, userId: string, spendPoints = false) => {
-    const response = await fetch(
-      `${SUPABASE_URL}/functions/v1/request-chunk`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-        },
-        body: JSON.stringify({ classId, userId, spendPoints }),
+  requestNextChunk: async (classId: string, spendPoints = false) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('request-chunk', {
+        body: { classId, spendPoints },
+      });
+
+      // Non-2xx responses arrive as a FunctionsHttpError whose body holds the
+      // structured error the UI needs (weekly_limit_reached, insufficient_points…).
+      if (error) {
+        const context = (error as { context?: Response }).context;
+        if (context && typeof context.json === 'function') {
+          return await context.json();
+        }
+        throw error;
       }
-    );
 
-    const data = await response.json();
+      // An advance request can spend points, so re-read the authoritative total.
+      if (data?.usage) {
+        void useAuthStore.getState().fetchProfile();
+      }
 
-    const ts = new Date().toLocaleTimeString();
-    if (data?.success) {
-      console.log(`[${ts}] CHUNK DELIVERED — ${data.chunk.className} Day ${data.chunk.dayIndex} (${data.chunk.type})`);
-      console.log(`[${ts}] SMS: ${data.smsDelivered ? 'SENT' : 'FAILED'} | SID: ${data.smsSid || 'N/A'} | At: ${data.deliveredAt}`);
-      console.log(`[${ts}] Usage: ${data.usage.usedThisWeek}/${data.usage.weeklyLimit} this week${data.usage.pointsSpent > 0 ? ` (spent ${data.usage.pointsSpent} pts)` : ''}`);
-      console.log(`[${ts}] Preview: ${data.chunk.contentPreview}`);
-    } else {
-      console.log(`[${ts}] CHUNK REQUEST — ${data.error}: ${data.message || JSON.stringify(data)}`);
+      return data;
+    } catch (error) {
+      console.error('Request chunk error:', error);
+      return { error: 'request_failed', message: 'Could not reach Paly. Please try again.' };
     }
-
-    return data;
   },
 }));
-
-

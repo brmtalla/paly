@@ -112,7 +112,7 @@ For each class:
 
 **Tech:**
 
-* Twilio opt-in flow
+* SendBlue opt-in flow
 * Compliance flags in DB
 
 ---
@@ -183,7 +183,7 @@ For each class:
 
 * Inngest or Temporal job queue
 * Expo Push Notifications
-* Twilio SMS (paid tier)
+* SendBlue SMS/iMessage (paid tier)
 
 ---
 

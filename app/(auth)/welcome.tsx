@@ -1,15 +1,13 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { Link } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useTheme } from '../../src/theme/ThemeContext';
 import { typography } from '../../src/theme/typography';
-import { SPACING, LAYOUT, RADIUS, SHADOWS } from '../../src/theme/spacing';
+import { SPACING, LAYOUT, SHADOWS } from '../../src/theme/spacing';
 import { Button } from '../../src/components/ui';
 import { Ionicons } from '@expo/vector-icons';
-
-const { height } = Dimensions.get('window');
 
 export default function WelcomeScreen() {
   const { colors } = useTheme();

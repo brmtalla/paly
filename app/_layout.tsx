@@ -121,7 +121,7 @@ export default function RootLayout() {
           {showSplash && nativeSplashHidden && (
             <SplashScreen
               onAnimationComplete={handleSplashComplete}
-              accentColor={profile?.accent_color}
+              accentColor={profile?.theme_color}
             />
           )}
         </ThemeProvider>

@@ -1,37 +1,52 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Linking, AppState, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Linking, AppState, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useTheme } from '../../src/theme/ThemeContext';
 import { typography } from '../../src/theme/typography';
-import { SPACING, LAYOUT, RADIUS, SHADOWS } from '../../src/theme/spacing';
+import { SPACING, LAYOUT, RADIUS } from '../../src/theme/spacing';
 import { Button, GlassCard } from '../../src/components/ui';
+import { IMessagePreview } from '../../src/components/iMessagePreview';
+import { useAuthStore } from '../../src/stores/authStore';
+import { PALY_SMS_NUMBER, TRIAL_DAYS } from '../../src/lib/constants';
 import { Ionicons } from '@expo/vector-icons';
-
-const SENDBLUE_NUMBER = '+19293649402';
-const OPT_IN_MESSAGE = 'Hi';
 
 export default function ActivateTextsScreen() {
   const { colors } = useTheme();
-  const [hasSent, setHasSent] = useState(false);
+  const { profile, fetchProfile } = useAuthStore();
+  const [isChecking, setIsChecking] = useState(false);
   const appState = useRef(AppState.currentState);
+
+  const linkCode = profile?.sms_link_code;
+  // The webhook writes phone_number the moment it resolves the code, so a
+  // populated number is proof the link actually landed — not merely that the
+  // student left the app and came back.
+  const isLinked = !!profile?.phone_number;
+
+  // The opt-in text has to carry the code; a bare "Hi" gives the webhook a phone
+  // number with no way to tell which account it belongs to.
+  const optInMessage = linkCode ? `Link my Paly account: ${linkCode}` : 'Link my Paly account';
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState) => {
-      if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
-        if (!hasSent) {
-          setHasSent(true);
-        }
-      }
+      const returning = appState.current.match(/inactive|background/) && nextAppState === 'active';
       appState.current = nextAppState;
+
+      // Coming back from Messages is the moment the link is most likely to have
+      // just happened, so that is when it is worth re-reading the profile.
+      if (returning && !isLinked) {
+        setIsChecking(true);
+        fetchProfile().finally(() => setIsChecking(false));
+      }
     });
+
     return () => subscription.remove();
-  }, [hasSent]);
+  }, [isLinked, fetchProfile]);
 
   const openSms = () => {
     const separator = Platform.OS === 'ios' ? '&' : '?';
-    const smsUrl = `sms:${SENDBLUE_NUMBER}${separator}body=${encodeURIComponent(OPT_IN_MESSAGE)}`;
+    const smsUrl = `sms:${PALY_SMS_NUMBER}${separator}body=${encodeURIComponent(optInMessage)}`;
     Linking.openURL(smsUrl);
   };
 
@@ -45,24 +60,23 @@ export default function ActivateTextsScreen() {
         {/* Progress */}
         <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.progress}>
           <View style={[styles.progressBar, { backgroundColor: colors.glassBackground }]}>
-            <View
-              style={[styles.progressFill, { backgroundColor: colors.card, width: '20%' }]}
-            />
+            <View style={[styles.progressFill, { backgroundColor: colors.card, width: '20%' }]} />
           </View>
           <Text style={[typography.labelSmall, { color: colors.textSecondary }]}>1 OF 5</Text>
         </Animated.View>
 
-        {/* Content */}
-        <View style={styles.content}>
+        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <Animated.View entering={FadeInDown.delay(200).duration(600).springify()}>
             <View style={[styles.iconContainer, { backgroundColor: colors.glassBackground }]}>
-              <Ionicons name="chatbubble-ellipses" size={40} color={colors.text} />
+              <Ionicons
+                name={isLinked ? 'checkmark-circle' : 'chatbubble-ellipses'}
+                size={40}
+                color={isLinked ? colors.success : colors.text}
+              />
             </View>
 
-            <Text
-              style={[typography.displaySmall, { color: colors.text, textAlign: 'center' }]}
-            >
-              Activate{'\n'}study texts
+            <Text style={[typography.displaySmall, { color: colors.text, textAlign: 'center' }]}>
+              {isLinked ? `You're all set` : `Study without\nopening the app`}
             </Text>
 
             <Text
@@ -76,54 +90,126 @@ export default function ActivateTextsScreen() {
                 },
               ]}
             >
-              Paly sends you daily study prompts via text. To enable this, you
-              need to send a quick text to our number first.
+              {isLinked
+                ? 'Your number is linked. With Paly Pro, your daily study chunks arrive right in your messages.'
+                : 'With Paly Pro, your daily study chunks land right in your messages — where you already look a hundred times a day.'}
             </Text>
           </Animated.View>
 
-          {/* Steps */}
+          {/* What Pro texting actually looks like */}
           <Animated.View
             entering={FadeInUp.delay(400).duration(600).springify()}
             style={styles.stepsContainer}
           >
+            <IMessagePreview
+              delay={500}
+              caption={`An example Paly thread — free for your first ${TRIAL_DAYS} days with Paly Pro.`}
+            />
+          </Animated.View>
+
+          {/* Free tier reassurance + opt-in steps */}
+          <Animated.View entering={FadeInUp.delay(700).duration(600).springify()}>
             <GlassCard padding="lg">
-              <Step
-                number="1"
-                text={`Tap the button below — it'll open your messages with our number pre-filled`}
-                colors={colors}
-              />
-              <View style={[styles.divider, { backgroundColor: colors.glassBackground }]} />
-              <Step number="2" text="Hit send" colors={colors} />
-              <View style={[styles.divider, { backgroundColor: colors.glassBackground }]} />
-              <Step number="3" text="Come back here and tap Continue" colors={colors} />
+              <Text style={[typography.labelMedium, { color: colors.text }]}>
+                Either way, you&apos;re covered
+              </Text>
+              <Text
+                style={[
+                  typography.bodySmall,
+                  { color: colors.textSecondary, marginTop: SPACING.xs },
+                ]}
+              >
+                Every plan gets the same daily study chunks, quizzes, and notifications in the app.
+                Pro just adds texting.
+              </Text>
+
+              {!isLinked && (
+                <>
+                  <View style={[styles.divider, { backgroundColor: colors.glassBackground }]} />
+
+                  <Text
+                    style={[
+                      typography.labelSmall,
+                      { color: colors.textMuted, marginBottom: SPACING.sm },
+                    ]}
+                  >
+                    TO RECEIVE TEXTS LATER, LINK YOUR NUMBER NOW
+                  </Text>
+
+                  <Step
+                    number="1"
+                    text="Tap below — it opens Messages with your personal code already filled in"
+                    colors={colors}
+                  />
+                  <View style={[styles.divider, { backgroundColor: colors.glassBackground }]} />
+                  <Step
+                    number="2"
+                    text="Hit send, then come back — we'll confirm it here"
+                    colors={colors}
+                  />
+
+                  {linkCode && (
+                    <View style={[styles.codeChip, { backgroundColor: colors.glassBackground }]}>
+                      <Text style={[typography.labelSmall, { color: colors.textMuted }]}>
+                        YOUR CODE
+                      </Text>
+                      <Text style={[styles.codeText, { color: colors.text }]}>{linkCode}</Text>
+                    </View>
+                  )}
+                </>
+              )}
             </GlassCard>
           </Animated.View>
 
-          {/* SMS Button */}
-          <Animated.View entering={FadeInUp.delay(600).duration(600).springify()}>
-            <Button variant="primary" size="lg" fullWidth onPress={openSms}>
-              <View style={styles.buttonInner}>
-                <Ionicons name="chatbubble" size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
-                <Text style={[typography.labelLarge, { color: '#FFFFFF' }]}>
-                  Text {SENDBLUE_NUMBER}
-                </Text>
-              </View>
-            </Button>
-          </Animated.View>
-        </View>
+          {/* SMS button, or the confirmed state */}
+          {!isLinked && (
+            <Animated.View
+              entering={FadeInUp.delay(800).duration(600).springify()}
+              style={{ marginTop: SPACING.lg }}
+            >
+              <Button
+                variant="primary"
+                size="lg"
+                fullWidth
+                onPress={openSms}
+                loading={isChecking}
+                disabled={!linkCode}
+              >
+                <View style={styles.buttonInner}>
+                  <Ionicons
+                    name="chatbubble"
+                    size={18}
+                    color="#FFFFFF"
+                    style={{ marginRight: 8 }}
+                  />
+                  <Text style={[typography.labelLarge, { color: '#FFFFFF' }]}>
+                    Text {PALY_SMS_NUMBER}
+                  </Text>
+                </View>
+              </Button>
+
+              {/* Required disclosure for A2P messaging. */}
+              <Text
+                style={[
+                  typography.bodySmall,
+                  { color: colors.textMuted, textAlign: 'center', marginTop: SPACING.sm },
+                ]}
+              >
+                Msg &amp; data rates may apply. Reply STOP at any time to opt out.
+              </Text>
+            </Animated.View>
+          )}
+        </ScrollView>
 
         {/* Continue */}
-        <Animated.View
-          entering={FadeInUp.delay(800).duration(600).springify()}
-          style={styles.cta}
-        >
-          {hasSent ? (
+        <Animated.View entering={FadeInUp.delay(800).duration(600).springify()} style={styles.cta}>
+          {isLinked ? (
             <Button variant="primary" size="lg" fullWidth onPress={handleContinue}>
               Continue
             </Button>
           ) : (
             <Button variant="ghost" size="md" onPress={handleContinue}>
-              I'll do this later
+              I&apos;ll do this later
             </Button>
           )}
         </Animated.View>
@@ -132,15 +218,7 @@ export default function ActivateTextsScreen() {
   );
 }
 
-function Step({
-  number,
-  text,
-  colors,
-}: {
-  number: string;
-  text: string;
-  colors: any;
-}) {
+function Step({ number, text, colors }: { number: string; text: string; colors: any }) {
   return (
     <View style={styles.step}>
       <View style={[styles.stepBadge, { backgroundColor: colors.card }]}>
@@ -175,8 +253,9 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   content: {
-    flex: 1,
+    flexGrow: 1,
     justifyContent: 'center',
+    paddingVertical: SPACING.lg,
   },
   iconContainer: {
     width: 80,
@@ -207,6 +286,19 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     marginVertical: SPACING.sm,
+  },
+  codeChip: {
+    marginTop: SPACING.md,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    borderRadius: RADIUS.md,
+    alignItems: 'center',
+  },
+  codeText: {
+    fontSize: 24,
+    fontWeight: '700',
+    letterSpacing: 4,
+    marginTop: 2,
   },
   buttonInner: {
     flexDirection: 'row',

@@ -130,7 +130,7 @@ export default function AvailabilityScreen() {
             <View style={[styles.infoCard, { backgroundColor: colors.accentLight }]}>
               <Ionicons name="time-outline" size={20} color={colors.accent} />
               <Text style={[typography.bodyMedium, { color: colors.accent, flex: 1 }]}>
-                Block off times when you're too busy for study reminders
+                Block off times when you&apos;re too busy for study reminders
               </Text>
             </View>
           </Animated.View>

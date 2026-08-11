@@ -1,13 +1,21 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Alert,
+} from 'react-native';
 import { Link, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useForm, Controller } from 'react-hook-form';
 import { useTheme } from '../../src/theme/ThemeContext';
 import { typography } from '../../src/theme/typography';
-import { SPACING, LAYOUT, SHADOWS } from '../../src/theme/spacing';
-import { Button, Input, Card } from '../../src/components/ui';
+import { SPACING, LAYOUT } from '../../src/theme/spacing';
+import { Button, Input } from '../../src/components/ui';
 import { useAuthStore } from '../../src/stores/authStore';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -55,21 +63,11 @@ export default function SignUpScreen() {
             entering={FadeInUp.duration(600).springify()}
             style={styles.successContainer}
           >
-            <View
-              style={[
-                styles.successIcon,
-                { backgroundColor: colors.glassBackground },
-              ]}
-            >
+            <View style={[styles.successIcon, { backgroundColor: colors.glassBackground }]}>
               <Ionicons name="mail-outline" size={48} color={colors.text} />
             </View>
 
-            <Text
-              style={[
-                typography.headlineMedium,
-                { color: colors.text, textAlign: 'center' },
-              ]}
-            >
+            <Text style={[typography.headlineMedium, { color: colors.text, textAlign: 'center' }]}>
               Check your email
             </Text>
 
@@ -83,8 +81,7 @@ export default function SignUpScreen() {
                 },
               ]}
             >
-              We've sent you a confirmation link. Click it to activate your
-              account.
+              We&apos;ve sent you a confirmation link. Click it to activate your account.
             </Text>
 
             <Button
@@ -116,9 +113,7 @@ export default function SignUpScreen() {
             showsVerticalScrollIndicator={false}
           >
             {/* Header */}
-            <Animated.View
-              entering={FadeInDown.delay(100).duration(600).springify()}
-            >
+            <Animated.View entering={FadeInDown.delay(100).duration(600).springify()}>
               <Link href="/(auth)/welcome" asChild>
                 <Button
                   variant="ghost"
@@ -132,10 +127,7 @@ export default function SignUpScreen() {
               </Link>
 
               <Text
-                style={[
-                  typography.displaySmall,
-                  { color: colors.text, marginTop: SPACING.xl },
-                ]}
+                style={[typography.displaySmall, { color: colors.text, marginTop: SPACING.xl }]}
               >
                 Create your{'\n'}account
               </Text>
@@ -177,11 +169,7 @@ export default function SignUpScreen() {
                     onBlur={onBlur}
                     error={errors.email?.message}
                     leftIcon={
-                      <Ionicons
-                        name="mail-outline"
-                        size={20}
-                        color={colors.cardTextMuted}
-                      />
+                      <Ionicons name="mail-outline" size={20} color={colors.cardTextMuted} />
                     }
                   />
                 )}
@@ -207,11 +195,7 @@ export default function SignUpScreen() {
                     onBlur={onBlur}
                     error={errors.password?.message}
                     leftIcon={
-                      <Ionicons
-                        name="lock-closed-outline"
-                        size={20}
-                        color={colors.cardTextMuted}
-                      />
+                      <Ionicons name="lock-closed-outline" size={20} color={colors.cardTextMuted} />
                     }
                   />
                 )}
@@ -222,8 +206,7 @@ export default function SignUpScreen() {
                 name="confirmPassword"
                 rules={{
                   required: 'Please confirm your password',
-                  validate: value =>
-                    value === password || 'Passwords do not match',
+                  validate: (value) => value === password || 'Passwords do not match',
                 }}
                 render={({ field: { onChange, onBlur, value } }) => (
                   <Input
@@ -235,11 +218,7 @@ export default function SignUpScreen() {
                     onBlur={onBlur}
                     error={errors.confirmPassword?.message}
                     leftIcon={
-                      <Ionicons
-                        name="lock-closed-outline"
-                        size={20}
-                        color={colors.cardTextMuted}
-                      />
+                      <Ionicons name="lock-closed-outline" size={20} color={colors.cardTextMuted} />
                     }
                   />
                 )}

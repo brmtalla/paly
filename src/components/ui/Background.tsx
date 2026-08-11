@@ -1,13 +1,11 @@
 import React from 'react';
-import { View, StyleSheet, Platform, Dimensions } from 'react-native';
+import { View, StyleSheet, Platform, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../theme/ThemeContext';
 
 interface BackgroundProps {
   children?: React.ReactNode;
 }
-
-const { width, height } = Dimensions.get('window');
 
 export function Background({ children }: BackgroundProps) {
   const { colors } = useTheme();
@@ -21,10 +19,11 @@ export function Background({ children }: BackgroundProps) {
         <View
           style={[
             StyleSheet.absoluteFill,
+            // Web-only CSS properties that have no React Native style equivalent.
             {
               background: `radial-gradient(ellipse at center, transparent 20%, rgba(0,0,0,0.3) 100%)`,
               pointerEvents: 'none',
-            },
+            } as unknown as ViewStyle,
           ]}
         />
       )}

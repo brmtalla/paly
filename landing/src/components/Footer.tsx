@@ -1,6 +1,19 @@
-import { DISCORD_INVITE_URL } from '../config';
+import { APP_STORE_URL, DISCORD_INVITE_URL, PLAY_STORE_URL } from '../config';
 
 export default function Footer() {
+  const storeLinks = [
+    {
+      label: 'Download for iOS',
+      url: APP_STORE_URL,
+      className: 'bg-white text-paly-900 hover:bg-paly-50',
+    },
+    {
+      label: 'Download for Android',
+      url: PLAY_STORE_URL,
+      className: 'border border-white/20 text-white hover:bg-white/10',
+    },
+  ].filter((link) => link.url);
+
   return (
     <footer className="border-t border-gray-100 bg-white">
       <div className="max-w-5xl mx-auto px-6 py-16">
@@ -13,18 +26,23 @@ export default function Footer() {
             Download Paly and let it handle the studying. You just show up to class.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a
-              href="#"
-              className="px-8 py-4 bg-white text-paly-900 font-semibold rounded-2xl hover:bg-paly-50 transition-colors"
-            >
-              Download for iOS
-            </a>
-            <a
-              href="#"
-              className="px-8 py-4 border border-white/20 text-white font-semibold rounded-2xl hover:bg-white/10 transition-colors"
-            >
-              Download for Android
-            </a>
+            {storeLinks.length > 0 ? (
+              storeLinks.map((link) => (
+                <a
+                  key={link.label}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`px-8 py-4 font-semibold rounded-2xl transition-colors ${link.className}`}
+                >
+                  {link.label}
+                </a>
+              ))
+            ) : (
+              <p className="text-paly-200/70 font-medium">
+                Coming soon to the App Store and Google Play.
+              </p>
+            )}
           </div>
         </div>
 

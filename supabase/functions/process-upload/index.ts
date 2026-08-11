@@ -2,8 +2,12 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { requireUserId, unauthorizedResponse } from "../_shared/auth.ts";
 import { supabaseAdmin } from "../_shared/supabase.ts";
-import { sendSms } from "../_shared/twilio.ts";
+import { sendSmsToProfile } from "../_shared/sms.ts";
+import { sendPushToUser } from "../_shared/push.ts";
+import { isPro } from "../_shared/entitlement.ts";
+import { hasPassingQuizAttempt } from "../_shared/quiz.ts";
 import JSZip from "https://esm.sh/jszip@3.10.1";
 
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
@@ -11,6 +15,13 @@ const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
+  }
+
+  let userId: string;
+  try {
+    userId = await requireUserId(req);
+  } catch (error) {
+    return unauthorizedResponse(error);
   }
 
   try {
@@ -21,20 +32,53 @@ serve(async (req) => {
       );
     }
 
-    const { uploadId, filePath, fileType, classId, userId, sessionDate, skipExtraction, extractOnly, singleUploadId } = await req.json();
+    const { uploadId, filePath, fileType, classId, sessionDate, skipExtraction, extractOnly, singleUploadId } = await req.json();
 
-    if (!classId || !userId) {
+    if (!classId) {
       return new Response(
         JSON.stringify({ error: "Missing required fields" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
+    // The class must belong to the caller before we touch any of its content.
+    const { data: ownedClass } = await supabaseAdmin
+      .from("classes")
+      .select("id")
+      .eq("id", classId)
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (!ownedClass) {
+      return new Response(
+        JSON.stringify({ error: "Class not found" }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // ── Step 1: Extract text (skip if already done) ───────────────────
-    if (!skipExtraction && uploadId && uploadId !== "manual-trigger" && filePath) {
+    if (!skipExtraction && uploadId && uploadId !== "manual-trigger") {
+      // Resolve the storage path from the caller's own upload row rather than
+      // trusting the request body — otherwise any path could be read back.
+      const { data: uploadRow } = await supabaseAdmin
+        .from("uploads")
+        .select("id, file_path, file_type")
+        .eq("id", uploadId)
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (!uploadRow) {
+        return new Response(
+          JSON.stringify({ error: "Upload not found" }),
+          { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const storagePath = uploadRow.file_path;
+
       const { data: fileData, error: downloadError } = await supabaseAdmin.storage
         .from("uploads")
-        .download(filePath);
+        .download(storagePath);
 
       if (downloadError || !fileData) {
         console.error("Download error:", downloadError);
@@ -45,7 +89,9 @@ serve(async (req) => {
       }
 
       const buffer = await fileData.arrayBuffer();
-      const extension = (fileType || filePath.split(".").pop() || "").toLowerCase();
+      const extension = (
+        uploadRow.file_type || fileType || storagePath.split(".").pop() || ""
+      ).toLowerCase();
       let extractedText = "";
 
       switch (extension) {
@@ -80,7 +126,8 @@ serve(async (req) => {
       await supabaseAdmin
         .from("uploads")
         .update({ extracted_text: extractedText })
-        .eq("id", uploadId);
+        .eq("id", uploadId)
+        .eq("user_id", userId);
 
       // If extract-only mode, stop here (user will manually synthesize later)
       if (extractOnly) {
@@ -130,17 +177,12 @@ serve(async (req) => {
       .not("next_class_date", "is", null)
       .lt("next_class_date", today.toISOString().split("T")[0]);
 
+    // New material stays locked until every overdue quiz has been PASSED —
+    // completing it with a failing score is not enough.
     let hasOverdueQuiz = false;
     if (overdueContent && overdueContent.length > 0) {
       for (const sc of overdueContent) {
-        const { data: attempts } = await supabaseAdmin
-          .from("quiz_attempts")
-          .select("id")
-          .eq("synthesized_content_id", sc.id)
-          .not("completed_at", "is", null)
-          .limit(1);
-
-        if (!attempts || attempts.length === 0) {
+        if (!(await hasPassingQuizAttempt(sc.id))) {
           hasOverdueQuiz = true;
           break;
         }
@@ -151,15 +193,15 @@ serve(async (req) => {
       // Send a reminder instead of synthesizing
       const { data: profile } = await supabaseAdmin
         .from("profiles")
-        .select("phone_number, assistant_name")
+        .select("phone_number, sms_opted_in, assistant_name")
         .eq("id", userId)
         .single();
 
-      if (profile?.phone_number) {
-        const name = profile.assistant_name || "Paly";
-        await sendSms(
-          profile.phone_number,
-          `${name} here! 🚨 Your slides for ${className} were uploaded, but you have an overdue quiz. Take it first to unlock new study material!`
+      {
+        const name = profile?.assistant_name || "Paly";
+        await sendSmsToProfile(
+          profile,
+          `${name} here! 🚨 Your slides for ${className} were uploaded, but you have a quiz you haven't passed yet. Pass it first to unlock new study material!`
         );
       }
 
@@ -184,7 +226,8 @@ serve(async (req) => {
         .from("uploads")
         .select("id, extracted_text")
         .eq("id", singleUploadId)
-        .single();
+        .eq("user_id", userId)
+        .maybeSingle();
 
       if (singleUpload?.extracted_text) {
         uploadsContent = singleUpload.extracted_text;
@@ -391,33 +434,53 @@ serve(async (req) => {
     );
 
     let smsDelivered = 0;
+    let pushDelivered = 0;
     if (immediatePrompts.length > 0) {
       const { data: profile } = await supabaseAdmin
         .from("profiles")
-        .select("phone_number, assistant_name")
+        .select("phone_number, sms_opted_in, assistant_name")
         .eq("id", userId)
         .single();
 
-      if (profile?.phone_number) {
-        const assistantName = profile.assistant_name || "Paly";
-        for (const prompt of immediatePrompts) {
-          const typeLabels: Record<string, string> = {
-            takeaway: "Key Takeaway",
-            recall: "Quick Recall",
-            quiz: "Quiz Time",
-            flashcard: "Flashcard",
-          };
-          const typeLabel = typeLabels[prompt.prompt_type] || "Study Prompt";
-          const smsBody = `${assistantName} here! 📚\n\n[${typeLabel} - Day ${prompt.day_index}]\n${className}\n\n${prompt.content}`;
+      const assistantName = profile?.assistant_name || "Paly";
+      // SMS is a Paly Pro feature; push is how the free tier receives chunks.
+      const userIsPro = await isPro(userId);
 
-          const result = await sendSms(profile.phone_number, smsBody);
-          if (result.success) {
-            await supabaseAdmin
-              .from("study_prompts")
-              .update({ delivered_at: new Date().toISOString() })
-              .eq("id", prompt.id);
-            smsDelivered++;
-          }
+      for (const prompt of immediatePrompts) {
+        const typeLabels: Record<string, string> = {
+          takeaway: "Key Takeaway",
+          recall: "Quick Recall",
+          quiz: "Quiz Time",
+          flashcard: "Flashcard",
+        };
+        const typeLabel = typeLabels[prompt.prompt_type] || "Study Prompt";
+
+        const push = await sendPushToUser(userId, {
+          title: `${assistantName} here! 📚 ${className}`,
+          body: `[${typeLabel} - Day ${prompt.day_index}] Tap to read today's chunk.`,
+          data: {
+            type: prompt.prompt_type === "quiz" ? "quiz_prompt" : "study_prompt",
+            promptId: prompt.id,
+            classId,
+            synthesizedContentId: savedContent.id,
+          },
+        });
+        const pushOk = push.sent > 0;
+        if (pushOk) pushDelivered++;
+
+        let smsOk = false;
+        if (userIsPro) {
+          const smsBody = `${assistantName} here! 📚\n\n[${typeLabel} - Day ${prompt.day_index}]\n${className}\n\n${prompt.content}`;
+          const result = await sendSmsToProfile(profile, smsBody);
+          smsOk = result.success;
+          if (smsOk) smsDelivered++;
+        }
+
+        if (pushOk || smsOk) {
+          await supabaseAdmin
+            .from("study_prompts")
+            .update({ delivered_at: new Date().toISOString() })
+            .eq("id", prompt.id);
         }
       }
     }
@@ -432,6 +495,7 @@ serve(async (req) => {
         studyDays: numStudyDays,
         promptsScheduled: (insertedPrompts || []).length,
         smsDelivered,
+        pushDelivered,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

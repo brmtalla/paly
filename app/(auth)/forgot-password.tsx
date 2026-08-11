@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Alert,
+} from 'react-native';
 import { Link, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
@@ -60,7 +68,7 @@ export default function ForgotPasswordScreen() {
                 { color: colors.textSecondary, textAlign: 'center', marginTop: SPACING.md },
               ]}
             >
-              We've sent a password reset link to{' '}
+              We&apos;ve sent a password reset link to{' '}
               <Text style={{ fontWeight: '600', color: colors.text }}>{getValues('email')}</Text>.
               Follow the link to set a new password.
             </Text>
@@ -83,7 +91,7 @@ export default function ForgotPasswordScreen() {
               style={{ marginTop: SPACING.md }}
               onPress={() => setShowSuccess(false)}
             >
-              Didn't receive it? Try again
+              Didn&apos;t receive it? Try again
             </Button>
           </Animated.View>
         </SafeAreaView>
@@ -116,14 +124,19 @@ export default function ForgotPasswordScreen() {
                 </Button>
               </Link>
 
-              <Text style={[typography.displaySmall, { color: colors.text, marginTop: SPACING.xl }]}>
+              <Text
+                style={[typography.displaySmall, { color: colors.text, marginTop: SPACING.xl }]}
+              >
                 Reset your{'\n'}password
               </Text>
 
               <Text
-                style={[typography.bodyLarge, { color: colors.textSecondary, marginTop: SPACING.md }]}
+                style={[
+                  typography.bodyLarge,
+                  { color: colors.textSecondary, marginTop: SPACING.md },
+                ]}
               >
-                Enter your email and we'll send you a link to reset your password.
+                Enter your email and we&apos;ll send you a link to reset your password.
               </Text>
             </Animated.View>
 
