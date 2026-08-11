@@ -30,7 +30,7 @@ export default function CompanionScreen() {
       Alert.alert('Success', `Your companion is now called ${name.trim()}!`, [
         { text: 'OK', onPress: () => router.back() },
       ]);
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Failed to update companion name');
     } finally {
       setIsLoading(false);
@@ -123,7 +123,8 @@ export default function CompanionScreen() {
                   { color: colors.textSecondary, fontStyle: 'italic' },
                 ]}
               >
-                "Hey! {name || 'I'}'s here to help you study. Ready for today's review?"
+                &quot;Hey! {name || 'I'}&apos;s here to help you study. Ready for today&apos;s
+                review?&quot;
               </Text>
             </Card>
           </Animated.View>

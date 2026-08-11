@@ -7,22 +7,36 @@ import Purchases, {
 } from 'react-native-purchases';
 import RevenueCatUI, { PAYWALL_RESULT } from 'react-native-purchases-ui';
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
+import {
+  ENTITLEMENT_PRO,
+  FREE_CLASS_LIMIT,
+  PALY_POINTS_FREE_MONTH_THRESHOLD,
+  PRODUCT_ANNUAL,
+  PRODUCT_MONTHLY,
+} from '../lib/constants';
+
+export {
+  ENTITLEMENT_PRO,
+  FREE_CLASS_LIMIT,
+  PALY_POINTS_FREE_MONTH_THRESHOLD,
+  PRODUCT_ANNUAL,
+  PRODUCT_MONTHLY,
+};
 
 // ── RevenueCat config ────────────────────────────────────────────────────────
-// Public SDK key (safe in the client). Project "Paly" — Test Store key for dev.
-// After you add iOS/Android apps in RevenueCat, swap to appl_… / goog_… from the dashboard.
-export const RC_API_KEY = Platform.select({
-  ios: 'test_aCvLqTsPsfFDCbBmqhceXATMQas',
-  android: 'test_aCvLqTsPsfFDCbBmqhceXATMQas',
-  default: 'test_aCvLqTsPsfFDCbBmqhceXATMQas',
-})!;
+// Public SDK key — safe to ship in the client, but it must be the real
+// appl_… / goog_… key from the RevenueCat dashboard for store builds. Without
+// it the SDK talks to the Test Store and no real purchase can complete.
+const rcConfig = Constants.expoConfig?.extra?.revenueCat as
+  | { iosKey?: string; androidKey?: string }
+  | undefined;
 
-// Must match RevenueCat entitlement lookup key (Project → Entitlements).
-export const ENTITLEMENT_PRO = 'Paly Pro';
-export const PRODUCT_MONTHLY = 'paly_pro_monthly';
-export const PRODUCT_ANNUAL = 'paly_pro_annual';
-export const FREE_CLASS_LIMIT = 2;
-export const PALY_POINTS_FREE_MONTH_THRESHOLD = 500;
+export const RC_API_KEY = Platform.select({
+  ios: rcConfig?.iosKey,
+  android: rcConfig?.androidKey,
+  default: rcConfig?.iosKey ?? rcConfig?.androidKey,
+});
 
 interface SubscriptionState {
   isPro: boolean;
@@ -73,6 +87,16 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => {
 
     initialize: async (userId: string) => {
       try {
+        if (!RC_API_KEY) {
+          // Purchases stay unavailable rather than silently falling back to a
+          // test key that can never complete a real transaction.
+          console.warn(
+            '[RC] No RevenueCat API key configured — set EXPO_PUBLIC_REVENUECAT_IOS_KEY / _ANDROID_KEY.'
+          );
+          set({ error: 'Subscriptions are unavailable right now.' });
+          return;
+        }
+
         if (__DEV__) Purchases.setLogLevel(LOG_LEVEL.DEBUG);
 
         if (!get().isInitialized) {
@@ -162,9 +186,7 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => {
     presentPaywall: async () => {
       const result = await RevenueCatUI.presentPaywall();
       await get().refreshCustomerInfo();
-      return (
-        result === PAYWALL_RESULT.PURCHASED || result === PAYWALL_RESULT.RESTORED
-      );
+      return result === PAYWALL_RESULT.PURCHASED || result === PAYWALL_RESULT.RESTORED;
     },
 
     presentPaywallIfNeeded: async () => {

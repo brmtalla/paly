@@ -2,7 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 import { supabaseAdmin } from "../_shared/supabase.ts";
-import { sendSms } from "../_shared/twilio.ts";
+import { sendSms } from "../_shared/sms.ts";
 
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 

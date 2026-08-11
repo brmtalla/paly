@@ -17,7 +17,7 @@ export function GlassCard({
   padding = 'md',
   style,
 }: GlassCardProps) {
-  const { colors, colorScheme } = useTheme();
+  const { colors } = useTheme();
 
   const getPadding = () => {
     switch (padding) {

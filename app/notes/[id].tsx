@@ -71,7 +71,7 @@ export default function NoteDetailScreen() {
         content: editedContent.trim(),
       });
       setIsEditing(false);
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Failed to save note');
     }
   };
@@ -86,7 +86,7 @@ export default function NoteDetailScreen() {
           try {
             await deleteNote(note.id);
             router.back();
-          } catch (error) {
+          } catch {
             Alert.alert('Error', 'Failed to delete note');
           }
         },

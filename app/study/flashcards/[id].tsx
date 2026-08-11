@@ -14,9 +14,12 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useTheme } from '../../../src/theme/ThemeContext';
 import { typography } from '../../../src/theme/typography';
 import { SPACING, LAYOUT, RADIUS, SHADOWS } from '../../../src/theme/spacing';
-import { Button, Background } from '../../../src/components/ui';
+import { Button, Background, GlassCard } from '../../../src/components/ui';
 import { useStudyStore } from '../../../src/stores/studyStore';
+import { useSubscriptionStore } from '../../../src/stores/subscriptionStore';
 import { useAuthStore } from '../../../src/stores/authStore';
+import { TRIAL_DAYS } from '../../../src/lib/constants';
+import { getTrialStatus } from '../../../src/lib/trial';
 import { Ionicons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
@@ -36,10 +39,16 @@ export default function FlashcardsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors, colorScheme } = useTheme();
   const { synthesizedContent, awardPoints } = useStudyStore();
+  const { isPro, presentPaywall } = useSubscriptionStore();
   const { profile } = useAuthStore();
+  const { hasUsedTrial } = getTrialStatus(profile);
 
   const content = synthesizedContent.find((c) => c.id === id);
-  const allFlashcards = (content?.flashcards || []) as { front: string; back: string; day?: number }[];
+  const allFlashcards = (content?.flashcards || []) as {
+    front: string;
+    back: string;
+    day?: number;
+  }[];
 
   const currentStudyDay = content?.session_date ? getStudyDay(content.session_date) : 1;
 
@@ -47,7 +56,7 @@ export default function FlashcardsScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [flippedCards, setFlippedCards] = useState<Set<number>>(new Set());
-  const [persistedFlipped, setPersistedFlipped] = useState<Set<number>>(new Set());
+  const [_persistedFlipped, setPersistedFlipped] = useState<Set<number>>(new Set());
   const [pointsEarned, setPointsEarned] = useState(0);
   const [loaded, setLoaded] = useState(false);
 
@@ -81,12 +90,10 @@ export default function FlashcardsScreen() {
   const visibleCards = showAll ? allFlashcards : unlockedCards;
   const lockedCount = allFlashcards.length - unlockedCards.length;
 
-  const unflippedUnlockedCount = unlockedCards.filter(
-    (_, idx) => {
-      const globalIdx = allFlashcards.indexOf(unlockedCards[idx]);
-      return !flippedCards.has(globalIdx);
-    }
-  ).length;
+  const unflippedUnlockedCount = unlockedCards.filter((_, idx) => {
+    const globalIdx = allFlashcards.indexOf(unlockedCards[idx]);
+    return !flippedCards.has(globalIdx);
+  }).length;
 
   const handleFlip = () => {
     flipProgress.value = withSpring(isFlipped ? 0 : 1, { damping: 15 });
@@ -95,9 +102,11 @@ export default function FlashcardsScreen() {
       const updated = new Set(flippedCards).add(globalIndex);
       setFlippedCards(updated);
       persistFlipped(updated);
-      setPointsEarned((prev) => prev + 5);
-      if (profile?.id) {
-        awardPoints(profile.id, 5, 'flashcard_flip');
+      if (id) {
+        // The server decides the payout and refuses a card it has already paid for.
+        awardPoints('flashcard_flip', `${id}:${globalIndex}`).then((result) => {
+          if (result?.awarded) setPointsEarned((prev) => prev + result.points);
+        });
       }
     }
     setIsFlipped(!isFlipped);
@@ -143,6 +152,72 @@ export default function FlashcardsScreen() {
   });
 
   if (!loaded) return null;
+
+  // Flashcards are a Paly Pro feature. Free users still get their daily study
+  // chunks and quizzes — this shows what upgrading adds rather than a dead end.
+  if (!isPro) {
+    return (
+      <Background>
+        <SafeAreaView style={styles.safeArea} edges={['top']}>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+              <Ionicons name="close" size={24} color={colors.text} />
+            </TouchableOpacity>
+            <Text style={[typography.titleMedium, { color: colors.text }]}>Flashcards</Text>
+            <View style={{ width: 40 }} />
+          </View>
+
+          <View style={styles.centered}>
+            <Animated.View entering={FadeIn.duration(400)} style={{ width: '100%' }}>
+              <GlassCard padding="lg">
+                <View style={styles.lockBadge}>
+                  <Ionicons name="diamond" size={28} color={colors.accent} />
+                </View>
+
+                <Text
+                  style={[
+                    typography.titleLarge,
+                    { color: colors.text, textAlign: 'center', marginTop: SPACING.md },
+                  ]}
+                >
+                  Flashcards are a Pro feature
+                </Text>
+
+                <Text
+                  style={[
+                    typography.bodyMedium,
+                    {
+                      color: colors.textSecondary,
+                      textAlign: 'center',
+                      marginTop: SPACING.sm,
+                    },
+                  ]}
+                >
+                  {allFlashcards.length > 0
+                    ? `${allFlashcards.length} cards are ready for this lecture. Upgrade to start reviewing — and earn Paly Points for every card you flip.`
+                    : 'Upgrade to unlock AI-generated flashcards for every lecture, and earn Paly Points for every card you flip.'}
+                </Text>
+
+                <Button
+                  variant="primary"
+                  size="lg"
+                  fullWidth
+                  onPress={presentPaywall}
+                  style={{ marginTop: SPACING.xl }}
+                >
+                  {hasUsedTrial ? 'Unlock Flashcards' : `Try Pro Free for ${TRIAL_DAYS} Days`}
+                </Button>
+
+                <Button variant="ghost" size="md" fullWidth onPress={() => router.back()}>
+                  Not now
+                </Button>
+              </GlassCard>
+            </Animated.View>
+          </View>
+        </SafeAreaView>
+      </Background>
+    );
+  }
 
   if (!content || allFlashcards.length === 0) {
     return (
@@ -231,16 +306,9 @@ export default function FlashcardsScreen() {
           <View style={styles.dayInfoRow}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Ionicons name="calendar-outline" size={14} color={colors.textSecondary} />
-              <Text
-                style={[
-                  typography.labelSmall,
-                  { color: colors.textSecondary, marginLeft: 4 },
-                ]}
-              >
+              <Text style={[typography.labelSmall, { color: colors.textSecondary, marginLeft: 4 }]}>
                 Day {currentStudyDay}
-                {unflippedUnlockedCount > 0 && !showAll
-                  ? ` · ${unflippedUnlockedCount} new`
-                  : ''}
+                {unflippedUnlockedCount > 0 && !showAll ? ` · ${unflippedUnlockedCount} new` : ''}
                 {lockedCount > 0 && !showAll ? ` · ${lockedCount} locked` : ''}
               </Text>
             </View>
@@ -468,6 +536,15 @@ const styles = StyleSheet.create({
   },
   backButton: {
     padding: SPACING.sm,
+  },
+  lockBadge: {
+    width: 64,
+    height: 64,
+    borderRadius: RADIUS.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    backgroundColor: 'rgba(255,255,255,0.08)',
   },
   dayInfoRow: {
     flexDirection: 'row',

@@ -3,6 +3,7 @@ import {
   TouchableOpacity,
   Text,
   StyleSheet,
+  StyleProp,
   ViewStyle,
   TextStyle,
   ActivityIndicator,
@@ -17,7 +18,8 @@ const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 interface ButtonProps {
   children: React.ReactNode;
-  onPress: () => void;
+  /** Optional so `<Link asChild>` can supply the handler itself. */
+  onPress?: () => void;
   variant?: 'primary' | 'secondary' | 'ghost' | 'outline';
   size?: 'sm' | 'md' | 'lg';
   disabled?: boolean;
@@ -25,8 +27,8 @@ interface ButtonProps {
   fullWidth?: boolean;
   icon?: React.ReactNode;
   iconPosition?: 'left' | 'right';
-  style?: ViewStyle;
-  textStyle?: TextStyle;
+  style?: StyleProp<ViewStyle>;
+  textStyle?: StyleProp<TextStyle>;
 }
 
 export function Button({
@@ -165,8 +167,8 @@ export function Button({
               styles.text,
               typography.labelLarge,
               { color: getTextColor() },
-              icon && iconPosition === 'left' && { marginLeft: SPACING.sm },
-              icon && iconPosition === 'right' && { marginRight: SPACING.sm },
+              !!icon && iconPosition === 'left' && { marginLeft: SPACING.sm },
+              !!icon && iconPosition === 'right' && { marginRight: SPACING.sm },
               textStyle,
             ]}
           >

@@ -9,21 +9,30 @@ interface NoteState {
   isLoading: boolean;
   isSaving: boolean;
   error: string | null;
-  
+
   // Actions
   fetchNotes: (userId: string, classId?: string) => Promise<void>;
   fetchNotesByDate: (userId: string, date: string) => Promise<NoteWithUploads[]>;
-  createNote: (noteData: Omit<Note, 'id' | 'created_at' | 'updated_at' | 'is_synthesized'>) => Promise<Note>;
+  createNote: (
+    noteData: Omit<Note, 'id' | 'created_at' | 'updated_at' | 'is_synthesized'>
+  ) => Promise<Note>;
   updateNote: (noteId: string, updates: Partial<Note>) => Promise<void>;
   deleteNote: (noteId: string) => Promise<void>;
   setCurrentNote: (note: NoteWithUploads | null) => void;
-  
+
   // File uploads
-  uploadFile: (noteId: string | null, classId: string, userId: string, sessionDate: string, fileUri: string, fileName: string) => Promise<Upload>;
+  uploadFile: (
+    noteId: string | null,
+    classId: string,
+    userId: string,
+    sessionDate: string,
+    fileUri: string,
+    fileName: string
+  ) => Promise<Upload>;
   deleteUpload: (uploadId: string, filePath: string) => Promise<void>;
 }
 
-export const useNoteStore = create<NoteState>((set, get) => ({
+export const useNoteStore = create<NoteState>((set, _get) => ({
   notes: [],
   currentNote: null,
   isLoading: false,
@@ -33,13 +42,15 @@ export const useNoteStore = create<NoteState>((set, get) => ({
   fetchNotes: async (userId: string, classId?: string) => {
     try {
       set({ isLoading: true, error: null });
-      
+
       let query = supabase
         .from('notes')
-        .select(`
+        .select(
+          `
           *,
           uploads (*)
-        `)
+        `
+        )
         .eq('user_id', userId)
         .order('session_date', { ascending: false });
 
@@ -50,7 +61,7 @@ export const useNoteStore = create<NoteState>((set, get) => ({
       const { data, error } = await query;
 
       if (error) throw error;
-      set({ notes: data as NoteWithUploads[], isLoading: false });
+      set({ notes: data as unknown as NoteWithUploads[], isLoading: false });
     } catch (error) {
       console.error('Fetch notes error:', error);
       set({ isLoading: false, error: 'Failed to load notes. Pull down to retry.' });
@@ -61,15 +72,17 @@ export const useNoteStore = create<NoteState>((set, get) => ({
     try {
       const { data, error } = await supabase
         .from('notes')
-        .select(`
+        .select(
+          `
           *,
           uploads (*)
-        `)
+        `
+        )
         .eq('user_id', userId)
         .eq('session_date', date);
 
       if (error) throw error;
-      return data as NoteWithUploads[];
+      return data as unknown as NoteWithUploads[];
     } catch (error) {
       console.error('Fetch notes by date error:', error);
       return [];
@@ -79,18 +92,14 @@ export const useNoteStore = create<NoteState>((set, get) => ({
   createNote: async (noteData) => {
     try {
       set({ isSaving: true });
-      
-      const { data, error } = await supabase
-        .from('notes')
-        .insert(noteData)
-        .select()
-        .single();
+
+      const { data, error } = await supabase.from('notes').insert(noteData).select().single();
 
       if (error) throw error;
 
       const noteWithUploads: NoteWithUploads = { ...data, uploads: [] };
-      
-      set(state => ({
+
+      set((state) => ({
         notes: [noteWithUploads, ...state.notes],
         currentNote: noteWithUploads,
         isSaving: false,
@@ -106,21 +115,17 @@ export const useNoteStore = create<NoteState>((set, get) => ({
   updateNote: async (noteId: string, updates: Partial<Note>) => {
     try {
       set({ isSaving: true });
-      
-      const { error } = await supabase
-        .from('notes')
-        .update(updates)
-        .eq('id', noteId);
+
+      const { error } = await supabase.from('notes').update(updates).eq('id', noteId);
 
       if (error) throw error;
 
-      set(state => ({
-        notes: state.notes.map(n =>
-          n.id === noteId ? { ...n, ...updates } : n
-        ),
-        currentNote: state.currentNote?.id === noteId
-          ? { ...state.currentNote, ...updates }
-          : state.currentNote,
+      set((state) => ({
+        notes: state.notes.map((n) => (n.id === noteId ? { ...n, ...updates } : n)),
+        currentNote:
+          state.currentNote?.id === noteId
+            ? { ...state.currentNote, ...updates }
+            : state.currentNote,
         isSaving: false,
       }));
     } catch (error) {
@@ -131,15 +136,12 @@ export const useNoteStore = create<NoteState>((set, get) => ({
 
   deleteNote: async (noteId: string) => {
     try {
-      const { error } = await supabase
-        .from('notes')
-        .delete()
-        .eq('id', noteId);
+      const { error } = await supabase.from('notes').delete().eq('id', noteId);
 
       if (error) throw error;
 
-      set(state => ({
-        notes: state.notes.filter(n => n.id !== noteId),
+      set((state) => ({
+        notes: state.notes.filter((n) => n.id !== noteId),
         currentNote: state.currentNote?.id === noteId ? null : state.currentNote,
       }));
     } catch (error) {
@@ -184,7 +186,7 @@ export const useNoteStore = create<NoteState>((set, get) => ({
         md: 'text/markdown',
       };
 
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('uploads')
         .upload(filePath, bytes.buffer, {
           contentType: mimeTypes[fileExt || ''] || 'application/octet-stream',
@@ -212,15 +214,14 @@ export const useNoteStore = create<NoteState>((set, get) => ({
       if (error) throw error;
 
       // Update local state
-      set(state => ({
-        notes: state.notes.map(n =>
-          n.id === noteId
-            ? { ...n, uploads: [...n.uploads, data] }
-            : n
+      set((state) => ({
+        notes: state.notes.map((n) =>
+          n.id === noteId ? { ...n, uploads: [...n.uploads, data] } : n
         ),
-        currentNote: state.currentNote?.id === noteId
-          ? { ...state.currentNote, uploads: [...state.currentNote.uploads, data] }
-          : state.currentNote,
+        currentNote:
+          state.currentNote?.id === noteId
+            ? { ...state.currentNote, uploads: [...state.currentNote.uploads, data] }
+            : state.currentNote,
         isSaving: false,
       }));
 
@@ -234,20 +235,20 @@ export const useNoteStore = create<NoteState>((set, get) => ({
       const autoSynthesize = profile?.auto_synthesize ?? false;
 
       // Always use process-upload; extractOnly flag controls whether synthesis happens
-      supabase.functions.invoke('process-upload', {
-        body: {
-          uploadId: data.id,
-          filePath,
-          fileType: fileExt,
-          classId,
-          userId,
-          sessionDate,
-          extractOnly: !autoSynthesize,
-        },
-      }).then(({ data: result, error: processError }) => {
-        if (processError) console.error('Process upload failed:', processError);
-        else console.log(autoSynthesize ? 'Auto-processed:' : 'Text extracted:', result?.status);
-      }).catch((err) => console.error('Process upload invoke failed:', err));
+      supabase.functions
+        .invoke('process-upload', {
+          body: {
+            uploadId: data.id,
+            fileType: fileExt,
+            classId,
+            sessionDate,
+            extractOnly: !autoSynthesize,
+          },
+        })
+        .then(({ error: processError }) => {
+          if (processError) console.error('Process upload failed:', processError);
+        })
+        .catch((err) => console.error('Process upload invoke failed:', err));
 
       return data;
     } catch (error) {
@@ -262,22 +263,19 @@ export const useNoteStore = create<NoteState>((set, get) => ({
       await supabase.storage.from('uploads').remove([filePath]);
 
       // Delete record
-      const { error } = await supabase
-        .from('uploads')
-        .delete()
-        .eq('id', uploadId);
+      const { error } = await supabase.from('uploads').delete().eq('id', uploadId);
 
       if (error) throw error;
 
-      set(state => ({
-        notes: state.notes.map(n => ({
+      set((state) => ({
+        notes: state.notes.map((n) => ({
           ...n,
-          uploads: n.uploads.filter(u => u.id !== uploadId),
+          uploads: n.uploads.filter((u) => u.id !== uploadId),
         })),
         currentNote: state.currentNote
           ? {
               ...state.currentNote,
-              uploads: state.currentNote.uploads.filter(u => u.id !== uploadId),
+              uploads: state.currentNote.uploads.filter((u) => u.id !== uploadId),
             }
           : null,
       }));
@@ -287,5 +285,3 @@ export const useNoteStore = create<NoteState>((set, get) => ({
     }
   },
 }));
-
-

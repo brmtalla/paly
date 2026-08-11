@@ -1,4 +1,4 @@
-import { Platform, StyleSheet } from 'react-native';
+import { Platform } from 'react-native';
 
 // Spacing scale - generous and consistent
 // Based on 4px base unit for mathematical harmony

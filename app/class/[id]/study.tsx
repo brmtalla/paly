@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { format, formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 import { useTheme } from '../../../src/theme/ThemeContext';
 import { typography } from '../../../src/theme/typography';
 import { SPACING, LAYOUT, RADIUS, SHADOWS } from '../../../src/theme/spacing';
@@ -19,6 +19,7 @@ import { Card, Background } from '../../../src/components/ui';
 import { useClassStore } from '../../../src/stores/classStore';
 import { useStudyStore } from '../../../src/stores/studyStore';
 import { useAuthStore } from '../../../src/stores/authStore';
+import { useSubscriptionStore } from '../../../src/stores/subscriptionStore';
 import { supabase } from '../../../src/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -28,13 +29,13 @@ export default function ClassStudyScreen() {
   const { classes } = useClassStore();
   const {
     synthesizedContent,
-    studyPrompts,
     fetchSynthesizedContent,
     fetchClassPrompts,
     getOverdueQuizzes,
     requestNextChunk,
   } = useStudyStore();
   const { profile } = useAuthStore();
+  const { presentPaywall } = useSubscriptionStore();
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [requestingChunk, setRequestingChunk] = useState(false);
   const [weeklyUsage, setWeeklyUsage] = useState<{ used: number; limit: number } | null>(null);
@@ -61,15 +62,31 @@ export default function ClassStudyScreen() {
   );
   const unreadChunks = todaysChunks.filter((p) => !p.read_at_bottom);
 
+  const offerUpgrade = (message: string) =>
+    Alert.alert('Paly Pro', message, [
+      { text: 'Not now', style: 'cancel' },
+      { text: 'See Pro', onPress: () => presentPaywall() },
+    ]);
+
   const handleSendNow = async (contentId: string) => {
     if (!profile?.id) return;
     setSendingId(contentId);
     try {
       const { data, error } = await supabase.functions.invoke('send-now', {
-        body: { synthesizedContentId: contentId, userId: profile.id },
+        body: { synthesizedContentId: contentId },
       });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+
+      // A 403 arrives as a FunctionsHttpError; the structured body says why.
+      if (error) {
+        const body = await (error as { context?: Response }).context?.json?.().catch(() => null);
+        if (body?.error === 'pro_required') {
+          offerUpgrade(body.message);
+          return;
+        }
+        throw error;
+      }
+      if (data?.error) throw new Error(data.message || data.error);
+
       Alert.alert('Sent!', `${data.sent.type} texted to you.`);
     } catch (err: any) {
       Alert.alert('Failed', err.message || 'Could not send text');
@@ -82,7 +99,7 @@ export default function ClassStudyScreen() {
     if (!profile?.id || !id) return;
     setRequestingChunk(true);
     try {
-      const result = await requestNextChunk(id, profile.id, spendPoints);
+      const result = await requestNextChunk(id, spendPoints);
       if (result?.success) {
         setWeeklyUsage({ used: result.usage.usedThisWeek, limit: result.usage.weeklyLimit });
         Alert.alert(
@@ -91,17 +108,15 @@ export default function ClassStudyScreen() {
         );
       } else if (result?.error === 'weekly_limit_reached') {
         setWeeklyUsage({ used: result.usedThisWeek, limit: result.limit });
-        Alert.alert(
-          'Weekly Limit Reached',
-          result.message,
-          [
-            { text: 'Cancel', style: 'cancel' },
-            {
-              text: `Spend ${result.pointsCost} pts`,
-              onPress: () => handleRequestChunk(true),
-            },
-          ]
-        );
+        Alert.alert('Weekly Limit Reached', result.message, [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: `Spend ${result.pointsCost} pts`,
+            onPress: () => handleRequestChunk(true),
+          },
+        ]);
+      } else if (result?.error === 'pro_required') {
+        offerUpgrade(result.message);
       } else if (result?.error === 'insufficient_points') {
         Alert.alert('Not Enough Points', result.message);
       } else if (result?.error === 'no_chunks_available') {
@@ -285,7 +300,7 @@ export default function ClassStudyScreen() {
                     { color: colors.cardTextSecondary, textAlign: 'center', marginTop: SPACING.sm },
                   ]}
                 >
-                  Upload slides and they'll be automatically synthesized into study texts,
+                  Upload slides and they&apos;ll be automatically synthesized into study texts,
                   flashcards, and quizzes
                 </Text>
               </Card>
@@ -412,12 +427,7 @@ export default function ClassStudyScreen() {
                         : '5 free per week'}
                     </Text>
                   </View>
-                  <View
-                    style={[
-                      styles.textMeButton,
-                      { backgroundColor: '#8B5CF620' },
-                    ]}
-                  >
+                  <View style={[styles.textMeButton, { backgroundColor: '#8B5CF620' }]}>
                     <Ionicons name="paper-plane" size={14} color="#8B5CF6" />
                     <Text style={[typography.labelSmall, { color: '#8B5CF6', marginLeft: 4 }]}>
                       Send

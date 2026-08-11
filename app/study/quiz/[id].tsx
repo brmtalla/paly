@@ -9,6 +9,8 @@ import { SPACING, LAYOUT, RADIUS, SHADOWS } from '../../../src/theme/spacing';
 import { Card, Button, Background } from '../../../src/components/ui';
 import { useStudyStore } from '../../../src/stores/studyStore';
 import { useAuthStore } from '../../../src/stores/authStore';
+import { QUIZ_PASS_THRESHOLD } from '../../../src/lib/constants';
+import { QuizQuestion } from '../../../src/types/database';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function QuizScreen() {
@@ -27,7 +29,7 @@ export default function QuizScreen() {
   const quizStarted = useRef(false);
 
   const content = synthesizedContent.find((c) => c.id === id);
-  const questions = (content?.quiz_questions || []) as any[];
+  const questions = (content?.quiz_questions || []) as unknown as QuizQuestion[];
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
@@ -66,11 +68,15 @@ export default function QuizScreen() {
     } else {
       const finalScore = score + (selectedAnswer === questions[currentIndex].correct_index ? 1 : 0);
       const pct = finalScore / questions.length;
-      if (pct >= 0.8 && profile?.id && !pointsAwarded.current) {
+
+      // Points are claimed only after the attempt is persisted as complete —
+      // the server verifies the stored score before paying out.
+      const attemptId = await completeQuiz();
+      if (pct >= QUIZ_PASS_THRESHOLD && attemptId && !pointsAwarded.current) {
         pointsAwarded.current = true;
-        awardPoints(profile.id, 10, 'quiz_pass');
+        await awardPoints('quiz_pass', attemptId);
       }
-      await completeQuiz();
+
       if (profile?.id) {
         fetchSynthesizedContent(profile.id);
       }

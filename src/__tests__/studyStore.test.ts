@@ -101,8 +101,8 @@ describe('studyStore', () => {
             completed_at: null,
           },
           questions: [
-            { id: '1', question: 'Test?', options: ['A', 'B'], correct_answer: 0 },
-            { id: '2', question: 'Test2?', options: ['A', 'B'], correct_answer: 1 },
+            { id: '1', question: 'Test?', options: ['A', 'B'], correct_index: 0 },
+            { id: '2', question: 'Test2?', options: ['A', 'B'], correct_index: 1 },
           ],
           currentIndex: 0,
         },
@@ -129,8 +129,8 @@ describe('studyStore', () => {
             completed_at: null,
           },
           questions: [
-            { id: '1', question: 'Test?', options: ['A', 'B'], correct_answer: 0 },
-            { id: '2', question: 'Test2?', options: ['A', 'B'], correct_answer: 1 },
+            { id: '1', question: 'Test?', options: ['A', 'B'], correct_index: 0 },
+            { id: '2', question: 'Test2?', options: ['A', 'B'], correct_index: 1 },
           ],
           currentIndex: 1,
         },

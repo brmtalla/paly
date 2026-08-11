@@ -22,6 +22,7 @@ import { useClassStore } from '../../src/stores/classStore';
 import { useNoteStore } from '../../src/stores/noteStore';
 import { useStudyStore } from '../../src/stores/studyStore';
 import { useAuthStore } from '../../src/stores/authStore';
+import { useSubscriptionStore } from '../../src/stores/subscriptionStore';
 import { supabase } from '../../src/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -33,14 +34,14 @@ export default function ClassDetailScreen() {
   const {
     synthesizedContent,
     fetchSynthesizedContent,
-    isSynthesizing,
     getOverdueQuizzes,
     getNextQuizDeadline,
     requestNextChunk,
   } = useStudyStore();
   const { profile } = useAuthStore();
+  const { presentPaywall } = useSubscriptionStore();
   const [isUploading, setIsUploading] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [_isProcessing, _setIsProcessing] = useState(false);
   const [synthesizingUploadId, setSynthesizingUploadId] = useState<string | null>(null);
   const [requestingChunk, setRequestingChunk] = useState(false);
   const [classUploadsData, setClassUploadsData] = useState<any[]>([]);
@@ -48,8 +49,6 @@ export default function ClassDetailScreen() {
   const overdueQuizzes = id ? getOverdueQuizzes(id) : [];
   const nextQuizDeadline = id ? getNextQuizDeadline(id) : null;
   const streak = profile?.streak_count ?? 0;
-
-  
 
   const classData = classes.find((c) => c.id === id);
   const classNotes = notes.filter((n) => n.class_id === id);
@@ -120,10 +119,7 @@ export default function ClassDetailScreen() {
       const { data, error } = await supabase.functions.invoke('process-upload', {
         body: {
           uploadId: upload.id,
-          filePath: '',
-          fileType: '',
           classId: id,
-          userId: profile.id,
           sessionDate,
           skipExtraction: true,
           singleUploadId: upload.id,
@@ -157,24 +153,25 @@ export default function ClassDetailScreen() {
     if (!profile?.id || !id) return;
     setRequestingChunk(true);
     try {
-      const result = await requestNextChunk(id, profile.id, spendPoints);
+      const result = await requestNextChunk(id, spendPoints);
       if (result?.success) {
         Alert.alert(
           'Chunk Sent!',
           `Day ${result.chunk.dayIndex} ${result.chunk.type} for ${result.chunk.className} texted to you.`
         );
       } else if (result?.error === 'weekly_limit_reached') {
-        Alert.alert(
-          'Weekly Limit Reached',
-          result.message,
-          [
-            { text: 'Cancel', style: 'cancel' },
-            {
-              text: `Spend ${result.pointsCost} pts`,
-              onPress: () => handleRequestChunk(true),
-            },
-          ]
-        );
+        Alert.alert('Weekly Limit Reached', result.message, [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: `Spend ${result.pointsCost} pts`,
+            onPress: () => handleRequestChunk(true),
+          },
+        ]);
+      } else if (result?.error === 'pro_required') {
+        Alert.alert('Paly Pro', result.message, [
+          { text: 'Not now', style: 'cancel' },
+          { text: 'See Pro', onPress: () => presentPaywall() },
+        ]);
       } else if (result?.error === 'insufficient_points') {
         Alert.alert('Not Enough Points', result.message);
       } else if (result?.error === 'no_chunks_available') {
@@ -561,7 +558,12 @@ export default function ClassDetailScreen() {
                           {upload.file_name}
                         </Text>
                         <View
-                          style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 }}
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: 8,
+                            marginTop: 2,
+                          }}
                         >
                           <Text style={[typography.labelSmall, { color: colors.cardTextMuted }]}>
                             {format(new Date(upload.created_at), 'MMM d')}
@@ -582,7 +584,11 @@ export default function ClassDetailScreen() {
                             </View>
                           ) : (
                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                              <Ionicons name="time-outline" size={12} color={colors.cardTextMuted} />
+                              <Ionicons
+                                name="time-outline"
+                                size={12}
+                                color={colors.cardTextMuted}
+                              />
                               <Text
                                 style={[
                                   typography.labelSmall,
@@ -600,7 +606,12 @@ export default function ClassDetailScreen() {
                       {isSynthesized ? (
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                           <Ionicons name="sparkles" size={14} color={colors.success || '#34C759'} />
-                          <Text style={[typography.labelSmall, { color: colors.success || '#34C759', marginLeft: 3 }]}>
+                          <Text
+                            style={[
+                              typography.labelSmall,
+                              { color: colors.success || '#34C759', marginLeft: 3 },
+                            ]}
+                          >
                             Synthesized
                           </Text>
                         </View>
@@ -622,7 +633,9 @@ export default function ClassDetailScreen() {
                           ) : (
                             <>
                               <Ionicons name="sparkles-outline" size={14} color="#fff" />
-                              <Text style={[typography.labelSmall, { color: '#fff', marginLeft: 3 }]}>
+                              <Text
+                                style={[typography.labelSmall, { color: '#fff', marginLeft: 3 }]}
+                              >
                                 Synthesize
                               </Text>
                             </>
@@ -672,7 +685,7 @@ export default function ClassDetailScreen() {
                 </Text>
               </Card>
             ) : (
-              classNotes.map((note, index) => (
+              classNotes.map((note, _index) => (
                 <TouchableOpacity key={note.id} onPress={() => router.push(`/notes/${note.id}`)}>
                   <Card style={styles.noteCard}>
                     <View style={styles.noteHeader}>

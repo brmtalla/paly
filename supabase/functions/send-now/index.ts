@@ -1,26 +1,46 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { corsHeaders } from '../_shared/cors.ts';
+import { requireUserId, unauthorizedResponse } from '../_shared/auth.ts';
 import { supabaseAdmin } from '../_shared/supabase.ts';
-import { sendSms } from '../_shared/twilio.ts';
+import { sendSmsToProfile } from '../_shared/sms.ts';
+import { isPro } from '../_shared/entitlement.ts';
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
+  let userId: string;
   try {
-    const { synthesizedContentId, userId } = await req.json();
+    userId = await requireUserId(req);
+  } catch (error) {
+    return unauthorizedResponse(error);
+  }
 
-    if (!synthesizedContentId || !userId) {
-      return new Response(JSON.stringify({ error: 'Missing synthesizedContentId or userId' }), {
+  try {
+    const { synthesizedContentId } = await req.json();
+
+    if (!synthesizedContentId) {
+      return new Response(JSON.stringify({ error: 'Missing synthesizedContentId' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
+    // Texting study content on demand is a Paly Pro feature.
+    if (!(await isPro(userId))) {
+      return new Response(
+        JSON.stringify({
+          error: 'pro_required',
+          message: 'Texting your study content is a Paly Pro feature. Upgrade to send it to your phone.',
+        }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { data: profile } = await supabaseAdmin
       .from('profiles')
-      .select('phone_number, assistant_name')
+      .select('phone_number, sms_opted_in, assistant_name')
       .eq('id', userId)
       .single();
 
@@ -35,6 +55,7 @@ serve(async (req) => {
       .from('synthesized_content')
       .select('*, classes:class_id (name)')
       .eq('id', synthesizedContentId)
+      .eq('user_id', userId)
       .single();
 
     if (contentError || !content) {
@@ -86,7 +107,7 @@ serve(async (req) => {
 
     const smsBody = `${assistantName} here! 🧠\n\n[${pick.type}]\n${className} — ${content.session_date}\n\n${pick.text}`;
 
-    const result = await sendSms(profile.phone_number, smsBody);
+    const result = await sendSmsToProfile(profile, smsBody);
 
     if (!result.success) {
       return new Response(JSON.stringify({ error: result.error || 'SMS send failed' }), {

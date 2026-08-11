@@ -26,7 +26,7 @@ describe('classStore', () => {
   });
 
   describe('getTodaysClasses', () => {
-    it('returns classes that have a session on today\'s day of week', () => {
+    it("returns classes that have a session on today's day of week", () => {
       const today = new Date().getDay();
       useClassStore.setState({
         classes: [

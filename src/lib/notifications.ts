@@ -7,7 +7,8 @@ import { supabase } from './supabase';
 // Configure notification behavior
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
   }),
@@ -49,7 +50,7 @@ export async function registerForPushNotificationsAsync(userId: string): Promise
     }
 
     if (finalStatus !== 'granted') {
-      console.log('Failed to get push token for push notification!');
+      console.warn('Push permission denied — no push token will be registered.');
       return null;
     }
 
@@ -77,7 +78,7 @@ export async function registerForPushNotificationsAsync(userId: string): Promise
       console.warn('Error getting push token:', error);
     }
   } else {
-    console.log('Must use physical device for Push Notifications');
+    console.warn('Push notifications require a physical device.');
   }
 
   return token;

@@ -14,17 +14,24 @@
 
 Environment variables are injected via `eas.json` build profiles and read in `app.config.ts`.
 
-| Variable | Description |
-|---|---|
-| `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous/public key |
+| Variable | Description | Where it lives |
+|---|---|---|
+| `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL | `eas.json` build profiles |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous/public key | `eas.json` build profiles |
+| `EXPO_PUBLIC_REVENUECAT_IOS_KEY` | RevenueCat public SDK key, `appl_…` | **EAS env vars — not committed** |
+| `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY` | RevenueCat public SDK key, `goog_…` | **EAS env vars — not committed** |
 
-For **production**, update the values in `eas.json` under `build.production.env` or use EAS Secrets:
+The Supabase values are the public anon key and are safe in git. The RevenueCat
+keys are deliberately *not* in `eas.json` — set them once per environment:
 
 ```bash
-eas secret:create --name EXPO_PUBLIC_SUPABASE_URL --value "https://your-prod.supabase.co" --scope project
-eas secret:create --name EXPO_PUBLIC_SUPABASE_ANON_KEY --value "your-prod-anon-key" --scope project
+eas env:create --name EXPO_PUBLIC_REVENUECAT_IOS_KEY --value "appl_..." --environment production --visibility plaintext
 ```
+
+`app.config.ts` fails the build if the key for the platform being built is
+missing. That is intentional: a binary without it renders an empty paywall that
+can never complete a purchase, which Apple rejects. A local `expo start` still
+runs fine without them — the store simply reports subscriptions as unavailable.
 
 ### Supabase Edge Functions
 
@@ -32,10 +39,97 @@ Set via Supabase Dashboard > Project Settings > Edge Functions > Secrets, or via
 
 ```bash
 supabase secrets set OPENAI_API_KEY=sk-...
-supabase secrets set TWILIO_ACCOUNT_SID=AC...
-supabase secrets set TWILIO_AUTH_TOKEN=...
-supabase secrets set TWILIO_PHONE_NUMBER=+1...
+supabase secrets set REVENUECAT_SECRET_KEY=sk_...
+supabase secrets set REVENUECAT_WEBHOOK_SECRET="$(openssl rand -hex 32)"
+supabase secrets set SENDBLUE_API_KEY=...
+supabase secrets set SENDBLUE_API_SECRET=...
+supabase secrets set SENDBLUE_PHONE_NUMBER=+1...
+supabase secrets set SENDBLUE_INBOUND_SECRET="$(openssl rand -base64 32 | tr -d '=+/')"
 ```
+
+`SENDBLUE_PHONE_NUMBER` must match `PALY_SMS_NUMBER` in `src/lib/constants.ts`,
+or the opt-in text goes to a number whose inbound webhook we do not control.
+
+## Tiers
+
+| | Free | Paly Pro |
+|---|---|---|
+| Daily study chunks in-app | ✅ | ✅ |
+| Push notification per chunk | ✅ | ✅ |
+| Quizzes (required to keep delivery) | ✅ | ✅ |
+| SMS / iMessage delivery | — | ✅ |
+| Flashcards | — | ✅ |
+| Chunks on demand (`request-chunk`) | — | ✅ |
+| Classes | 2 | Unlimited |
+
+Entitlement lives in `profiles.is_premium` / `profiles.premium_until`, written **only**
+by `revenuecat-webhook` and `grant-free-month`. A database trigger blocks clients from
+writing those columns, so edge functions must check them rather than trusting the app.
+
+## Free Trial (7 days)
+
+The trial is a **store-native introductory offer**, so Apple/Google collect the
+payment method up front and convert automatically unless the user cancels. No
+custom entitlement code is involved — the trial arrives through the same webhook
+as a normal purchase.
+
+Configure once per store, then RevenueCat surfaces it automatically:
+
+1. **App Store Connect** → your subscription → *Introductory Offers* → Free
+   trial, 1 week, all territories.
+2. **Play Console** → subscription → *Base plan* → add a **Free trial** offer of
+   7 days.
+3. **RevenueCat** → confirm the offer appears on the product, and that the
+   paywall shows the trial copy.
+
+Keep `TRIAL_DAYS` in `src/lib/constants.ts` in step with the store config — it
+drives the in-app copy only, never entitlement.
+
+**Conversion nudge.** `deliver-prompts` calls `nudgeExpiringTrials()` on every
+run. Within 24h of a trial lapsing, the user gets one SMS (falling back to push)
+telling them the texts are about to stop. `profiles.trial_nudge_sent_at` makes it
+fire exactly once per trial.
+
+`profiles.trial_used_at` is a permanent marker, so the app never offers a second
+free trial. Like all entitlement columns, it is writable only by the service role.
+
+## RevenueCat Webhook (required for Pro to work)
+
+Without this, purchases never reach the backend and Pro features stay locked.
+
+1. Deploy: `supabase functions deploy revenuecat-webhook --no-verify-jwt`
+2. RevenueCat Dashboard → Project → Integrations → **Webhooks** → Add:
+   - **URL:** `https://<project-ref>.supabase.co/functions/v1/revenuecat-webhook`
+   - **Authorization header:** the exact `REVENUECAT_WEBHOOK_SECRET` value set above
+3. Send a test event and confirm `profiles.is_premium` flips for that user.
+
+## Prompt Delivery Scheduler (required for the daily drip)
+
+`deliver-prompts` is a polling endpoint — it delivers every prompt whose
+`scheduled_for` has passed and that is not yet delivered.
+
+In production this is driven **inside the database** by `pg_cron` + `pg_net`:
+
+| Job | Schedule | Calls |
+|---|---|---|
+| `deliver-study-prompts` | `*/5 * * * *` | `POST /functions/v1/deliver-prompts` |
+
+```sql
+-- Is the drip running?
+select jobid, jobname, schedule, active from cron.job;
+
+-- Did recent runs succeed?
+select status, start_time, end_time
+from cron.job_run_details
+order by start_time desc
+limit 20;
+```
+
+See `supabase/migrations/20260227154707_setup_deliver_prompts_cron.sql` for the
+job definition and how to (re)create it.
+
+> ⚠️ Run exactly **one** scheduler. Adding an external cron on top of the
+> pg_cron job double-sends texts and push notifications to students.
 
 ## Push Notifications
 
@@ -60,11 +154,53 @@ eas build --profile preview --platform ios
 eas build --profile preview --platform android
 ```
 
-## SMS (Twilio)
+## SMS / iMessage (SendBlue)
 
-- Ensure your Twilio phone number is configured for production messaging
-- For US numbers: register your A2P 10DLC brand and campaign in Twilio Console
-- Review messaging compliance requirements for your target regions
+### Account linking (required before anyone can receive a text)
+
+`profiles.phone_number` is written **only** by the `sendblue-inbound` webhook.
+Nothing in the app can set it — a client-writable phone number would let any
+signed-in user point Paly's texts at a stranger's handset.
+
+How a student links their number:
+
+1. Onboarding shows their `profiles.sms_link_code` (a 6-character code, assigned
+   by a database trigger on profile creation) and opens Messages with
+   `Link my Paly account: ABC234` pre-filled.
+2. They send it. `sendblue-inbound` resolves the code back to their account,
+   stores the sending number as `phone_number`, and sets `sms_opted_in`.
+3. The app re-reads the profile when it returns to the foreground and confirms.
+
+Texting from the handset is itself proof of ownership, so there is no separate
+verification code step.
+
+> A bare "Hi" cannot work: an inbound message carries a phone number but nothing
+> that identifies the account. The code is what makes the link unambiguous.
+
+### Inbound webhook setup
+
+1. Deploy: `supabase functions deploy sendblue-inbound --no-verify-jwt`
+2. SendBlue Dashboard → Settings → **Webhooks** → Inbound:
+   - **URL:** `https://<project-ref>.supabase.co/functions/v1/sendblue-inbound?token=<SENDBLUE_INBOUND_SECRET>`
+
+SendBlue does not sign its webhooks, so the shared token in the query string is
+the only thing standing between the endpoint and forged inbound messages —
+**treat that URL as a credential.** The function returns 503 until the secret is
+set and 401 on a mismatch; it never processes an unauthenticated payload.
+
+### Compliance
+
+- Complete SendBlue's A2P 10DLC brand and campaign registration for US numbers.
+  Carrier approval takes days to weeks — **start it before you need it.**
+- STOP / STOPALL / UNSUBSCRIBE / CANCEL / END / QUIT are handled by
+  `sendblue-inbound`, which clears `sms_opted_in` on both `profiles` and
+  `landing_subscribers`. START / UNSTOP / RESUME re-subscribe. HELP replies with
+  a description and opt-out instructions.
+- Every outbound path goes through `sendSmsToProfile()`, which refuses to send
+  unless `sms_opted_in` is true. Use it rather than `sendSms()` for anything
+  addressed to a user — `sendSms()` takes a bare number and cannot check consent.
+- The onboarding screen carries the required "Msg & data rates may apply. Reply
+  STOP at any time to opt out." disclosure.
 
 ## Building for Release
 
@@ -98,15 +234,34 @@ eas submit --platform android
 
 ### Deploy Edge Functions
 
+`--no-verify-jwt` is **not** optional where shown: those functions are called by
+pg_cron or by third parties that cannot present a Supabase JWT. Each one
+authenticates itself instead — `requireUserId()` for user-facing calls, a shared
+secret for the two webhooks. Redeploying one without its flag silently breaks it.
+
 ```bash
-supabase functions deploy process-upload
-supabase functions deploy synthesize-content
-supabase functions deploy schedule-prompts
-supabase functions deploy deliver-prompts
-supabase functions deploy delete-account
+# Authenticate the caller from their own JWT
+supabase functions deploy delete-account      # required for App Store account deletion
 supabase functions deploy extract-text
-supabase functions deploy send-now
+supabase functions deploy grant-free-month
+
+# Verify the JWT in-function via requireUserId()
+supabase functions deploy process-upload --no-verify-jwt
+supabase functions deploy synthesize-content --no-verify-jwt
+supabase functions deploy schedule-prompts --no-verify-jwt
+supabase functions deploy send-now --no-verify-jwt
+supabase functions deploy request-chunk --no-verify-jwt
+
+# Invoked by pg_cron, no user context
+supabase functions deploy deliver-prompts --no-verify-jwt
+
+# Third-party webhooks, authenticated by shared secret
+supabase functions deploy revenuecat-webhook --no-verify-jwt
+supabase functions deploy sendblue-inbound --no-verify-jwt
 ```
+
+Push notifications are the free tier's delivery channel, so **APNs/FCM credentials
+must be configured** (see Push Notifications below) or free users receive nothing.
 
 ### Run Migrations
 
@@ -119,4 +274,4 @@ supabase db push
 - **App errors**: Consider integrating Sentry (`@sentry/react-native`) for crash reporting
 - **Supabase**: Monitor via Supabase Dashboard > Logs
 - **Edge Functions**: Check logs via `supabase functions logs <function-name>`
-- **Twilio**: Monitor delivery status in Twilio Console > Messaging > Logs
+- **SendBlue**: Monitor delivery status in the SendBlue dashboard > Messages

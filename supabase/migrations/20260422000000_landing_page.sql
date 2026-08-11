@@ -20,5 +20,8 @@ create table if not exists landing_demo_requests (
 create index if not exists idx_landing_demo_phone_date
   on landing_demo_requests(phone_number, created_at);
 
--- No RLS needed — these tables are only accessed by the service role
--- from edge functions, never from the client directly.
+-- NOTE: these tables were originally created without RLS on the mistaken
+-- assumption that only the service role reaches them. PostgREST exposes every
+-- public table to anon, so they were readable with the landing page's anon key.
+-- Fixed in 20260722010000_secure_landing_tables_and_functions.sql — do not
+-- create new public tables without RLS.

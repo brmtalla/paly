@@ -31,12 +31,7 @@ export function ErrorState({
           {message}
         </Text>
         {onRetry && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onPress={onRetry}
-            style={{ marginTop: SPACING.lg }}
-          >
+          <Button variant="ghost" size="sm" onPress={onRetry} style={{ marginTop: SPACING.lg }}>
             Try Again
           </Button>
         )}

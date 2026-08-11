@@ -1,7 +1,8 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { corsHeaders } from '../_shared/cors.ts';
+import { requireUserId, unauthorizedResponse } from '../_shared/auth.ts';
 import { supabaseAdmin } from '../_shared/supabase.ts';
-import { sendSms } from '../_shared/twilio.ts';
+import { sendSmsToProfile } from '../_shared/sms.ts';
 
 serve(async (req) => {
   // Handle CORS preflight
@@ -9,13 +10,35 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders });
   }
 
+  let userId: string;
   try {
-    const { userId, classId, className, synthesizedContentId, dailyChunks, startDate } =
-      await req.json();
+    userId = await requireUserId(req);
+  } catch (error) {
+    return unauthorizedResponse(error);
+  }
 
-    if (!userId || !classId || !synthesizedContentId || !dailyChunks) {
+  try {
+    const { classId, className, synthesizedContentId, dailyChunks, startDate } = await req.json();
+
+    if (!classId || !synthesizedContentId || !dailyChunks) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {
         status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // The synthesized content (and therefore the class) must belong to the caller.
+    const { data: ownedContent } = await supabaseAdmin
+      .from('synthesized_content')
+      .select('id')
+      .eq('id', synthesizedContentId)
+      .eq('class_id', classId)
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (!ownedContent) {
+      return new Response(JSON.stringify({ error: 'Synthesized content not found' }), {
+        status: 404,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -112,7 +135,7 @@ serve(async (req) => {
     if (immediatePrompts.length > 0) {
       const { data: profile } = await supabaseAdmin
         .from('profiles')
-        .select('phone_number, assistant_name')
+        .select('phone_number, sms_opted_in, assistant_name')
         .eq('id', userId)
         .single();
 
@@ -129,7 +152,7 @@ serve(async (req) => {
           const typeLabel = typeLabels[prompt.prompt_type] || 'Study Prompt';
           const smsBody = `${assistantName} here! 📚\n\n[${typeLabel} - Day ${prompt.day_index}]\n${className}\n\n${prompt.content}`;
 
-          const result = await sendSms(profile.phone_number, smsBody);
+          const result = await sendSmsToProfile(profile, smsBody);
           if (result.success) {
             await supabaseAdmin
               .from('study_prompts')

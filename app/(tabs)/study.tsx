@@ -1,12 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  RefreshControl,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
@@ -14,7 +7,7 @@ import { format, parseISO } from 'date-fns';
 import { useTheme } from '../../src/theme/ThemeContext';
 import { typography } from '../../src/theme/typography';
 import { SPACING, LAYOUT, RADIUS, SHADOWS } from '../../src/theme/spacing';
-import { Card, Button, Background, ErrorState } from '../../src/components/ui';
+import { Card, Background, ErrorState } from '../../src/components/ui';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useStudyStore } from '../../src/stores/studyStore';
 import { useClassStore } from '../../src/stores/classStore';
@@ -23,7 +16,13 @@ import { Ionicons } from '@expo/vector-icons';
 export default function StudyScreen() {
   const { colors, colorScheme } = useTheme();
   const { profile } = useAuthStore();
-  const { synthesizedContent, studyPrompts, fetchSynthesizedContent, fetchStudyPrompts, error: studyError } = useStudyStore();
+  const {
+    synthesizedContent,
+    studyPrompts,
+    fetchSynthesizedContent,
+    fetchStudyPrompts,
+    error: studyError,
+  } = useStudyStore();
   const { classes, fetchClasses } = useClassStore();
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<'prompts' | 'flashcards' | 'quizzes'>('prompts');
@@ -40,20 +39,17 @@ export default function StudyScreen() {
   const onRefresh = async () => {
     setRefreshing(true);
     if (profile?.id) {
-      await Promise.all([
-        fetchSynthesizedContent(profile.id),
-        fetchStudyPrompts(profile.id),
-      ]);
+      await Promise.all([fetchSynthesizedContent(profile.id), fetchStudyPrompts(profile.id)]);
     }
     setRefreshing(false);
   };
 
   const getClassName = (classId: string) => {
-    return classes.find(c => c.id === classId)?.name || 'Unknown Class';
+    return classes.find((c) => c.id === classId)?.name || 'Unknown Class';
   };
 
-  const unreadPrompts = studyPrompts.filter(p => !p.read_at);
-  const readPrompts = studyPrompts.filter(p => p.read_at);
+  const unreadPrompts = studyPrompts.filter((p) => !p.read_at);
+  const readPrompts = studyPrompts.filter((p) => p.read_at);
 
   return (
     <Background>
@@ -63,9 +59,7 @@ export default function StudyScreen() {
           entering={FadeInDown.delay(100).duration(600).springify()}
           style={styles.header}
         >
-          <Text style={[typography.displaySmall, { color: colors.text }]}>
-            Study
-          </Text>
+          <Text style={[typography.displaySmall, { color: colors.text }]}>Study</Text>
         </Animated.View>
 
         {/* Tab selector */}
@@ -73,7 +67,7 @@ export default function StudyScreen() {
           entering={FadeInUp.delay(200).duration(600).springify()}
           style={[styles.tabContainer, { backgroundColor: colors.whiteAlpha }]}
         >
-          {(['prompts', 'flashcards', 'quizzes'] as const).map(tab => (
+          {(['prompts', 'flashcards', 'quizzes'] as const).map((tab) => (
             <TouchableOpacity
               key={tab}
               onPress={() => setActiveTab(tab)}
@@ -98,16 +92,14 @@ export default function StudyScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl 
-              refreshing={refreshing} 
+            <RefreshControl
+              refreshing={refreshing}
               onRefresh={onRefresh}
               tintColor={colors.white}
             />
           }
         >
-          {studyError && (
-            <ErrorState message={studyError} onRetry={onRefresh} />
-          )}
+          {studyError && <ErrorState message={studyError} onRetry={onRefresh} />}
 
           {!studyError && activeTab === 'prompts' && (
             <>
@@ -147,8 +139,8 @@ export default function StudyScreen() {
                               prompt.prompt_type === 'quiz'
                                 ? 'help-circle'
                                 : prompt.prompt_type === 'flashcard'
-                                ? 'card'
-                                : 'bulb'
+                                  ? 'card'
+                                  : 'bulb'
                             }
                             size={18}
                             color={colorScheme === 'dark' ? colors.white : colors.background}
@@ -159,7 +151,8 @@ export default function StudyScreen() {
                             {getClassName(prompt.class_id)}
                           </Text>
                           <Text style={[typography.titleSmall, { color: colors.cardText }]}>
-                            {prompt.prompt_type.charAt(0).toUpperCase() + prompt.prompt_type.slice(1)}
+                            {prompt.prompt_type.charAt(0).toUpperCase() +
+                              prompt.prompt_type.slice(1)}
                           </Text>
                         </View>
                         <Ionicons
@@ -169,7 +162,10 @@ export default function StudyScreen() {
                         />
                       </View>
                       <Text
-                        style={[typography.bodyMedium, { color: colors.cardTextSecondary, marginTop: SPACING.sm }]}
+                        style={[
+                          typography.bodyMedium,
+                          { color: colors.cardTextSecondary, marginTop: SPACING.sm },
+                        ]}
                         numberOfLines={2}
                       >
                         {prompt.content}
@@ -193,7 +189,7 @@ export default function StudyScreen() {
                   >
                     COMPLETED ({readPrompts.length})
                   </Text>
-                  {(showAllCompleted ? readPrompts : readPrompts.slice(0, 5)).map(prompt => (
+                  {(showAllCompleted ? readPrompts : readPrompts.slice(0, 5)).map((prompt) => (
                     <Card
                       key={prompt.id}
                       variant="default"
@@ -239,27 +235,41 @@ export default function StudyScreen() {
                 <Animated.View entering={FadeInUp.delay(300).duration(600).springify()}>
                   <Card variant="default" padding="xl">
                     <View style={styles.emptyState}>
-                        <View
-                          style={[
-                            styles.emptyIcon,
-                            {
-                              backgroundColor:
-                                colorScheme === 'dark' ? colors.whiteAlpha : colors.background + '15',
-                            },
-                          ]}
-                        >
-                        <Ionicons name="sparkles-outline" size={40} color={colorScheme === 'dark' ? colors.white : colors.background} />
+                      <View
+                        style={[
+                          styles.emptyIcon,
+                          {
+                            backgroundColor:
+                              colorScheme === 'dark' ? colors.whiteAlpha : colors.background + '15',
+                          },
+                        ]}
+                      >
+                        <Ionicons
+                          name="sparkles-outline"
+                          size={40}
+                          color={colorScheme === 'dark' ? colors.white : colors.background}
+                        />
                       </View>
-                      <Text style={[typography.titleMedium, { color: colors.cardText, marginTop: SPACING.lg }]}>
+                      <Text
+                        style={[
+                          typography.titleMedium,
+                          { color: colors.cardText, marginTop: SPACING.lg },
+                        ]}
+                      >
                         No study prompts yet
                       </Text>
                       <Text
                         style={[
                           typography.bodyMedium,
-                          { color: colors.cardTextSecondary, textAlign: 'center', marginTop: SPACING.sm },
+                          {
+                            color: colors.cardTextSecondary,
+                            textAlign: 'center',
+                            marginTop: SPACING.sm,
+                          },
                         ]}
                       >
-                        Take notes during your classes and we'll generate personalized study prompts for you
+                        Take notes during your classes and we&apos;ll generate personalized study
+                        prompts for you
                       </Text>
                     </View>
                   </Card>
@@ -271,16 +281,21 @@ export default function StudyScreen() {
           {!studyError && activeTab === 'flashcards' && (
             <Animated.View entering={FadeInUp.delay(300).duration(600).springify()}>
               {synthesizedContent.length > 0 ? (
-                synthesizedContent.map(content => {
+                synthesizedContent.map((content) => {
                   const flashcards = content.flashcards as any[];
                   if (!flashcards || flashcards.length === 0) return null;
 
                   const created = new Date(content.session_date + 'T00:00:00');
                   const now = new Date();
                   now.setHours(0, 0, 0, 0);
-                  const studyDay = Math.max(1, Math.floor((now.getTime() - created.getTime()) / 86400000) + 1);
-                  const unlockedCount = flashcards.filter((c: any) => !c.day || c.day <= studyDay).length;
-                  
+                  const studyDay = Math.max(
+                    1,
+                    Math.floor((now.getTime() - created.getTime()) / 86400000) + 1
+                  );
+                  const unlockedCount = flashcards.filter(
+                    (c: any) => !c.day || c.day <= studyDay
+                  ).length;
+
                   return (
                     <Card
                       key={content.id}
@@ -332,9 +347,7 @@ export default function StudyScreen() {
                         styles.emptyIcon,
                         {
                           backgroundColor:
-                            colorScheme === 'dark'
-                              ? colors.whiteAlpha
-                              : colors.background + '15',
+                            colorScheme === 'dark' ? colors.whiteAlpha : colors.background + '15',
                         },
                       ]}
                     >
@@ -344,13 +357,22 @@ export default function StudyScreen() {
                         color={colorScheme === 'dark' ? colors.white : colors.background}
                       />
                     </View>
-                    <Text style={[typography.titleMedium, { color: colors.cardText, marginTop: SPACING.lg }]}>
+                    <Text
+                      style={[
+                        typography.titleMedium,
+                        { color: colors.cardText, marginTop: SPACING.lg },
+                      ]}
+                    >
                       No flashcards yet
                     </Text>
                     <Text
                       style={[
                         typography.bodyMedium,
-                        { color: colors.cardTextSecondary, textAlign: 'center', marginTop: SPACING.sm },
+                        {
+                          color: colors.cardTextSecondary,
+                          textAlign: 'center',
+                          marginTop: SPACING.sm,
+                        },
                       ]}
                     >
                       Flashcards are generated when you synthesize your notes
@@ -364,10 +386,10 @@ export default function StudyScreen() {
           {!studyError && activeTab === 'quizzes' && (
             <Animated.View entering={FadeInUp.delay(300).duration(600).springify()}>
               {synthesizedContent.length > 0 ? (
-                synthesizedContent.map(content => {
+                synthesizedContent.map((content) => {
                   const questions = content.quiz_questions as any[];
                   if (!questions || questions.length === 0) return null;
-                  
+
                   return (
                     <Card
                       key={content.id}
@@ -419,9 +441,7 @@ export default function StudyScreen() {
                         styles.emptyIcon,
                         {
                           backgroundColor:
-                            colorScheme === 'dark'
-                              ? colors.whiteAlpha
-                              : colors.background + '15',
+                            colorScheme === 'dark' ? colors.whiteAlpha : colors.background + '15',
                         },
                       ]}
                     >
@@ -431,13 +451,22 @@ export default function StudyScreen() {
                         color={colorScheme === 'dark' ? colors.white : colors.background}
                       />
                     </View>
-                    <Text style={[typography.titleMedium, { color: colors.cardText, marginTop: SPACING.lg }]}>
+                    <Text
+                      style={[
+                        typography.titleMedium,
+                        { color: colors.cardText, marginTop: SPACING.lg },
+                      ]}
+                    >
                       No quizzes yet
                     </Text>
                     <Text
                       style={[
                         typography.bodyMedium,
-                        { color: colors.cardTextSecondary, textAlign: 'center', marginTop: SPACING.sm },
+                        {
+                          color: colors.cardTextSecondary,
+                          textAlign: 'center',
+                          marginTop: SPACING.sm,
+                        },
                       ]}
                     >
                       Quiz questions are generated when you synthesize your notes

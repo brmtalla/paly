@@ -21,14 +21,38 @@ import {
   FREE_CLASS_LIMIT,
   PALY_POINTS_FREE_MONTH_THRESHOLD,
 } from '../../src/stores/subscriptionStore';
+import { TRIAL_DAYS } from '../../src/lib/constants';
+import { getTrialStatus, trialLabel } from '../../src/lib/trial';
 import { Ionicons } from '@expo/vector-icons';
 
+// Free tier: daily study chunks in-app, push notifications, and quizzes.
+// Pro adds the things below — texting is the headline.
 const PRO_FEATURES = [
-  { icon: 'infinite', title: 'Unlimited Classes', description: `Free plan is limited to ${FREE_CLASS_LIMIT} classes` },
-  { icon: 'chatbubbles', title: 'SMS Study Prompts', description: 'Receive daily study content via text' },
-  { icon: 'sparkles', title: 'AI Synthesis', description: 'Deep AI-powered notes from every lecture' },
-  { icon: 'card', title: 'Flashcards & Quizzes', description: 'Full access to all study tools' },
-  { icon: 'trophy', title: 'Paly Points', description: `Earn ${PALY_POINTS_FREE_MONTH_THRESHOLD} pts = 1 free month` },
+  {
+    icon: 'chatbubbles',
+    title: 'Study Texts',
+    description: 'Daily chunks sent straight to your messages',
+  },
+  {
+    icon: 'layers',
+    title: 'Flashcards',
+    description: 'AI-generated cards for every lecture',
+  },
+  {
+    icon: 'flash',
+    title: 'Chunks On Demand',
+    description: 'Pull tomorrow’s material early whenever you want',
+  },
+  {
+    icon: 'infinite',
+    title: 'Unlimited Classes',
+    description: `Free plan is limited to ${FREE_CLASS_LIMIT} classes`,
+  },
+  {
+    icon: 'trophy',
+    title: 'Paly Points',
+    description: `Earn ${PALY_POINTS_FREE_MONTH_THRESHOLD} pts = 1 free month`,
+  },
 ];
 
 export default function SubscriptionScreen() {
@@ -42,8 +66,6 @@ export default function SubscriptionScreen() {
     isLoading,
     isRestoring,
     fetchOfferings,
-    purchaseMonthly,
-    purchaseAnnual,
     restorePurchases,
     refreshCustomerInfo,
     presentPaywall,
@@ -52,6 +74,8 @@ export default function SubscriptionScreen() {
 
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual'>('annual');
   const [managingLoading, setManagingLoading] = useState(false);
+
+  const trial = getTrialStatus(profile);
 
   useEffect(() => {
     fetchOfferings();
@@ -95,7 +119,11 @@ export default function SubscriptionScreen() {
 
   const expirationDate = customerInfo?.entitlements.active['pro']?.expirationDate;
   const renewsAt = expirationDate
-    ? new Date(expirationDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+    ? new Date(expirationDate).toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      })
     : null;
 
   return (
@@ -109,26 +137,38 @@ export default function SubscriptionScreen() {
           <View style={{ width: 40 }} />
         </Animated.View>
 
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
           {/* Current Plan Card */}
           <Animated.View entering={FadeInUp.delay(200).duration(600).springify()}>
-            <Card
-              variant={isPro ? 'elevated' : 'default'}
-              padding="lg"
-              style={styles.planCard}
-            >
+            <Card variant={isPro ? 'elevated' : 'default'} padding="lg" style={styles.planCard}>
               <View style={styles.planHeader}>
-                <View style={[styles.planIcon, { backgroundColor: isPro ? '#6366F1' : colors.backgroundSecondary }]}>
-                  <Ionicons name={isPro ? 'diamond' : 'gift'} size={28} color={isPro ? '#FFFFFF' : colors.text} />
+                <View
+                  style={[
+                    styles.planIcon,
+                    { backgroundColor: isPro ? '#6366F1' : colors.backgroundSecondary },
+                  ]}
+                >
+                  <Ionicons
+                    name={isPro ? 'diamond' : 'gift'}
+                    size={28}
+                    color={isPro ? '#FFFFFF' : colors.text}
+                  />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={[typography.titleLarge, { color: colors.text }]}>
-                    {isPro ? 'Paly Pro' : 'Free Plan'}
+                    {trial.isTrialing ? 'Paly Pro — Free Trial' : isPro ? 'Paly Pro' : 'Free Plan'}
                   </Text>
                   <Text style={[typography.bodySmall, { color: colors.textSecondary }]}>
-                    {isPro
-                      ? renewsAt ? `Renews ${renewsAt}` : 'All features unlocked'
-                      : `Up to ${FREE_CLASS_LIMIT} classes`}
+                    {trial.isTrialing
+                      ? `${trialLabel(trial)}${renewsAt ? ` · Becomes paid ${renewsAt}` : ''}`
+                      : isPro
+                        ? renewsAt
+                          ? `Renews ${renewsAt}`
+                          : 'All features unlocked'
+                        : `Up to ${FREE_CLASS_LIMIT} classes`}
                   </Text>
                 </View>
               </View>
@@ -145,41 +185,71 @@ export default function SubscriptionScreen() {
                   Manage Subscription
                 </Button>
               ) : (
-                <View style={styles.pricePreview}>
-                  <Text style={[typography.displaySmall, { color: '#6366F1' }]}>$7.99</Text>
-                  <Text style={[typography.bodySmall, { color: colors.textMuted }]}>/month</Text>
-                </View>
+                <>
+                  <View style={styles.pricePreview}>
+                    <Text style={[typography.displaySmall, { color: '#6366F1' }]}>$7.99</Text>
+                    <Text style={[typography.bodySmall, { color: colors.textMuted }]}>/month</Text>
+                  </View>
+                  {!trial.hasUsedTrial && (
+                    <Text
+                      style={[
+                        typography.bodySmall,
+                        { color: colors.textSecondary, textAlign: 'center' },
+                      ]}
+                    >
+                      Start with {TRIAL_DAYS} days free — cancel anytime.
+                    </Text>
+                  )}
+                </>
               )}
             </Card>
           </Animated.View>
 
           {/* Paly Points progress */}
           {!isPro && (
-            <Animated.View entering={FadeInUp.delay(280).duration(600).springify()} style={styles.section}>
+            <Animated.View
+              entering={FadeInUp.delay(280).duration(600).springify()}
+              style={styles.section}
+            >
               <Card variant="default" padding="lg">
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.md }}>
                   <Ionicons name="star" size={24} color="#F59E0B" />
                   <View style={{ flex: 1 }}>
                     <Text style={[typography.titleSmall, { color: colors.text }]}>Paly Points</Text>
                     <Text style={[typography.bodySmall, { color: colors.textSecondary }]}>
-                      {profile?.paly_points || 0} / {PALY_POINTS_FREE_MONTH_THRESHOLD} pts toward a free month
+                      {profile?.paly_points || 0} / {PALY_POINTS_FREE_MONTH_THRESHOLD} pts toward a
+                      free month
                     </Text>
                   </View>
                 </View>
                 <View style={[styles.progressBar, { backgroundColor: colors.backgroundSecondary }]}>
-                  <View style={[styles.progressFill, {
-                    backgroundColor: '#F59E0B',
-                    width: `${Math.min(100, ((profile?.paly_points || 0) / PALY_POINTS_FREE_MONTH_THRESHOLD) * 100)}%`,
-                  }]} />
+                  <View
+                    style={[
+                      styles.progressFill,
+                      {
+                        backgroundColor: '#F59E0B',
+                        width: `${Math.min(100, ((profile?.paly_points || 0) / PALY_POINTS_FREE_MONTH_THRESHOLD) * 100)}%`,
+                      },
+                    ]}
+                  />
                 </View>
               </Card>
             </Animated.View>
           )}
 
           {/* Features */}
-          <Animated.View entering={FadeInUp.delay(300).duration(600).springify()} style={styles.section}>
-            <Text style={[typography.headlineSmall, { color: colors.text, marginBottom: SPACING.lg }]}>
-              {isPro ? 'Your Pro Features' : 'Upgrade to Pro'}
+          <Animated.View
+            entering={FadeInUp.delay(300).duration(600).springify()}
+            style={styles.section}
+          >
+            <Text
+              style={[typography.headlineSmall, { color: colors.text, marginBottom: SPACING.lg }]}
+            >
+              {isPro
+                ? 'Your Pro Features'
+                : trial.hasUsedTrial
+                  ? 'Upgrade to Pro'
+                  : `Try Pro free for ${TRIAL_DAYS} days`}
             </Text>
             {PRO_FEATURES.map((f) => (
               <View key={f.title} style={styles.featureItem}>
@@ -188,7 +258,9 @@ export default function SubscriptionScreen() {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={[typography.titleSmall, { color: colors.text }]}>{f.title}</Text>
-                  <Text style={[typography.bodySmall, { color: colors.textSecondary }]}>{f.description}</Text>
+                  <Text style={[typography.bodySmall, { color: colors.textSecondary }]}>
+                    {f.description}
+                  </Text>
                 </View>
                 {isPro && <Ionicons name="checkmark-circle" size={22} color={colors.success} />}
               </View>
@@ -198,43 +270,74 @@ export default function SubscriptionScreen() {
           {/* Plan selector + CTA (only for free users) */}
           {!isPro && (
             <>
-              <Animated.View entering={FadeInUp.delay(400).duration(600).springify()} style={styles.section}>
+              <Animated.View
+                entering={FadeInUp.delay(400).duration(600).springify()}
+                style={styles.section}
+              >
                 <View style={styles.planSelector}>
                   {/* Annual */}
                   <TouchableOpacity
-                    style={[styles.planCard2, {
-                    borderColor: selectedPlan === 'annual' ? '#6366F1' : colors.backgroundSecondary,
-                    borderWidth: selectedPlan === 'annual' ? 2 : 1,
-                    backgroundColor: selectedPlan === 'annual' ? '#6366F110' : colors.card,
-                  }]}
-                  onPress={() => setSelectedPlan('annual')}
-                >
-                  <View style={[styles.saveBadge, { backgroundColor: '#6366F1', alignSelf: 'flex-start', marginBottom: SPACING.xs }]}>
-                    <Text style={[typography.labelSmall, { color: '#fff' }]}>BEST VALUE</Text>
-                  </View>
-                  <Text style={[typography.titleSmall, { color: colors.text }]}>Annual</Text>
-                  <Text style={[typography.headlineSmall, { color: '#6366F1' }]}>{annualMonthly}/mo</Text>
-                  <Text style={[typography.labelSmall, { color: colors.textMuted }]}>{annualPrice}/year</Text>
-                </TouchableOpacity>
+                    style={[
+                      styles.planCard2,
+                      {
+                        borderColor:
+                          selectedPlan === 'annual' ? '#6366F1' : colors.backgroundSecondary,
+                        borderWidth: selectedPlan === 'annual' ? 2 : 1,
+                        backgroundColor: selectedPlan === 'annual' ? '#6366F110' : colors.card,
+                      },
+                    ]}
+                    onPress={() => setSelectedPlan('annual')}
+                  >
+                    <View
+                      style={[
+                        styles.saveBadge,
+                        {
+                          backgroundColor: '#6366F1',
+                          alignSelf: 'flex-start',
+                          marginBottom: SPACING.xs,
+                        },
+                      ]}
+                    >
+                      <Text style={[typography.labelSmall, { color: '#fff' }]}>BEST VALUE</Text>
+                    </View>
+                    <Text style={[typography.titleSmall, { color: colors.text }]}>Annual</Text>
+                    <Text style={[typography.headlineSmall, { color: '#6366F1' }]}>
+                      {annualMonthly}/mo
+                    </Text>
+                    <Text style={[typography.labelSmall, { color: colors.textMuted }]}>
+                      {annualPrice}/year
+                    </Text>
+                  </TouchableOpacity>
 
-                {/* Monthly */}
-                <TouchableOpacity
-                  style={[styles.planCard2, {
-                    borderColor: selectedPlan === 'monthly' ? '#6366F1' : colors.backgroundSecondary,
-                      borderWidth: selectedPlan === 'monthly' ? 2 : 1,
-                      backgroundColor: selectedPlan === 'monthly' ? '#6366F110' : colors.card,
-                    }]}
+                  {/* Monthly */}
+                  <TouchableOpacity
+                    style={[
+                      styles.planCard2,
+                      {
+                        borderColor:
+                          selectedPlan === 'monthly' ? '#6366F1' : colors.backgroundSecondary,
+                        borderWidth: selectedPlan === 'monthly' ? 2 : 1,
+                        backgroundColor: selectedPlan === 'monthly' ? '#6366F110' : colors.card,
+                      },
+                    ]}
                     onPress={() => setSelectedPlan('monthly')}
                   >
                     <View style={{ height: 20, marginBottom: SPACING.xs }} />
                     <Text style={[typography.titleSmall, { color: colors.text }]}>Monthly</Text>
-                    <Text style={[typography.headlineSmall, { color: colors.text }]}>{monthlyPrice}/mo</Text>
-                    <Text style={[typography.labelSmall, { color: colors.textMuted }]}>Billed monthly</Text>
+                    <Text style={[typography.headlineSmall, { color: colors.text }]}>
+                      {monthlyPrice}/mo
+                    </Text>
+                    <Text style={[typography.labelSmall, { color: colors.textMuted }]}>
+                      Billed monthly
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </Animated.View>
 
-              <Animated.View entering={FadeInUp.delay(500).duration(600).springify()} style={styles.ctaSection}>
+              <Animated.View
+                entering={FadeInUp.delay(500).duration(600).springify()}
+                style={styles.ctaSection}
+              >
                 <TouchableOpacity
                   style={[styles.subscribeButton, { backgroundColor: '#6366F1', ...SHADOWS.lg }]}
                   onPress={handleSubscribe}
@@ -243,19 +346,34 @@ export default function SubscriptionScreen() {
                   {isLoading ? (
                     <ActivityIndicator color="#fff" />
                   ) : (
-                    <Text style={[typography.titleMedium, { color: '#fff' }]}>Try 7 Days Free</Text>
+                    <Text style={[typography.titleMedium, { color: '#fff' }]}>
+                      {trial.hasUsedTrial ? 'Get Paly Pro' : `Try ${TRIAL_DAYS} Days Free`}
+                    </Text>
                   )}
                 </TouchableOpacity>
 
-                <Text style={[typography.bodySmall, { color: colors.textMuted, textAlign: 'center' }]}>
-                  Free for 7 days, then {selectedPlan === 'annual' ? `${annualPrice}/year` : `${monthlyPrice}/month`}. Cancel anytime.
+                <Text
+                  style={[typography.bodySmall, { color: colors.textMuted, textAlign: 'center' }]}
+                >
+                  {trial.hasUsedTrial
+                    ? `${selectedPlan === 'annual' ? `${annualPrice}/year` : `${monthlyPrice}/month`}. Cancel anytime.`
+                    : `Free for ${TRIAL_DAYS} days, then ${
+                        selectedPlan === 'annual' ? `${annualPrice}/year` : `${monthlyPrice}/month`
+                      }. Cancel anytime.`}
                 </Text>
 
-                <TouchableOpacity onPress={handleRestore} disabled={isRestoring} style={{ alignItems: 'center' }}>
-                  {isRestoring
-                    ? <ActivityIndicator size="small" color={colors.textMuted} />
-                    : <Text style={[typography.bodySmall, { color: colors.textMuted }]}>Restore Purchases</Text>
-                  }
+                <TouchableOpacity
+                  onPress={handleRestore}
+                  disabled={isRestoring}
+                  style={{ alignItems: 'center' }}
+                >
+                  {isRestoring ? (
+                    <ActivityIndicator size="small" color={colors.textMuted} />
+                  ) : (
+                    <Text style={[typography.bodySmall, { color: colors.textMuted }]}>
+                      Restore Purchases
+                    </Text>
+                  )}
                 </TouchableOpacity>
               </Animated.View>
             </>
@@ -280,11 +398,33 @@ const styles = StyleSheet.create({
   scrollContent: { paddingHorizontal: LAYOUT.screenPadding, paddingBottom: SPACING['3xl'] },
   planCard: { marginBottom: SPACING.xl },
   planHeader: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
-  planIcon: { width: 56, height: 56, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
-  pricePreview: { flexDirection: 'row', alignItems: 'baseline', marginTop: SPACING.lg, gap: SPACING.xs },
+  planIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  pricePreview: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginTop: SPACING.lg,
+    gap: SPACING.xs,
+  },
   section: { marginTop: SPACING.xl },
-  featureItem: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, paddingVertical: SPACING.md },
-  featureIcon: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.md,
+    paddingVertical: SPACING.md,
+  },
+  featureIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   progressBar: { height: 6, borderRadius: 3, marginTop: SPACING.md, overflow: 'hidden' },
   progressFill: { height: '100%', borderRadius: 3 },
   planSelector: { flexDirection: 'row', gap: SPACING.md },

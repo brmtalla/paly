@@ -16,18 +16,16 @@ import { typography } from '../../../src/theme/typography';
 import { SPACING, LAYOUT, RADIUS } from '../../../src/theme/spacing';
 import { Card, Background } from '../../../src/components/ui';
 import { useStudyStore } from '../../../src/stores/studyStore';
-import { useAuthStore } from '../../../src/stores/authStore';
 import { supabase } from '../../../src/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function ChunkViewerScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors } = useTheme();
-  const { markPromptScrolledToBottom } = useStudyStore();
-  const { profile } = useAuthStore();
+  const { recordChunkRead } = useStudyStore();
   const [reachedBottom, setReachedBottom] = useState(false);
   const [prompt, setPrompt] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [_loading, setLoading] = useState(true);
   const hasMarked = useRef(false);
 
   useEffect(() => {
@@ -55,12 +53,12 @@ export default function ChunkViewerScreen() {
       if (isAtBottom) {
         setReachedBottom(true);
         hasMarked.current = true;
-        if (profile?.id && id) {
-          markPromptScrolledToBottom(id, profile.id);
+        if (id) {
+          void recordChunkRead(id);
         }
       }
     },
-    [id, profile?.id]
+    [id, recordChunkRead]
   );
 
   if (!prompt) {

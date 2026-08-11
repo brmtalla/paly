@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { requireUserId, unauthorizedResponse } from "../_shared/auth.ts";
 
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 
@@ -10,7 +11,21 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  // This endpoint spends OpenAI credits, so it is never open to anonymous callers.
   try {
+    await requireUserId(req);
+  } catch (error) {
+    return unauthorizedResponse(error);
+  }
+
+  try {
+    if (!OPENAI_API_KEY) {
+      return new Response(
+        JSON.stringify({ error: "Server configuration error: AI service unavailable" }),
+        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { content, classId, sessionDate, className, numStudyDays: requestedDays } = await req.json();
 
     if (!content || content.trim().length < 50) {

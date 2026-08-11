@@ -68,7 +68,7 @@ export default function CompleteScreen() {
           {/* Title */}
           <Animated.View entering={FadeInUp.delay(400).duration(600).springify()}>
             <Text style={[typography.displayMedium, { color: colors.text, textAlign: 'center' }]}>
-              You're all set!
+              You&apos;re all set!
             </Text>
 
             <Text

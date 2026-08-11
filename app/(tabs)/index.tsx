@@ -1,12 +1,5 @@
 import React, { useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  RefreshControl,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
@@ -25,7 +18,13 @@ export default function TodayScreen() {
   const { colors, colorScheme } = useTheme();
   const { profile } = useAuthStore();
   const { fetchClasses, getTodaysClasses, getUpcomingClass } = useClassStore();
-  const { todaysPrompts, fetchTodaysPrompts, fetchSynthesizedContent, getAllOverdueQuizzes, error: studyError } = useStudyStore();
+  const {
+    todaysPrompts,
+    fetchTodaysPrompts,
+    fetchSynthesizedContent,
+    getAllOverdueQuizzes,
+    error: studyError,
+  } = useStudyStore();
   const { error: classError } = useClassStore();
   const [refreshing, setRefreshing] = React.useState(false);
 
@@ -68,8 +67,8 @@ export default function TodayScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl 
-              refreshing={refreshing} 
+            <RefreshControl
+              refreshing={refreshing}
               onRefresh={onRefresh}
               tintColor={colors.white}
             />
@@ -94,7 +93,9 @@ export default function TodayScreen() {
               onPress={() => router.push('/(tabs)/profile')}
             >
               <Text style={[styles.avatarText, { color: colors.background }]}>
-                {profile?.full_name?.charAt(0).toUpperCase() || profile?.email?.charAt(0).toUpperCase() || 'U'}
+                {profile?.full_name?.charAt(0).toUpperCase() ||
+                  profile?.email?.charAt(0).toUpperCase() ||
+                  'U'}
               </Text>
             </TouchableOpacity>
           </Animated.View>
@@ -103,28 +104,26 @@ export default function TodayScreen() {
           <Animated.View entering={FadeInUp.delay(200).duration(600).springify()}>
             <Card variant="default" padding="lg" style={styles.overviewCard}>
               <View style={styles.overviewHeader}>
-                <View style={[styles.overviewIcon, { backgroundColor: colors.white, ...SHADOWS.sm }]}>
-                  <Ionicons name="today" size={20} color={colorScheme === 'dark' ? colors.background : colors.background} />
+                <View
+                  style={[styles.overviewIcon, { backgroundColor: colors.white, ...SHADOWS.sm }]}
+                >
+                  <Ionicons
+                    name="today"
+                    size={20}
+                    color={colorScheme === 'dark' ? colors.background : colors.background}
+                  />
                 </View>
                 <Text style={[typography.titleMedium, { color: colors.cardText }]}>
-                  Today's Overview
+                  Today&apos;s Overview
                 </Text>
               </View>
 
               <View style={styles.statsRow}>
-                <StatItem
-                  label="Classes"
-                  value={todaysClasses.length.toString()}
-                  colors={colors}
-                />
-                <StatItem
-                  label="Prompts"
-                  value={todaysPrompts.length.toString()}
-                  colors={colors}
-                />
+                <StatItem label="Classes" value={todaysClasses.length.toString()} colors={colors} />
+                <StatItem label="Prompts" value={todaysPrompts.length.toString()} colors={colors} />
                 <StatItem
                   label="Completed"
-                  value={todaysPrompts.filter(p => p.read_at).length.toString()}
+                  value={todaysPrompts.filter((p) => p.read_at).length.toString()}
                   colors={colors}
                 />
               </View>
@@ -134,21 +133,14 @@ export default function TodayScreen() {
           {/* Error State */}
           {(classError || studyError) && (
             <Animated.View entering={FadeInUp.delay(200).duration(400)}>
-              <ErrorState
-                message={classError || studyError || undefined}
-                onRetry={onRefresh}
-              />
+              <ErrorState message={classError || studyError || undefined} onRetry={onRefresh} />
             </Animated.View>
           )}
 
           {/* Overdue Quiz Warning */}
           {overdueQuizzes.length > 0 && (
             <Animated.View entering={FadeInUp.delay(250).duration(600).springify()}>
-              <Card
-                variant="default"
-                padding="lg"
-                style={styles.overdueCard}
-              >
+              <Card variant="default" padding="lg" style={styles.overdueCard}>
                 <View style={styles.overdueContent}>
                   <Ionicons name="alert-circle" size={32} color="#FF3B30" />
                   <View style={{ marginLeft: SPACING.md, flex: 1 }}>
@@ -156,7 +148,8 @@ export default function TodayScreen() {
                       {overdueQuizzes.length} overdue quiz{overdueQuizzes.length > 1 ? 'zes' : ''}
                     </Text>
                     <Text style={[typography.bodySmall, { color: colors.cardTextSecondary }]}>
-                      New study content is blocked. Take {overdueQuizzes.length > 1 ? 'them' : 'it'} to resume.
+                      New study content is blocked. Take {overdueQuizzes.length > 1 ? 'them' : 'it'}{' '}
+                      to resume.
                     </Text>
                   </View>
                 </View>
@@ -167,9 +160,7 @@ export default function TodayScreen() {
                     router.push(`/class/${first.class_id}/study` as any);
                   }}
                 >
-                  <Text style={[typography.labelMedium, { color: '#fff' }]}>
-                    Take Quiz Now
-                  </Text>
+                  <Text style={[typography.labelMedium, { color: '#fff' }]}>Take Quiz Now</Text>
                 </TouchableOpacity>
               </Card>
             </Animated.View>
@@ -226,13 +217,9 @@ export default function TodayScreen() {
             style={styles.section}
           >
             <View style={styles.sectionHeader}>
-              <Text style={[typography.headlineSmall, { color: colors.text }]}>
-                Study Prompts
-              </Text>
+              <Text style={[typography.headlineSmall, { color: colors.text }]}>Study Prompts</Text>
               <TouchableOpacity onPress={() => router.push('/(tabs)/study')}>
-                <Text style={[typography.labelMedium, { color: colors.white }]}>
-                  See All
-                </Text>
+                <Text style={[typography.labelMedium, { color: colors.white }]}>See All</Text>
               </TouchableOpacity>
             </View>
 
@@ -246,25 +233,22 @@ export default function TodayScreen() {
                   onPress={() => router.push(`/prompt/${prompt.id}` as any)}
                 >
                   <View style={styles.promptHeader}>
-                    <View style={[styles.promptIcon, { backgroundColor: colors.white, ...SHADOWS.sm }]}>
+                    <View
+                      style={[styles.promptIcon, { backgroundColor: colors.white, ...SHADOWS.sm }]}
+                    >
                       <Ionicons
                         name={
                           prompt.prompt_type === 'quiz'
                             ? 'help-circle'
                             : prompt.prompt_type === 'flashcard'
-                            ? 'card'
-                            : 'bulb'
+                              ? 'card'
+                              : 'bulb'
                         }
                         size={16}
                         color={colors.background}
                       />
                     </View>
-                    <Text
-                      style={[
-                        typography.labelSmall,
-                        { color: colors.cardText },
-                      ]}
-                    >
+                    <Text style={[typography.labelSmall, { color: colors.cardText }]}>
                       {prompt.prompt_type.toUpperCase()}
                     </Text>
                   </View>
@@ -287,10 +271,14 @@ export default function TodayScreen() {
                   <Text
                     style={[
                       typography.bodyMedium,
-                      { color: colors.cardTextSecondary, textAlign: 'center', marginTop: SPACING.md },
+                      {
+                        color: colors.cardTextSecondary,
+                        textAlign: 'center',
+                        marginTop: SPACING.md,
+                      },
                     ]}
                   >
-                    No study prompts yet.{'\n'}They'll appear after your classes!
+                    No study prompts yet.{'\n'}They&apos;ll appear after your classes!
                   </Text>
                 </View>
               </Card>
@@ -302,12 +290,14 @@ export default function TodayScreen() {
             entering={FadeInUp.delay(500).duration(600).springify()}
             style={styles.section}
           >
-            <Text style={[typography.headlineSmall, { color: colors.text, marginBottom: SPACING.md }]}>
-              Today's Classes
+            <Text
+              style={[typography.headlineSmall, { color: colors.text, marginBottom: SPACING.md }]}
+            >
+              Today&apos;s Classes
             </Text>
 
             {todaysClasses.length > 0 ? (
-              todaysClasses.map(classData => (
+              todaysClasses.map((classData) => (
                 <Card
                   key={classData.id}
                   variant="default"
@@ -328,12 +318,14 @@ export default function TodayScreen() {
                       </Text>
                       <Text style={[typography.bodySmall, { color: colors.cardTextTertiary }]}>
                         {classData.class_sessions
-                          .filter(s => s.day_of_week === new Date().getDay())
-                          .map(s => `${s.start_time.slice(0, 5)} - ${s.end_time.slice(0, 5)}`)
+                          .filter((s) => s.day_of_week === new Date().getDay())
+                          .map((s) => `${s.start_time.slice(0, 5)} - ${s.end_time.slice(0, 5)}`)
                           .join(', ')}
                       </Text>
                     </View>
-                    <View style={[styles.classIcon, { backgroundColor: colors.white, ...SHADOWS.sm }]}>
+                    <View
+                      style={[styles.classIcon, { backgroundColor: colors.white, ...SHADOWS.sm }]}
+                    >
                       <Ionicons name="chevron-forward" size={16} color={colors.background} />
                     </View>
                   </View>
@@ -374,12 +366,8 @@ interface StatItemProps {
 function StatItem({ label, value, colors }: StatItemProps) {
   return (
     <View style={styles.statItem}>
-      <Text style={[typography.headlineMedium, { color: colors.cardText }]}>
-        {value}
-      </Text>
-      <Text style={[typography.labelSmall, { color: colors.cardTextSecondary }]}>
-        {label}
-      </Text>
+      <Text style={[typography.headlineMedium, { color: colors.cardText }]}>{value}</Text>
+      <Text style={[typography.labelSmall, { color: colors.cardTextSecondary }]}>{label}</Text>
     </View>
   );
 }

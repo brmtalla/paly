@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Switch, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Switch, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
@@ -30,7 +30,7 @@ export default function NotificationsScreen() {
     quiz_reminders: true,
   });
   const [autoSynthesize, setAutoSynthesize] = useState(profile?.auto_synthesize ?? false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [_isLoading, _setIsLoading] = useState(false);
 
   useEffect(() => {
     fetchPreferences();
@@ -65,15 +65,7 @@ export default function NotificationsScreen() {
   const updatePreference = async (key: keyof NotificationPrefs, value: boolean) => {
     if (!profile?.id) return;
 
-    // Check if SMS is premium feature
-    if (key === 'sms_enabled' && value && !profile.is_premium) {
-      Alert.alert('Premium Feature', 'SMS notifications are available with Paly Premium.', [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Upgrade', onPress: () => router.push('/settings/subscription') },
-      ]);
-      return;
-    }
-
+    // SMS is the core, free experience — it is not gated behind a paywall.
     setPrefs((prev) => ({ ...prev, [key]: value }));
 
     try {
@@ -127,7 +119,6 @@ export default function NotificationsScreen() {
                 value={prefs.sms_enabled}
                 onToggle={(value) => updatePreference('sms_enabled', value)}
                 colors={colors}
-                isPremium={!profile?.is_premium}
                 isLast
               />
             </Card>
@@ -200,7 +191,7 @@ export default function NotificationsScreen() {
                   onValueChange={async (value) => {
                     setAutoSynthesize(value);
                     try {
-                      await updateProfile({ auto_synthesize: value } as any);
+                      await updateProfile({ auto_synthesize: value });
                     } catch {
                       setAutoSynthesize(!value);
                       Alert.alert('Error', 'Failed to update preference');

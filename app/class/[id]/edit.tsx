@@ -5,7 +5,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useTheme } from '../../../src/theme/ThemeContext';
 import { typography } from '../../../src/theme/typography';
-import { SPACING, LAYOUT, RADIUS, SHADOWS } from '../../../src/theme/spacing';
+import { SPACING, LAYOUT, RADIUS } from '../../../src/theme/spacing';
 import { Card, Button, Input, Background } from '../../../src/components/ui';
 import { useClassStore } from '../../../src/stores/classStore';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,7 +14,7 @@ const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function EditClassScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { colors, colorScheme } = useTheme();
+  const { colors } = useTheme();
   const { classes, updateClass } = useClassStore();
 
   const classData = classes.find((c) => c.id === id);

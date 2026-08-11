@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
-import { Profile } from '../types/database';
+import { Profile, ProfileUpdate } from '../types/database';
 
 interface AuthState {
   user: User | null;
@@ -9,7 +9,7 @@ interface AuthState {
   profile: Profile | null;
   isLoading: boolean;
   isInitialized: boolean;
-  
+
   // Actions
   initialize: () => Promise<void>;
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -18,7 +18,10 @@ interface AuthState {
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
   deleteAccount: () => Promise<{ error: Error | null }>;
   fetchProfile: () => Promise<void>;
-  updateProfile: (updates: Partial<Profile>) => Promise<void>;
+  /** Server-maintained fields (points, streaks, entitlement) are not writable here. */
+  updateProfile: (updates: ProfileUpdate) => Promise<void>;
+  /** Replaces the cached profile without a round trip (used after server RPCs). */
+  setProfile: (profile: Profile) => void;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -31,8 +34,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   initialize: async () => {
     try {
       // Get initial session
-      const { data: { session } } = await supabase.auth.getSession();
-      
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
       if (session?.user) {
         set({ user: session.user, session });
         await get().fetchProfile();
@@ -41,7 +46,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // Listen for auth changes
       supabase.auth.onAuthStateChange(async (event, session) => {
         set({ user: session?.user ?? null, session });
-        
+
         if (session?.user) {
           await get().fetchProfile();
         } else {
@@ -129,6 +134,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
+  setProfile: (profile: Profile) => set({ profile }),
+
   fetchProfile: async () => {
     const { user } = get();
     if (!user) return;
@@ -147,7 +154,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  updateProfile: async (updates: Partial<Profile>) => {
+  updateProfile: async (updates: ProfileUpdate) => {
     const { user, profile } = get();
     if (!user || !profile) return;
 
@@ -167,4 +174,3 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 }));
-

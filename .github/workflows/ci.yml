@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, master]
   pull_request:
-    branches: [main]
+    branches: [main, master]
 
 jobs:
   quality:
@@ -25,6 +25,9 @@ jobs:
       - name: Type check
         run: npm run typecheck
 
+      # The warning budget is a ratchet: 18 pre-existing react-hooks/exhaustive-deps
+      # warnings remain, and no new ones may be added. Lower the number in
+      # package.json as they are fixed; `npm run lint:strict` shows the goal.
       - name: Lint
         run: npm run lint
 

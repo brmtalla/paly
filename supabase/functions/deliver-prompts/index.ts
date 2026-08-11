@@ -1,7 +1,11 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { corsHeaders } from '../_shared/cors.ts';
 import { supabaseAdmin } from '../_shared/supabase.ts';
-import { sendSms } from '../_shared/twilio.ts';
+import { sendSmsToProfile } from '../_shared/sms.ts';
+import { sendPushToUser } from '../_shared/push.ts';
+import { proUserIds } from '../_shared/entitlement.ts';
+import { hasPassingQuizAttempt } from '../_shared/quiz.ts';
+import { nudgeExpiringTrials } from '../_shared/trial.ts';
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -20,6 +24,11 @@ serve(async (req) => {
     const blockedUserClassPairs = new Set(
       quizEnforcementResults.blocked.map((b: any) => `${b.userId}:${b.classId}`)
     );
+
+    // ── Trial conversion nudge ────────────────────────────────────────
+    // Must run before the "no prompts due" early return below, otherwise it
+    // would be skipped on the vast majority of runs.
+    const trialNudges = await nudgeExpiringTrials();
 
     // ── Normal prompt delivery ────────────────────────────────────────
     const { data: duePrompts, error: fetchError } = await supabaseAdmin
@@ -49,6 +58,7 @@ serve(async (req) => {
           success: true,
           delivered: 0,
           quizEnforcement: quizEnforcementResults,
+          trialNudges,
           message: 'No prompts due',
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -58,14 +68,19 @@ serve(async (req) => {
     const userIds = [...new Set(duePrompts.map((p) => p.user_id))];
     const { data: profiles } = await supabaseAdmin
       .from('profiles')
-      .select('id, phone_number, full_name, assistant_name, streak_count')
+      .select('id, phone_number, sms_opted_in, full_name, assistant_name, streak_count')
       .in('id', userIds);
 
     const profileMap = new Map(profiles?.map((p) => [p.id, p]) || []);
 
+    // Paly Pro adds SMS/iMessage on top of push; everyone gets the push.
+    const proUsers = await proUserIds(userIds);
+
     let delivered = 0;
     let failed = 0;
     let blocked = 0;
+    let pushed = 0;
+    let texted = 0;
 
     for (const prompt of duePrompts) {
       const pairKey = `${prompt.user_id}:${prompt.class_id}`;
@@ -77,15 +92,34 @@ serve(async (req) => {
       }
 
       const profile = profileMap.get(prompt.user_id);
-      if (!profile?.phone_number) continue;
-
       const className = (prompt as any).classes?.name || 'your class';
-      const assistantName = profile.assistant_name || 'Paly';
-      const smsBody = formatPromptMessage(prompt, className, assistantName);
+      const assistantName = profile?.assistant_name || 'Paly';
 
-      const smsResult = await sendSms(profile.phone_number, smsBody);
+      // ── Free tier: push notification into the app ────────────────────
+      const pushResult = await sendPushToUser(prompt.user_id, {
+        title: pushTitle(prompt.prompt_type, className, assistantName),
+        body: pushPreview(prompt.content),
+        data: {
+          type: prompt.prompt_type === 'quiz' ? 'quiz_prompt' : 'study_prompt',
+          promptId: prompt.id,
+          classId: prompt.class_id,
+          synthesizedContentId: prompt.synthesized_content_id,
+        },
+      });
+      const pushOk = pushResult.sent > 0;
+      if (pushOk) pushed++;
 
-      if (smsResult.success) {
+      // ── Paly Pro: same content delivered by text ─────────────────────
+      let smsOk = false;
+      if (proUsers.has(prompt.user_id)) {
+        const smsBody = formatPromptMessage(prompt, className, assistantName);
+        const smsResult = await sendSmsToProfile(profile, smsBody);
+        smsOk = smsResult.success;
+        if (smsOk) texted++;
+      }
+
+      // A prompt counts as delivered if it reached the student either way.
+      if (pushOk || smsOk) {
         await supabaseAdmin
           .from('study_prompts')
           .update({ delivered_at: new Date().toISOString() })
@@ -100,10 +134,13 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         delivered,
+        pushed,
+        texted,
         failed,
         blocked,
         total: duePrompts.length,
         quizEnforcement: quizEnforcementResults,
+        trialNudges,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -132,17 +169,13 @@ async function enforceQuizDeadlines(todayDate: string, now: Date) {
     return { reminders, blocked, streaksBroken };
   }
 
-  // For each, check if quiz was completed
+  // For each, check whether the quiz was PASSED (≥80%). Merely completing it
+  // does not keep the privilege — the student has to actually pass.
   for (const sc of contentWithDeadlines) {
-    const { data: completedAttempts } = await supabaseAdmin
-      .from('quiz_attempts')
-      .select('id, completed_at')
-      .eq('synthesized_content_id', sc.id)
-      .not('completed_at', 'is', null)
-      .limit(1);
+    const passed = await hasPassingQuizAttempt(sc.id);
 
-    if (completedAttempts && completedAttempts.length > 0) {
-      // Quiz was taken! If it was still in enforcement mode, reset it
+    if (passed) {
+      // Quiz passed! If it was still in enforcement mode, reset it
       if (sc.quiz_deadline_notified > 0) {
         await supabaseAdmin
           .from('synthesized_content')
@@ -170,7 +203,7 @@ async function enforceQuizDeadlines(todayDate: string, now: Date) {
       continue;
     }
 
-    // Quiz NOT taken — escalate
+    // Quiz not passed yet — escalate
     const level = sc.quiz_deadline_notified || 0;
     const nextClassDate = new Date(sc.next_class_date + 'T00:00:00');
     const dayBeforeClass = new Date(nextClassDate);
@@ -178,11 +211,11 @@ async function enforceQuizDeadlines(todayDate: string, now: Date) {
 
     const { data: profile } = await supabaseAdmin
       .from('profiles')
-      .select('phone_number, assistant_name, streak_count')
+      .select('phone_number, sms_opted_in, assistant_name, streak_count')
       .eq('id', sc.user_id)
       .single();
 
-    if (!profile?.phone_number) continue;
+    if (!profile?.phone_number || !profile.sms_opted_in) continue;
 
     const { data: classInfo } = await supabaseAdmin
       .from('classes')
@@ -199,15 +232,15 @@ async function enforceQuizDeadlines(todayDate: string, now: Date) {
 
     if (todayDate <= dayBeforeClass.toISOString().split('T')[0] && level === 0) {
       // Day before class, first reminder
-      message = `${assistantName} here! 📋 Your quiz for ${className} is ready. Take it before tomorrow's class to keep your ${streak}-day streak alive!`;
+      message = `${assistantName} here! 📋 Your quiz for ${className} is ready. Pass it before tomorrow's class to keep your ${streak}-day streak alive!`;
       newLevel = 1;
     } else if (todayDate === sc.next_class_date && level <= 1) {
       // Morning of class day
-      message = `${assistantName} here! ⚠️ Reminder: you haven't taken your ${className} quiz yet. Class is TODAY. Your streak is at risk!`;
+      message = `${assistantName} here! ⚠️ Reminder: you haven't passed your ${className} quiz yet. Class is TODAY. Your streak is at risk!`;
       newLevel = 2;
     } else if (todayDate > sc.next_class_date && level <= 2) {
-      // Class has passed, quiz never taken — break streak
-      message = `${assistantName} here! 😔 You missed your ${className} quiz. Your ${streak}-day streak has been broken. Take the quiz now to resume study delivery.`;
+      // Class has passed, quiz still not passed — break streak
+      message = `${assistantName} here! 😔 You didn't pass your ${className} quiz in time. Your ${streak}-day streak has been broken. Pass it now to resume study delivery.`;
       newLevel = 3;
 
       // Break the streak
@@ -221,7 +254,7 @@ async function enforceQuizDeadlines(todayDate: string, now: Date) {
     }
 
     if (message && newLevel > level) {
-      await sendSms(profile.phone_number, message);
+      await sendSmsToProfile(profile, message);
       await supabaseAdmin
         .from('synthesized_content')
         .update({ quiz_deadline_notified: newLevel })
@@ -235,6 +268,33 @@ async function enforceQuizDeadlines(todayDate: string, now: Date) {
   }
 
   return { reminders, blocked, streaksBroken };
+}
+
+/** Notification title, in the companion's voice. */
+function pushTitle(promptType: string, className: string, assistantName: string): string {
+  switch (promptType) {
+    case 'quiz':
+      return `📋 Quiz ready for ${className}`;
+    case 'flashcard':
+      return `🎴 Flashcard — ${className}`;
+    case 'recall':
+      return `🧠 Quick recall — ${className}`;
+    default:
+      return `${assistantName} here! 📚 ${className}`;
+  }
+}
+
+/**
+ * Notifications truncate anyway, and the full chunk is one tap away in the app.
+ * Cut on a word boundary so the preview never ends mid-word.
+ */
+function pushPreview(content: string, limit = 140): string {
+  const flat = content.replace(/\s+/g, ' ').trim();
+  if (flat.length <= limit) return flat;
+
+  const cut = flat.slice(0, limit);
+  const lastSpace = cut.lastIndexOf(' ');
+  return `${cut.slice(0, lastSpace > 60 ? lastSpace : limit).trimEnd()}…`;
 }
 
 function formatPromptMessage(

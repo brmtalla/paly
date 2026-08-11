@@ -48,7 +48,7 @@ export default function Hero() {
 
         <p className="mt-7 text-lg sm:text-xl text-paly-200/90 max-w-2xl mx-auto leading-relaxed animate-fade-in-up stagger-2">
           Upload your lecture slides. Paly synthesizes them and texts you
-          bite-sized study material every day — so you're always prepared,
+          bite-sized study material every day — so you&apos;re always prepared,
           never panicking.
         </p>
 
@@ -81,7 +81,7 @@ export default function Hero() {
                 </div>
               </div>
               <p className="text-white/80 text-sm leading-relaxed">
-                Hey! Here's your study chunk for Bio 101 today:
+                Hey! Here&apos;s your study chunk for Bio 101 today:
               </p>
               <p className="text-paly-300 text-sm mt-2 leading-relaxed">
                 • MITOSIS: Cell division producing two identical daughter cells...

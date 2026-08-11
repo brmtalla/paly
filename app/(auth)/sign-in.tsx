@@ -1,13 +1,21 @@
 import React from 'react';
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
-import { Link, router } from 'expo-router';
+import {
+  View,
+  Text,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Alert,
+} from 'react-native';
+import { Link } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useForm, Controller } from 'react-hook-form';
 import { useTheme } from '../../src/theme/ThemeContext';
 import { typography } from '../../src/theme/typography';
-import { SPACING, LAYOUT, RADIUS, SHADOWS } from '../../src/theme/spacing';
-import { Button, Input, Card } from '../../src/components/ui';
+import { SPACING, LAYOUT } from '../../src/theme/spacing';
+import { Button, Input } from '../../src/components/ui';
 import { useAuthStore } from '../../src/stores/authStore';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -53,9 +61,7 @@ export default function SignInScreen() {
             showsVerticalScrollIndicator={false}
           >
             {/* Header */}
-            <Animated.View
-              entering={FadeInDown.delay(100).duration(600).springify()}
-            >
+            <Animated.View entering={FadeInDown.delay(100).duration(600).springify()}>
               <Link href="/(auth)/welcome" asChild>
                 <Button
                   variant="ghost"
@@ -69,10 +75,7 @@ export default function SignInScreen() {
               </Link>
 
               <Text
-                style={[
-                  typography.displaySmall,
-                  { color: colors.text, marginTop: SPACING.xl },
-                ]}
+                style={[typography.displaySmall, { color: colors.text, marginTop: SPACING.xl }]}
               >
                 Welcome{'\n'}back
               </Text>
@@ -114,11 +117,7 @@ export default function SignInScreen() {
                     onBlur={onBlur}
                     error={errors.email?.message}
                     leftIcon={
-                      <Ionicons
-                        name="mail-outline"
-                        size={20}
-                        color={colors.cardTextMuted}
-                      />
+                      <Ionicons name="mail-outline" size={20} color={colors.cardTextMuted} />
                     }
                   />
                 )}
@@ -140,11 +139,7 @@ export default function SignInScreen() {
                     onBlur={onBlur}
                     error={errors.password?.message}
                     leftIcon={
-                      <Ionicons
-                        name="lock-closed-outline"
-                        size={20}
-                        color={colors.cardTextMuted}
-                      />
+                      <Ionicons name="lock-closed-outline" size={20} color={colors.cardTextMuted} />
                     }
                   />
                 )}
@@ -175,7 +170,7 @@ export default function SignInScreen() {
 
               <View style={styles.signUpPrompt}>
                 <Text style={[typography.bodyMedium, { color: colors.textSecondary }]}>
-                  Don't have an account?{' '}
+                  Don&apos;t have an account?{' '}
                 </Text>
                 <Link href="/(auth)/sign-up" asChild>
                   <Text style={[typography.bodyMedium, { color: colors.text, fontWeight: '600' }]}>
