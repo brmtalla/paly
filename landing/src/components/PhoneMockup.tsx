@@ -51,6 +51,9 @@ export default function PhoneMockup() {
   const [started, setStarted] = useState(false);
   const frameRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  // Once someone scrolls up to read, yanking them back to the bottom every time
+  // a message lands is worse than letting the new one arrive off-screen.
+  const pinnedToBottom = useRef(true);
 
   // Only start once the phone is actually on screen — an animation that plays
   // to nobody is just wasted battery.
@@ -112,15 +115,26 @@ export default function PhoneMockup() {
     };
   }, [started]);
 
-  // Keep the newest message in view as the thread grows.
+  // Keep the newest message in view as the thread grows — but only while the
+  // visitor is still at the bottom. Once they scroll up to re-read something,
+  // dragging them back down every time a message lands is worse than letting
+  // the new one arrive off-screen.
   useEffect(() => {
     const el = scrollRef.current;
-    if (!el) return;
+    if (!el || !pinnedToBottom.current) return;
     el.scrollTo({
       top: el.scrollHeight,
       behavior: prefersReducedMotion() ? 'auto' : 'smooth',
     });
   }, [shown, typing]);
+
+  const handleScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    // Smooth scrolling lands a pixel or two short, so this needs slack rather
+    // than an exact comparison.
+    pinnedToBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 24;
+  };
 
   return (
     <div ref={frameRef} className="relative mx-auto w-[300px] sm:w-[340px]">
@@ -159,9 +173,15 @@ export default function PhoneMockup() {
           </div>
 
           {/* Thread */}
+          {/* Scrollable like the real thread it is imitating. `overscroll-contain`
+              stops a flick inside the phone from scrolling the page out from
+              under it, and the scrollbar is hidden because iOS has none. */}
           <div
             ref={scrollRef}
-            className="h-[380px] space-y-2 overflow-hidden px-3.5 py-4 sm:h-[420px]"
+            onScroll={handleScroll}
+            tabIndex={0}
+            role="log"
+            className="h-[380px] space-y-2 overflow-y-auto overscroll-contain px-3.5 py-4 [scrollbar-width:none] focus-visible:outline-none sm:h-[420px] [&::-webkit-scrollbar]:hidden"
             aria-label={`Example conversation with ${COMPANION}`}
           >
             {THREAD.map((message, i) => {

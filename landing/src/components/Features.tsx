@@ -80,7 +80,7 @@ const features: Feature[] = [
 
 export default function Features() {
   return (
-    <section className="bg-surface-secondary py-24 sm:py-32">
+    <section className="bg-surface-secondary py-16 sm:py-20">
       <div className="mx-auto max-w-6xl px-6">
         <SectionHeading
           eyebrow="What you get"
@@ -88,7 +88,7 @@ export default function Features() {
           body="Paly is meant to be forgotten about. It works whether or not you remember to open it."
         />
 
-        <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((feature) => (
             <article
               key={feature.title}

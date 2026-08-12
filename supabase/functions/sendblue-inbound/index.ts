@@ -266,7 +266,7 @@ async function replyToQuestion(
   profile: { id: string; assistant_name?: string | null },
   question: string
 ): Promise<void> {
-  const result = await answerStudyQuestion(profile, question, 'sms');
+  const result = await answerStudyQuestion(profile, question);
 
   if (result.ok) {
     await sendSms(phone, result.answer);

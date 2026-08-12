@@ -57,7 +57,7 @@ export default function Hero() {
         </nav>
       </header>
 
-      <div className="relative z-10 mx-auto grid max-w-6xl items-center gap-14 px-6 pb-28 pt-12 lg:grid-cols-[1.05fr_1fr] lg:gap-10 lg:pt-20">
+      <div className="relative z-10 mx-auto grid max-w-6xl items-center gap-14 px-6 pb-20 pt-12 lg:grid-cols-[1.05fr_1fr] lg:gap-10 lg:pt-16">
         {/* Copy */}
         <div className="text-center lg:text-left">
           <div className="animate-fade-in-up inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-1.5 text-sm font-medium text-paly-100 backdrop-blur-sm">

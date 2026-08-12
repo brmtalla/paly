@@ -91,8 +91,8 @@ export default function ActivateTextsScreen() {
               ]}
             >
               {isLinked
-                ? 'Your number is linked. With Paly Pro, your daily study chunks arrive right in your messages.'
-                : 'With Paly Pro, your daily study chunks land right in your messages — where you already look a hundred times a day.'}
+                ? 'Your number is linked. With Paly Pro your daily chunks arrive in your messages — and you can text back with a question any time.'
+                : 'With Paly Pro your daily chunks land in your messages, and you can reply with a question. Paly answers out of your own material.'}
             </Text>
           </Animated.View>
 
@@ -103,7 +103,8 @@ export default function ActivateTextsScreen() {
           >
             <IMessagePreview
               delay={500}
-              caption={`An example Paly thread — free for your first ${TRIAL_DAYS} days with Paly Pro.`}
+              assistantName={profile?.assistant_name || 'Paly'}
+              caption={`An example thread — free for your first ${TRIAL_DAYS} days with Paly Pro.`}
             />
           </Animated.View>
 
@@ -120,7 +121,8 @@ export default function ActivateTextsScreen() {
                 ]}
               >
                 Every plan gets the same daily study chunks, quizzes, and notifications in the app.
-                Pro just adds texting.
+                Pro adds the texts — and the back-and-forth. Asking questions and getting them
+                answered from your own material only happens in the thread.
               </Text>
 
               {!isLinked && (

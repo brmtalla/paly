@@ -147,7 +147,7 @@ export default function Demo({ onComplete }: DemoProps) {
   const isProcessing = state === 'uploading' || state === 'processing' || state === 'sending';
 
   return (
-    <section id="demo" className="py-24 sm:py-32">
+    <section id="demo" className="py-16 sm:py-20">
       <div className="mx-auto max-w-3xl px-6">
         <SectionHeading
           eyebrow="Try it now"
@@ -155,7 +155,7 @@ export default function Demo({ onComplete }: DemoProps) {
           body="Upload any lecture PDF and enter your number. Paly texts you back a synthesis of it — once, free, no account needed."
         />
 
-        <div className="mt-12 rounded-3xl border border-paly-950/[0.07] bg-white p-7 shadow-[0_24px_60px_-30px_rgba(12,26,56,0.25)] sm:p-10">
+        <div className="mt-10 rounded-3xl border border-paly-950/[0.07] bg-white p-7 shadow-[0_24px_60px_-30px_rgba(12,26,56,0.25)] sm:p-10">
           {state === 'done' ? (
             <div className="text-center py-8">
               <div className="animate-bubble-in mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-teal-500/10 text-teal-600 ring-1 ring-teal-500/20">

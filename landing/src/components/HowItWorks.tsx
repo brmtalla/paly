@@ -53,8 +53,8 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <section id="how-it-works" className="bg-white py-24 sm:py-32">
-      <div className="mx-auto grid max-w-6xl gap-14 px-6 lg:grid-cols-[0.85fr_1fr] lg:gap-20">
+    <section id="how-it-works" className="bg-white py-16 sm:py-20">
+      <div className="mx-auto grid max-w-6xl gap-12 px-6 lg:grid-cols-[0.85fr_1fr] lg:gap-20">
         <div className="lg:sticky lg:top-24 lg:self-start">
           <SectionHeading
             align="left"

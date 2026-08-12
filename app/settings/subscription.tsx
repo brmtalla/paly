@@ -36,7 +36,7 @@ const PRO_FEATURES = [
   {
     icon: 'chatbubble-ellipses',
     title: 'Ask Anything',
-    description: 'Text back a question — get an answer from your own material',
+    description: 'Text back a question in Messages — answered from your own material',
   },
   {
     icon: 'layers',

@@ -5,6 +5,9 @@ import { claude, CLAUDE_MODEL, textFrom, wasRefused } from './claude.ts';
  * Ask-your-companion: a student replies to a study text with a question, and
  * gets an answer grounded in the material Paly has already sent them.
  *
+ * Deliberately SMS-only. Talking back and forth is the thing you get for having
+ * her in your Messages thread, so putting it in the app would give it away.
+ *
  * Grounding is deliberately limited to *delivered* prompts. Everything Paly
  * does rests on releasing material one day at a time, so answering out of a
  * chunk that has not arrived yet would quietly undo the product.
@@ -19,8 +22,6 @@ const MAX_QUESTION_CHARS = 600;
 /** Recent chunks carry the conversation; older ones are rarely what is being asked about. */
 const MAX_PROMPTS = 30;
 const MAX_CONTEXT_CHARS = 40000;
-
-export type TutorChannel = 'sms' | 'app';
 
 export type TutorResult =
   | { ok: true; answer: string }
@@ -86,17 +87,12 @@ async function buildContext(userId: string): Promise<string | null> {
   return context;
 }
 
-function systemPrompt(assistantName: string, channel: TutorChannel): string {
-  const lengthRule =
-    channel === 'sms'
-      ? 'You are answering in a text message. Stay under 600 characters — normally two or three bullets, or a couple of sentences when that reads better.'
-      : 'You are answering in the app. Stay under 900 characters.';
-
+function systemPrompt(assistantName: string): string {
   return `You are ${assistantName}, the study companion this student already gets their daily material from. They are replying to one of those messages with a question.
 
 Answer from the study material below — it is everything you have sent them so far. Lead with the answer itself, in the first sentence. If a comparison or a list is the clearest form, use bullets; otherwise write plainly.
 
-${lengthRule}
+You are answering in a text message. Stay under 600 characters — normally two or three bullets, or a couple of sentences when that reads better.
 
 If the material does not cover what they asked, say so in a few words and give them the short general answer anyway — then tell them which day's chunk is closest. Do not invent detail that is not in the material and do not claim their material says something it does not.
 
@@ -120,8 +116,7 @@ async function isRateLimited(userId: string): Promise<boolean> {
 
 export async function answerStudyQuestion(
   profile: TutorProfile,
-  question: string,
-  channel: TutorChannel
+  question: string
 ): Promise<TutorResult> {
   const trimmed = question.trim();
 
@@ -140,7 +135,7 @@ export async function answerStudyQuestion(
     const message = await claude().messages.create({
       model: CLAUDE_MODEL,
       max_tokens: 1200,
-      system: systemPrompt(assistantName, channel),
+      system: systemPrompt(assistantName),
       thinking: { type: 'adaptive' },
       output_config: { effort: 'low' },
       messages: [
@@ -161,7 +156,7 @@ export async function answerStudyQuestion(
 
     await supabaseAdmin.from('tutor_questions').insert({
       user_id: profile.id,
-      channel,
+      channel: 'sms',
       question: trimmed,
       answer,
     });

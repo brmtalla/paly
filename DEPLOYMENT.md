@@ -208,8 +208,11 @@ set and 401 on a mismatch; it never processes an unauthenticated payload.
 
 Anything inbound that is not a keyword or a link code is treated as a question
 about the student's own material. `sendblue-inbound` routes it to
-`answerStudyQuestion()` in `_shared/tutor.ts`; the app calls the same function
-through `ask-athena`.
+`answerStudyQuestion()` in `_shared/tutor.ts`.
+
+**There is no in-app equivalent, on purpose.** Talking back and forth is what
+you get for having her in your Messages thread; putting it in the app would
+give away the reason to pay.
 
 - **Grounding is limited to *delivered* prompts.** The whole product rests on
   releasing material one day at a time, so answering out of a chunk that has not
@@ -279,7 +282,6 @@ secret for the two webhooks. Redeploying one without its flag silently breaks it
 supabase functions deploy delete-account      # required for App Store account deletion
 supabase functions deploy extract-text
 supabase functions deploy grant-free-month
-supabase functions deploy ask-athena          # in-app "ask about my material" (Pro)
 supabase functions deploy demo-synthesis      # landing-page demo, called with the anon key
 
 # Verify the JWT in-function via requireUserId()
