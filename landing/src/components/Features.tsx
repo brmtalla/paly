@@ -54,11 +54,29 @@ const features: Feature[] = [
       'Score 80% before the next class to keep your streak. Miss it and delivery pauses until you pass — the deadline is the point.',
     icon: icon('M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z'),
   },
+  {
+    wide: true,
+    title: 'Text back a question, get a real answer',
+    description:
+      'Reply to any chunk and Athena answers from the material she has already sent you — not the internet, your lecture. She will tell you which day it came from, and when it is going to be on the quiz.',
+    icon: icon(
+      'M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z'
+    ),
+  },
+  {
+    title: 'Earn your way to free',
+    description:
+      'Reading chunks and passing quizzes earns Paly Points. Five hundred of them is a month on the house.',
+    icon: icon(
+      'M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z'
+    ),
+  },
 ];
 
-// The lead card spans two columns, so the count has to leave no orphan: 2 + 4
-// single cards fills exactly two rows of three. Adding a sixth feature would
-// strand one card alone on a third row.
+// Wide cards span two columns, so the cell count has to stay a multiple of
+// three or the last row strands a card on its own. Two wide (indexes 0 and 5)
+// plus five single cards is 9 cells — three full rows, with the second focal
+// point landing on the row that opens the bottom half of the section.
 
 export default function Features() {
   return (

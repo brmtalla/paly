@@ -34,6 +34,11 @@ const PRO_FEATURES = [
     description: 'Daily chunks sent straight to your messages',
   },
   {
+    icon: 'chatbubble-ellipses',
+    title: 'Ask Anything',
+    description: 'Text back a question — get an answer from your own material',
+  },
+  {
     icon: 'layers',
     title: 'Flashcards',
     description: 'AI-generated cards for every lecture',

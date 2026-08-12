@@ -60,6 +60,6 @@ export async function sendSms(to: string, body: string): Promise<{ success: bool
     return { success: true, sid: data.message_handle };
   } catch (error) {
     console.error("SMS send error:", error);
-    return { success: false, error: error.message };
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
 }

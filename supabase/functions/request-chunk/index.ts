@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { formatPromptMessage } from "../_shared/promptMessage.ts";
 import { requireUserId, unauthorizedResponse } from "../_shared/auth.ts";
 import { supabaseAdmin } from "../_shared/supabase.ts";
 import { sendSmsToProfile } from "../_shared/sms.ts";
@@ -148,13 +149,7 @@ serve(async (req) => {
 
     const className = (nextPrompt as any).classes?.name || "your class";
     const assistantName = profile.assistant_name || "Paly";
-    const typeLabels: Record<string, string> = {
-      takeaway: "Key Takeaway",
-      recall: "Quick Recall",
-      flashcard: "Flashcard",
-    };
-    const typeLabel = typeLabels[nextPrompt.prompt_type] || "Study Chunk";
-    const smsBody = `${assistantName} here! 📚\n\n[${typeLabel} - Day ${nextPrompt.day_index}]\n${className}\n\n${nextPrompt.content}`;
+    const smsBody = formatPromptMessage(nextPrompt, className, assistantName);
 
     const smsResult = await sendSmsToProfile(profile, smsBody);
     const deliveredAt = new Date().toISOString();
@@ -193,7 +188,7 @@ serve(async (req) => {
   } catch (error) {
     console.error("Request chunk error:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "Internal server error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

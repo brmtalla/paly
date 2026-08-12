@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { corsHeaders } from '../_shared/cors.ts';
+import { toBullets } from '../_shared/bullets.ts';
 import { requireUserId, unauthorizedResponse } from '../_shared/auth.ts';
 import { supabaseAdmin } from '../_shared/supabase.ts';
 import { sendSmsToProfile } from '../_shared/sms.ts';
@@ -66,34 +67,36 @@ serve(async (req) => {
     }
 
     const className = (content as any).classes?.name || 'your class';
-    const assistantName = profile.assistant_name || 'Paly';
 
     // Build a pool of sendable pieces from this session's content
-    const pool: { type: string; text: string }[] = [];
+    // `bulleted` marks the pieces that are study material rather than a single
+    // line — a takeaway is already one thought and a flashcard is a Q/A pair,
+    // so bulleting either would just chop it up.
+    const pool: { type: string; text: string; bulleted?: boolean }[] = [];
 
     const takeaways = content.key_takeaways as string[] | null;
     if (takeaways?.length) {
       for (const t of takeaways) {
-        pool.push({ type: 'Key Takeaway', text: t });
+        pool.push({ type: 'key takeaway', text: t });
       }
     }
 
     const flashcards = content.flashcards as { front: string; back: string }[] | null;
     if (flashcards?.length) {
       for (const f of flashcards) {
-        pool.push({ type: 'Flashcard', text: `Q: ${f.front}\nA: ${f.back}` });
+        pool.push({ type: 'flashcard', text: `Q: ${f.front}\nA: ${f.back}` });
       }
     }
 
     const chunks = content.daily_chunks as { day: number; content: string }[] | null;
     if (chunks?.length) {
       for (const c of chunks) {
-        pool.push({ type: 'Study Chunk', text: c.content });
+        pool.push({ type: `study chunk, day ${c.day}`, text: c.content, bulleted: true });
       }
     }
 
     if (content.summary) {
-      pool.push({ type: 'Summary', text: content.summary });
+      pool.push({ type: 'summary', text: content.summary, bulleted: true });
     }
 
     if (pool.length === 0) {
@@ -105,7 +108,7 @@ serve(async (req) => {
 
     const pick = pool[Math.floor(Math.random() * pool.length)];
 
-    const smsBody = `${assistantName} here! 🧠\n\n[${pick.type}]\n${className} — ${content.session_date}\n\n${pick.text}`;
+    const smsBody = `🧠 ${className} · ${pick.type}\n\n${pick.bulleted ? toBullets(pick.text) : pick.text}`;
 
     const result = await sendSmsToProfile(profile, smsBody);
 
@@ -125,7 +128,7 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error('Send now error:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

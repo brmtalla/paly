@@ -1,4 +1,3 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 import { corsHeaders } from "../_shared/cors.ts";
@@ -8,9 +7,10 @@ import { sendSmsToProfile } from "../_shared/sms.ts";
 import { sendPushToUser } from "../_shared/push.ts";
 import { isPro } from "../_shared/entitlement.ts";
 import { hasPassingQuizAttempt } from "../_shared/quiz.ts";
+import { aiUnavailableResponse, hasClaudeKey } from "../_shared/claude.ts";
+import { extractPdfText, synthesizeStudyContent } from "../_shared/synthesis.ts";
+import { formatPromptMessage, pushPreview, pushTitle } from "../_shared/promptMessage.ts";
 import JSZip from "https://esm.sh/jszip@3.10.1";
-
-const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -25,11 +25,8 @@ serve(async (req) => {
   }
 
   try {
-    if (!OPENAI_API_KEY) {
-      return new Response(
-        JSON.stringify({ error: "Server configuration error: AI service unavailable" }),
-        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    if (!hasClaudeKey()) {
+      return aiUnavailableResponse(corsHeaders);
     }
 
     const { uploadId, filePath, fileType, classId, sessionDate, skipExtraction, extractOnly, singleUploadId } = await req.json();
@@ -266,7 +263,7 @@ serve(async (req) => {
     }
 
     // ── Step 5: AI Synthesis with dynamic chunk count ─────────────────
-    const synthesized = await callOpenAI(combinedContent, className, numStudyDays);
+    const synthesized = await synthesizeStudyContent(combinedContent, className, numStudyDays);
 
     // ── Step 6: Save synthesized content ──────────────────────────────
     const effectiveSessionDate = sessionDate || today.toISOString().split("T")[0];
@@ -447,17 +444,9 @@ serve(async (req) => {
       const userIsPro = await isPro(userId);
 
       for (const prompt of immediatePrompts) {
-        const typeLabels: Record<string, string> = {
-          takeaway: "Key Takeaway",
-          recall: "Quick Recall",
-          quiz: "Quiz Time",
-          flashcard: "Flashcard",
-        };
-        const typeLabel = typeLabels[prompt.prompt_type] || "Study Prompt";
-
         const push = await sendPushToUser(userId, {
-          title: `${assistantName} here! 📚 ${className}`,
-          body: `[${typeLabel} - Day ${prompt.day_index}] Tap to read today's chunk.`,
+          title: pushTitle(prompt.prompt_type, className, assistantName),
+          body: pushPreview(prompt.content),
           data: {
             type: prompt.prompt_type === "quiz" ? "quiz_prompt" : "study_prompt",
             promptId: prompt.id,
@@ -470,7 +459,7 @@ serve(async (req) => {
 
         let smsOk = false;
         if (userIsPro) {
-          const smsBody = `${assistantName} here! 📚\n\n[${typeLabel} - Day ${prompt.day_index}]\n${className}\n\n${prompt.content}`;
+          const smsBody = formatPromptMessage(prompt, className, assistantName);
           const result = await sendSmsToProfile(profile, smsBody);
           smsOk = result.success;
           if (smsOk) smsDelivered++;
@@ -502,7 +491,7 @@ serve(async (req) => {
   } catch (error) {
     console.error("Process upload error:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "Internal server error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
@@ -550,179 +539,13 @@ function computeNextClassDate(sessions: { day_of_week: number; start_time: strin
   return next;
 }
 
-async function callOpenAI(
-  content: string,
-  className: string,
-  numStudyDays: number
-): Promise<any> {
-  const systemPrompt = `You are an expert study assistant that creates thorough, detailed study materials from lecture content.
-Your task is to deeply analyze ALL of the provided lecture material and produce comprehensive study materials that will be drip-fed over ${numStudyDays} days.
-
-You must respond with valid JSON only, no markdown or additional text. The JSON structure must be:
-{
-  "summary": "A thorough 2-3 paragraph summary that covers the full scope of the material, key themes, and how concepts connect to each other",
-  "keyTakeaways": ["detailed takeaway 1", "detailed takeaway 2", ...8-12 takeaways],
-  "flashcards": [
-    {"front": "Specific question testing a concept", "back": "Thorough answer with context and explanation", "day": 1},
-    ...15-25 flashcards covering every major concept, definition, relationship, and application
-  ],
-  "quizQuestions": [
-    {
-      "question": "Multiple choice question?",
-      "options": ["A", "B", "C", "D"],
-      "correct_index": 0,
-      "explanation": "Detailed explanation of why the correct answer is right and why each wrong answer is wrong"
-    },
-    ...10-15 questions at varying difficulty levels
-  ],
-  "dailyChunks": [
-    {"day": 1, "content": "• KEY TERM: Definition and context\n• CONCEPT 2: Explanation\n• CONCEPT 3: Explanation with example\n...5-10 bullets per day"},
-    {"day": 2, "content": "• NEXT CONCEPT: Explanation\n..."},
-    ...exactly ${numStudyDays} chunks
-  ]
-}
-
-Guidelines for summary:
-- Write 2-3 substantial paragraphs, not just a few sentences
-- Cover the full breadth of topics in the source material
-- Explain how concepts relate to each other
-
-Guidelines for keyTakeaways:
-- Generate 8-12 detailed takeaways
-- Each takeaway itself is a single bullet — write it as a concise, complete thought (1-3 sentences)
-- Cover definitions, relationships, processes, and applications
-
-Guidelines for flashcards:
-- Generate 15-25 flashcards that comprehensively cover the material
-- Include cards for: definitions, processes/mechanisms, comparisons, cause-effect relationships, applications, and edge cases
-- Backs should be detailed explanations (2-4 sentences), not one-word answers
-- Test at multiple difficulty levels from basic recall to applied understanding
-- Each flashcard MUST have a "day" field (integer 1 to ${numStudyDays}) indicating when it unlocks
-- Distribute flashcards EVENLY across all ${numStudyDays} days — foundational cards on early days, advanced cards on later days
-- Cards that build on earlier concepts should have a higher day number
-
-Guidelines for quizQuestions:
-- Generate 10-15 comprehensive quiz questions
-- Mix difficulty levels: ~30% basic recall, ~40% application/analysis, ~30% synthesis/evaluation
-- Wrong answer options should be plausible (common misconceptions)
-- Explanations should teach — explain the reasoning, not just state the answer
-
-Guidelines for dailyChunks:
-- Generate EXACTLY ${numStudyDays} daily chunks
-- Each chunk must be 800-1300 characters — thorough and information-dense
-- CRITICAL FORMAT: Each chunk MUST be formatted as bullet points ONLY, NOT dense paragraphs
-- Start each bullet with "• " (bullet character + space) on its own line, separated by "\\n"
-- Each chunk should contain 5-10 bullets covering that day's topic
-- Example format for a chunk's content field:
-  "• CONTRACT FORMATION: A binding agreement requires offer, acceptance, and consideration\\n• OFFER: A clear proposal showing intent to be bound by specific terms\\n• ACCEPTANCE: Unqualified agreement to the offer's exact terms (mirror image rule)\\n• CONSIDERATION: Something of value exchanged — money, goods, services, or a promise\\n• Without all three elements, no enforceable contract exists"
-- Each bullet should be a complete, standalone concept (1-2 sentences max)
-- Use ALL CAPS for key terms at the start of bullets when introducing a concept
-- Day 1: foundational definitions, core vocabulary, and the big picture framework
-- Early days: detailed breakdowns of each major concept with examples
-- Middle days: relationships between concepts, processes, mechanisms, cause-and-effect
-- Later days: applications, edge cases, comparisons, and common misconceptions
-- Final day(s): synthesis across all topics, connections to broader themes, exam-style thinking
-- Distribute the source material EVENLY across all ${numStudyDays} days — every section of the content should be covered
-- Use spaced repetition: briefly reference earlier concepts when introducing related ones
-- NEVER write a chunk as a single flowing paragraph — ALWAYS use the bullet format described above`;
-
-  const userPrompt = `Analyze these lecture materials from ${className} and create ${numStudyDays} days of thorough, detailed study content. Extract ALL important information — every definition, concept, process, relationship, and example. Do not summarize lightly; the student needs to learn this material in depth.
-
-${content.substring(0, 100000)}
-
-Remember: respond with valid JSON only. Generate exactly ${numStudyDays} daily chunks, each 1000-1500 characters. Be thorough.`;
-
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${OPENAI_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      temperature: 0.7,
-      max_tokens: 16000,
-    }),
-  });
-
-  if (!response.ok) {
-    const error = await response.text();
-    console.error("OpenAI API error:", error);
-    throw new Error("AI synthesis failed");
-  }
-
-  const data = await response.json();
-  const aiResponse = data.choices[0].message.content;
-
-  const cleaned = aiResponse
-    .replace(/```json\n?/g, "")
-    .replace(/```\n?/g, "")
-    .trim();
-
-  const parsed = JSON.parse(cleaned);
-
-  if (!parsed.summary || !parsed.keyTakeaways || !parsed.flashcards || !parsed.dailyChunks) {
-    throw new Error("AI response missing required fields");
-  }
-
-  return parsed;
-}
-
+/**
+ * Claude reads the PDF natively, so extraction is a document content block
+ * rather than a separate service.
+ */
 async function extractPdf(buffer: ArrayBuffer): Promise<string> {
-  const bytes = new Uint8Array(buffer);
-  console.log("PDF size:", bytes.length, "bytes");
-
-  const base64 = base64Encode(bytes);
-  console.log("Base64 length:", base64.length);
-
-  const response = await fetch("https://api.openai.com/v1/responses", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${OPENAI_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "gpt-4o-mini",
-      input: [
-        {
-          role: "user",
-          content: [
-            { type: "input_text", text: "Extract ALL text content from this PDF. Return ONLY the raw text, preserving structure with newlines between sections. No commentary or formatting." },
-            {
-              type: "input_file",
-              filename: "document.pdf",
-              file_data: `data:application/pdf;base64,${base64}`,
-            },
-          ],
-        },
-      ],
-    }),
-  });
-
-  if (!response.ok) {
-    const errText = await response.text();
-    console.error("GPT PDF extraction failed:", response.status, errText);
-    throw new Error(`GPT extraction failed: ${response.status} ${errText.substring(0, 200)}`);
-  }
-
-  const data = await response.json();
-  let extractedText = "";
-  if (data.output) {
-    for (const item of data.output) {
-      if (item.type === "message" && item.content) {
-        for (const c of item.content) {
-          if (c.type === "output_text") extractedText += c.text;
-        }
-      }
-    }
-  }
-
-  console.log("Extracted text length:", extractedText.trim().length);
-  return extractedText.trim();
+  const base64 = base64Encode(buffer);
+  return await extractPdfText(base64);
 }
 
 async function extractDocx(buffer: ArrayBuffer): Promise<string> {

@@ -19,7 +19,7 @@ Paly is a mobile study companion app that helps students learn consistently thro
 - **State Management**: Zustand
 - **UI**: Custom components with glassmorphism effects
 - **Animations**: React Native Reanimated
-- **AI**: OpenAI GPT-4o-mini for content synthesis
+- **AI**: Claude Sonnet for content synthesis and the ask-your-companion answers
 - **Notifications**: Expo Notifications
 
 ## Getting Started
@@ -60,9 +60,9 @@ EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 ```
 
-2. Set up OpenAI API key in Supabase Edge Functions:
+2. Set the Anthropic API key on the Supabase Edge Functions:
 ```bash
-supabase secrets set OPENAI_API_KEY=your_openai_api_key
+supabase secrets set ANTHROPIC_API_KEY=sk-ant-your_anthropic_api_key
 ```
 
 ## Project Structure

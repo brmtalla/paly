@@ -38,7 +38,7 @@ runs fine without them — the store simply reports subscriptions as unavailable
 Set via Supabase Dashboard > Project Settings > Edge Functions > Secrets, or via CLI:
 
 ```bash
-supabase secrets set OPENAI_API_KEY=sk-...
+supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
 supabase secrets set REVENUECAT_SECRET_KEY=sk_...
 supabase secrets set REVENUECAT_WEBHOOK_SECRET="$(openssl rand -hex 32)"
 supabase secrets set SENDBLUE_API_KEY=...
@@ -195,12 +195,47 @@ set and 401 on a mismatch; it never processes an unauthenticated payload.
 - STOP / STOPALL / UNSUBSCRIBE / CANCEL / END / QUIT are handled by
   `sendblue-inbound`, which clears `sms_opted_in` on both `profiles` and
   `landing_subscribers`. START / UNSTOP / RESUME re-subscribe. HELP replies with
-  a description and opt-out instructions.
+  a description and opt-out instructions. These are matched only when the keyword
+  is the entire message, so "I need help with stereoisomers" is a question rather
+  than a support request.
 - Every outbound path goes through `sendSmsToProfile()`, which refuses to send
   unless `sms_opted_in` is true. Use it rather than `sendSms()` for anything
   addressed to a user — `sendSms()` takes a bare number and cannot check consent.
 - The onboarding screen carries the required "Msg & data rates may apply. Reply
   STOP at any time to opt out." disclosure.
+
+## Ask your companion
+
+Anything inbound that is not a keyword or a link code is treated as a question
+about the student's own material. `sendblue-inbound` routes it to
+`answerStudyQuestion()` in `_shared/tutor.ts`; the app calls the same function
+through `ask-athena`.
+
+- **Grounding is limited to *delivered* prompts.** The whole product rests on
+  releasing material one day at a time, so answering out of a chunk that has not
+  arrived yet would quietly undo it.
+- **Pro only.** Free accounts get an upsell reply instead of an answer;
+  entitlement is read server-side via `isPro()`, never from the client.
+- **Unlinked or opted-out numbers get the help text**, never an answer — a reply
+  to someone who has opted out is the one thing we must not send.
+- **Rate limit: 30 questions per rolling 24h per account**, counted from
+  `tutor_questions`. That table is written with the service role and is
+  read-only to the student, so the limit cannot be dodged from the client.
+- The SMS reply is sent from `EdgeRuntime.waitUntil()` after the webhook has
+  already returned 200. An answer takes 5–10s, and SendBlue retries anything
+  slower — which would answer the same question twice.
+
+## AI
+
+One key, one model, one place: `ANTHROPIC_API_KEY` and `CLAUDE_MODEL` in
+`_shared/claude.ts`. Synthesis, PDF extraction, the landing demo, and the
+companion answers all go through it.
+
+Both synthesis paths use **structured outputs** — each day's chunk comes back as
+an array of bullets rather than a string the model was asked to format nicely.
+A schema the model cannot satisfy with a paragraph is worth more than any amount
+of instruction telling it not to write one. `_shared/bullets.ts` renders those
+arrays and also rescues chunks synthesised before the change.
 
 ## Building for Release
 
@@ -244,6 +279,8 @@ secret for the two webhooks. Redeploying one without its flag silently breaks it
 supabase functions deploy delete-account      # required for App Store account deletion
 supabase functions deploy extract-text
 supabase functions deploy grant-free-month
+supabase functions deploy ask-athena          # in-app "ask about my material" (Pro)
+supabase functions deploy demo-synthesis      # landing-page demo, called with the anon key
 
 # Verify the JWT in-function via requireUserId()
 supabase functions deploy process-upload --no-verify-jwt

@@ -3,16 +3,21 @@ import { corsHeaders } from '../_shared/cors.ts';
 import { supabaseAdmin } from '../_shared/supabase.ts';
 import { sendSms } from '../_shared/sms.ts';
 import { classifyInbound, normalizePhoneNumber } from '../_shared/smsCommands.ts';
+import { isPro } from '../_shared/entitlement.ts';
+import { answerStudyQuestion } from '../_shared/tutor.ts';
 
 /**
  * Inbound SMS/iMessage from SendBlue.
  *
- * Two jobs:
+ * Three jobs:
  *   1. Link a handset to an account. The student texts their per-account code
  *      (the app pre-fills it), which is the only way profiles.phone_number ever
  *      gets written. Sending from the handset proves they own it.
  *   2. Honour STOP / START / HELP. Carriers require these to work on every
  *      message, and A2P 10DLC registration is refused without them.
+ *   3. Answer questions. Anything that is not a keyword or a link code is a
+ *      student asking about material Paly has already sent them — a Pro
+ *      feature, answered from their own chunks.
  *
  * Configure in SendBlue: Dashboard → Settings → Webhooks → Inbound
  *   URL: https://<project-ref>.supabase.co/functions/v1/sendblue-inbound?token=<SENDBLUE_INBOUND_SECRET>
@@ -36,9 +41,35 @@ function secretMatches(provided: string | null): boolean {
 }
 
 const HELP_TEXT =
-  'Paly sends your daily study chunks by text. ' +
+  'Paly sends your daily study chunks by text, and answers questions about them. ' +
   'Open the Paly app and tap Activate texts to get your link code. ' +
   'Reply STOP to opt out. Msg & data rates may apply.';
+
+/**
+ * Answering costs a model call, so it is a Pro feature — and the upsell is the
+ * most honest place to make that case, since they just tried to use it.
+ */
+const UPGRADE_TEXT =
+  'Asking me about your material is a Paly Pro feature. ' +
+  'Open the app and tap Subscription to turn it on — then text me anything about a chunk and I will answer from your own notes.';
+
+/**
+ * Runs the answer without holding the webhook open. SendBlue retries on a slow
+ * response, which would answer the same question twice.
+ */
+function runInBackground(work: Promise<unknown>): void {
+  const runtime = (globalThis as { EdgeRuntime?: { waitUntil?: (p: Promise<unknown>) => void } })
+    .EdgeRuntime;
+
+  if (runtime?.waitUntil) {
+    runtime.waitUntil(work.catch((error) => console.error('Background reply failed:', error)));
+    return;
+  }
+
+  // Local `supabase functions serve` has no waitUntil; the reply still needs to
+  // go out, so fall back to a floating promise rather than dropping it.
+  work.catch((error) => console.error('Background reply failed:', error));
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -90,10 +121,11 @@ serve(async (req) => {
       case 'link':
         return await handleLink(phone, command.code!);
       case 'help':
-      case 'unknown':
-      default:
         await sendSms(phone, HELP_TEXT);
         return json({ success: true, action: 'help' });
+      case 'unknown':
+      default:
+        return await handleQuestion(phone, content);
     }
   } catch (error) {
     console.error('Inbound webhook error:', error);
@@ -191,10 +223,66 @@ async function handleLink(phone: string, code: string): Promise<Response> {
   await sendSms(
     phone,
     `${assistant} here! Your number is linked — your daily study chunks will arrive in this thread. ` +
+      'Reply to any of them with a question and I will answer from your own material. ' +
       'Reply STOP to opt out at any time. Msg & data rates may apply.'
   );
 
   return json({ success: true, action: 'link', matched: true });
+}
+
+/**
+ * Free text from a linked handset is a question about their material.
+ *
+ * The answer takes a few seconds, so the webhook is acknowledged first and the
+ * reply is sent from the background — SendBlue retries anything slow, and a
+ * retry here would answer the same question twice.
+ */
+async function handleQuestion(phone: string, question: string): Promise<Response> {
+  const { data: profile } = await supabaseAdmin
+    .from('profiles')
+    .select('id, assistant_name, sms_opted_in')
+    .eq('phone_number', phone)
+    .maybeSingle();
+
+  // Unlinked, or opted out — in both cases the only thing we may send is the
+  // help text, which is also the useful answer for someone who is lost.
+  if (!profile || !profile.sms_opted_in) {
+    await sendSms(phone, HELP_TEXT);
+    return json({ success: true, action: 'help', reason: profile ? 'opted_out' : 'unlinked' });
+  }
+
+  if (!(await isPro(profile.id))) {
+    await sendSms(phone, UPGRADE_TEXT);
+    return json({ success: true, action: 'question', result: 'upsell' });
+  }
+
+  runInBackground(replyToQuestion(phone, profile, question));
+
+  return json({ success: true, action: 'question', result: 'queued' });
+}
+
+async function replyToQuestion(
+  phone: string,
+  profile: { id: string; assistant_name?: string | null },
+  question: string
+): Promise<void> {
+  const result = await answerStudyQuestion(profile, question, 'sms');
+
+  if (result.ok) {
+    await sendSms(phone, result.answer);
+    return;
+  }
+
+  const fallbacks: Record<typeof result.reason, string> = {
+    no_material:
+      "I haven't sent you any study material yet — upload a lecture in the app and I'll start texting you chunks you can ask me about.",
+    rate_limited:
+      "That's a lot of questions for one day. Ask me again tomorrow, or open the app — everything I've sent you is in there.",
+    too_long: 'That one is too long to answer by text. Try asking it in a sentence or two.',
+    failed: "I couldn't get to that one. Try asking again in a moment.",
+  };
+
+  await sendSms(phone, fallbacks[result.reason]);
 }
 
 function json(body: unknown, status = 200): Response {

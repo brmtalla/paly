@@ -6,6 +6,7 @@ import { sendPushToUser } from '../_shared/push.ts';
 import { proUserIds } from '../_shared/entitlement.ts';
 import { hasPassingQuizAttempt } from '../_shared/quiz.ts';
 import { nudgeExpiringTrials } from '../_shared/trial.ts';
+import { formatPromptMessage, pushPreview, pushTitle } from '../_shared/promptMessage.ts';
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -145,7 +146,7 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Deliver prompts error:', error?.message, error?.stack);
+    console.error('Deliver prompts error:', error);
     return new Response(JSON.stringify({ error: 'Internal server error during prompt delivery' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -183,22 +184,27 @@ async function enforceQuizDeadlines(todayDate: string, now: Date) {
           .eq('id', sc.id);
 
         // Increment streak
-        await supabaseAdmin.rpc('increment_streak', { user_id_param: sc.user_id }).catch(() => {
-          // Fallback: manual increment if RPC doesn't exist
-          supabaseAdmin
+        // The query builder is a thenable, not a Promise — it has no .catch(),
+        // so calling one threw a TypeError and took down the whole delivery run
+        // the moment any student passed a quiz. Failures arrive in `error`.
+        const { error: rpcError } = await supabaseAdmin.rpc('increment_streak', {
+          user_id_param: sc.user_id,
+        });
+
+        if (rpcError) {
+          const { data: p } = await supabaseAdmin
             .from('profiles')
             .select('streak_count')
             .eq('id', sc.user_id)
-            .single()
-            .then(({ data: p }) => {
-              if (p) {
-                supabaseAdmin
-                  .from('profiles')
-                  .update({ streak_count: (p.streak_count || 0) + 1 })
-                  .eq('id', sc.user_id);
-              }
-            });
-        });
+            .single();
+
+          if (p) {
+            await supabaseAdmin
+              .from('profiles')
+              .update({ streak_count: (p.streak_count || 0) + 1 })
+              .eq('id', sc.user_id);
+          }
+        }
       }
       continue;
     }
@@ -268,49 +274,4 @@ async function enforceQuizDeadlines(todayDate: string, now: Date) {
   }
 
   return { reminders, blocked, streaksBroken };
-}
-
-/** Notification title, in the companion's voice. */
-function pushTitle(promptType: string, className: string, assistantName: string): string {
-  switch (promptType) {
-    case 'quiz':
-      return `📋 Quiz ready for ${className}`;
-    case 'flashcard':
-      return `🎴 Flashcard — ${className}`;
-    case 'recall':
-      return `🧠 Quick recall — ${className}`;
-    default:
-      return `${assistantName} here! 📚 ${className}`;
-  }
-}
-
-/**
- * Notifications truncate anyway, and the full chunk is one tap away in the app.
- * Cut on a word boundary so the preview never ends mid-word.
- */
-function pushPreview(content: string, limit = 140): string {
-  const flat = content.replace(/\s+/g, ' ').trim();
-  if (flat.length <= limit) return flat;
-
-  const cut = flat.slice(0, limit);
-  const lastSpace = cut.lastIndexOf(' ');
-  return `${cut.slice(0, lastSpace > 60 ? lastSpace : limit).trimEnd()}…`;
-}
-
-function formatPromptMessage(
-  prompt: { prompt_type: string; content: string; day_index: number },
-  className: string,
-  assistantName: string
-): string {
-  const typeLabels: Record<string, string> = {
-    takeaway: 'Key Takeaway',
-    recall: 'Quick Recall',
-    quiz: 'Quiz Time',
-    flashcard: 'Flashcard',
-  };
-
-  const typeLabel = typeLabels[prompt.prompt_type] || 'Study Prompt';
-  const dayLabel = `Day ${prompt.day_index}`;
-
-  return `${assistantName} here! 📚\n\n[${typeLabel} - ${dayLabel}]\n${className}\n\n${prompt.content}`;
 }
