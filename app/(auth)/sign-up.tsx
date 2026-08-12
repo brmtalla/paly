@@ -82,17 +82,18 @@ export default function SignUpScreen() {
                 },
               ]}
             >
-              We&apos;ve sent you a confirmation link. Click it to activate your account.
+              We&apos;ve sent you a confirmation link. Tap it on this phone and Paly will reopen
+              directly in setup.
             </Text>
 
             <Button
-              variant="secondary"
+              variant="ghost"
               size="lg"
               fullWidth
               style={{ marginTop: SPACING['2xl'] }}
-              onPress={() => router.replace('/(auth)/sign-in')}
+              onPress={() => router.replace('/(auth)/welcome')}
             >
-              Go to Sign In
+              Back to Welcome
             </Button>
           </Animated.View>
         </SafeAreaView>

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { User, Session } from '@supabase/supabase-js';
-import * as Linking from 'expo-linking';
 import { supabase } from '../lib/supabase';
+import { EMAIL_CONFIRM_REDIRECT_URL, PASSWORD_RESET_REDIRECT_URL } from '../lib/authLinks';
 import { Profile, ProfileUpdate } from '../types/database';
 
 interface AuthState {
@@ -45,11 +45,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
 
       // Listen for auth changes
-      supabase.auth.onAuthStateChange(async (event, session) => {
+      supabase.auth.onAuthStateChange((_event, session) => {
         set({ user: session?.user ?? null, session });
 
         if (session?.user) {
-          await get().fetchProfile();
+          // Supabase can deadlock when another client call is awaited inside
+          // this callback. Defer profile loading until the auth event returns.
+          setTimeout(() => void get().fetchProfile(), 0);
         } else {
           set({ profile: null });
         }
@@ -65,7 +67,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   signUp: async (email: string, password: string) => {
     try {
       set({ isLoading: true });
-      const { error } = await supabase.auth.signUp({ email, password });
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: EMAIL_CONFIRM_REDIRECT_URL },
+      });
       set({ isLoading: false });
       return { error: error as Error | null };
     } catch (error) {
@@ -101,7 +107,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       set({ isLoading: true });
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: Linking.createURL('/reset-password', { scheme: 'paly' }),
+        redirectTo: PASSWORD_RESET_REDIRECT_URL,
       });
       set({ isLoading: false });
       return { error: error as Error | null };

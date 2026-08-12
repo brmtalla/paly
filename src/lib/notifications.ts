@@ -26,8 +26,8 @@ export async function registerForPushNotificationsAsync(userId: string): Promise
     });
 
     await Notifications.setNotificationChannelAsync('study-prompts', {
-      name: 'Study Prompts',
-      description: 'Daily study prompts from your companion',
+      name: 'Study Nuggets',
+      description: 'Daily study nuggets from your companion',
       importance: Notifications.AndroidImportance.HIGH,
       sound: 'default',
     });

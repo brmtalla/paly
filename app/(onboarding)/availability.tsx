@@ -100,7 +100,7 @@ export default function AvailabilityScreen() {
               ]}
             >
               Block off times when you&apos;re too busy for study reminders. We&apos;ll only send
-              prompts during your available hours.
+              nuggets during your available hours.
             </Text>
           </Animated.View>
 
@@ -175,7 +175,7 @@ export default function AvailabilityScreen() {
           >
             <Ionicons name="notifications-outline" size={20} color={colors.text} />
             <Text style={[typography.bodyMedium, { color: colors.textSecondary, flex: 1 }]}>
-              Study prompts will be sent during{' '}
+              Study nuggets will be sent during{' '}
               <Text style={{ color: colors.text, fontWeight: '600' }}>
                 {availableCount} time {availableCount === 1 ? 'window' : 'windows'}
               </Text>

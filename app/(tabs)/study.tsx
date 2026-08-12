@@ -82,7 +82,7 @@ export default function StudyScreen() {
                   { color: activeTab === tab ? colors.background : colors.textSecondary },
                 ]}
               >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                {tab === 'prompts' ? 'Nuggets' : tab.charAt(0).toUpperCase() + tab.slice(1)}
               </Text>
             </TouchableOpacity>
           ))}
@@ -256,7 +256,7 @@ export default function StudyScreen() {
                           { color: colors.cardText, marginTop: SPACING.lg },
                         ]}
                       >
-                        No study prompts yet
+                        No study nuggets yet
                       </Text>
                       <Text
                         style={[
@@ -269,7 +269,7 @@ export default function StudyScreen() {
                         ]}
                       >
                         Take notes during your classes and we&apos;ll generate personalized study
-                        prompts for you
+                        nuggets for you
                       </Text>
                     </View>
                   </Card>

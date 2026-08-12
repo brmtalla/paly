@@ -50,7 +50,7 @@ export default function WelcomeScreen() {
           <FeatureItem
             icon="notifications-outline"
             title="Smart Reminders"
-            description="Get personalized study prompts at the right time"
+            description="Get personalized study nuggets at the right time"
             colors={colors}
           />
           <FeatureItem

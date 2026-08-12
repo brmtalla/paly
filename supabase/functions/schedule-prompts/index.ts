@@ -149,7 +149,7 @@ serve(async (req) => {
             quiz: 'Quiz Time',
             flashcard: 'Flashcard',
           };
-          const typeLabel = typeLabels[prompt.prompt_type] || 'Study Prompt';
+          const typeLabel = typeLabels[prompt.prompt_type] || 'Study Nugget';
           const smsBody = `${assistantName} here! 📚\n\n[${typeLabel} - Day ${prompt.day_index}]\n${className}\n\n${prompt.content}`;
 
           const result = await sendSmsToProfile(profile, smsBody);

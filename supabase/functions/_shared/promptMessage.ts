@@ -1,7 +1,7 @@
 import { toBullets } from './bullets.ts';
 
 /**
- * How a study prompt reads when it leaves Paly — as a text and as a push.
+ * How a study nugget reads when it leaves Paly — as a text and as a push.
  *
  * Shared by deliver-prompts (the cron) and process-upload (chunks that are
  * already due the moment they are scheduled), which used to format the same
@@ -40,7 +40,7 @@ export function formatPromptMessage(
   // chop one sentence into fragments.
   if (prompt.prompt_type === 'quiz') return prompt.content;
 
-  const label = TYPE_LABELS[prompt.prompt_type] || 'Study prompt';
+  const label = TYPE_LABELS[prompt.prompt_type] || 'Study nugget';
   const header = `📚 ${className} · ${label}, day ${prompt.day_index}`;
 
   return `${header}\n\n${toBullets(prompt.content)}`;

@@ -245,7 +245,7 @@ export default function NoteDetailScreen() {
                     <Text
                       style={[typography.bodySmall, { color: colors.textSecondary, marginTop: 4 }]}
                     >
-                      Generate flashcards, quizzes, and study prompts from your notes
+                      Generate flashcards, quizzes, and study nuggets from your notes
                     </Text>
                   </View>
                 </View>

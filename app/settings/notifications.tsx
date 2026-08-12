@@ -179,7 +179,7 @@ export default function NotificationsScreen() {
               />
               <NotificationRow
                 icon="sparkles"
-                title="Study Prompts"
+                title="Study Nuggets"
                 description="Daily study reminders from your companion"
                 value={prefs.study_prompts}
                 onToggle={(value) => updatePreference('study_prompts', value)}

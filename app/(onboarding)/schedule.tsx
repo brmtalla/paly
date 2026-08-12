@@ -129,7 +129,7 @@ export default function ScheduleScreen() {
             <Text
               style={[typography.bodyLarge, { color: colors.textSecondary, marginTop: SPACING.md }]}
             >
-              We&apos;ll remind you to take notes during class and send study prompts based on your
+              We&apos;ll remind you to take notes during class and send study nuggets based on your
               schedule.
             </Text>
           </Animated.View>

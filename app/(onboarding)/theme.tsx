@@ -133,7 +133,7 @@ export default function ThemeScreen() {
                   <Text style={[typography.titleSmall, { color: '#1A1A1A' }]}>Biology 101</Text>
                 </View>
                 <Text style={[typography.bodySmall, { color: '#4A4A4A', marginTop: SPACING.xs }]}>
-                  Today&apos;s study prompt is ready!
+                  Today&apos;s study nugget is ready!
                 </Text>
                 <View style={styles.previewProgress}>
                   <View

@@ -45,7 +45,9 @@ export default function PromptDetailScreen() {
       <Background>
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.centered}>
-            <Text style={[typography.bodyLarge, { color: colors.text }]}>Prompt not found</Text>
+            <Text style={[typography.bodyLarge, { color: colors.text }]}>
+              Study nugget not found
+            </Text>
             <Button variant="ghost" onPress={() => router.back()}>
               Go Back
             </Button>

@@ -11,9 +11,8 @@ import { typography } from '../theme/typography';
 import { SPACING, RADIUS } from '../theme/spacing';
 import { useAuthStore } from '../stores/authStore';
 import { supabase } from '../lib/supabase';
+import { PALY_POINTS_FREE_MONTH_THRESHOLD } from '../lib/constants';
 import { Ionicons } from '@expo/vector-icons';
-
-const PRO_THRESHOLD = 200;
 
 export function PalyPointsBar() {
   const { colors } = useTheme();
@@ -38,7 +37,9 @@ export function PalyPointsBar() {
         const p = m === currentMonth ? data.paly_points || 0 : 0;
         setPoints(p);
         setMonth(m);
-        progressWidth.value = withSpring(Math.min(p / PRO_THRESHOLD, 1), { damping: 15 });
+        progressWidth.value = withSpring(Math.min(p / PALY_POINTS_FREE_MONTH_THRESHOLD, 1), {
+          damping: 15,
+        });
       }
     };
 
@@ -57,7 +58,10 @@ export function PalyPointsBar() {
         (payload: any) => {
           const newPoints = payload.new.paly_points || 0;
           setPoints(newPoints);
-          progressWidth.value = withSpring(Math.min(newPoints / PRO_THRESHOLD, 1), { damping: 15 });
+          progressWidth.value = withSpring(
+            Math.min(newPoints / PALY_POINTS_FREE_MONTH_THRESHOLD, 1),
+            { damping: 15 }
+          );
         }
       )
       .subscribe();
@@ -65,13 +69,13 @@ export function PalyPointsBar() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [profile?.id]);
+  }, [profile?.id, progressWidth]);
 
   const animatedBarStyle = useAnimatedStyle(() => ({
     width: `${progressWidth.value * 100}%`,
   }));
 
-  const isProUnlocked = points >= PRO_THRESHOLD;
+  const isProUnlocked = points >= PALY_POINTS_FREE_MONTH_THRESHOLD;
 
   if (!profile?.id) return null;
 
@@ -87,7 +91,7 @@ export function PalyPointsBar() {
             {points}
           </Text>
           <Text style={[typography.labelSmall, { color: colors.cardTextMuted, marginLeft: 4 }]}>
-            / {PRO_THRESHOLD}
+            / {PALY_POINTS_FREE_MONTH_THRESHOLD}
           </Text>
         </View>
         {isProUnlocked && (

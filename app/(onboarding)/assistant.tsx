@@ -65,7 +65,7 @@ export default function AssistantScreen() {
                 },
               ]}
             >
-              Your companion will send you personalized study prompts and help you stay consistent.
+              Your companion will send you personalized study nuggets and help you stay consistent.
             </Text>
           </Animated.View>
 

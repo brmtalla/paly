@@ -15,6 +15,7 @@ import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Controller, useForm } from 'react-hook-form';
 import { Button, Input } from '../../src/components/ui';
+import { mergeAuthLinkParams } from '../../src/lib/authLinks';
 import { supabase } from '../../src/lib/supabase';
 import { LAYOUT, SPACING } from '../../src/theme/spacing';
 import { typography } from '../../src/theme/typography';
@@ -26,31 +27,6 @@ interface ResetPasswordForm {
 }
 
 type LinkStatus = 'checking' | 'ready' | 'invalid';
-
-function parseLinkParams(url: string | null): Record<string, string> {
-  if (!url) {
-    return {};
-  }
-
-  const params: Record<string, string> = {};
-  const parts = [url.split('?')[1], url.split('#')[1]].filter(Boolean);
-
-  for (const part of parts) {
-    const cleanPart = part.split('#')[0];
-    for (const pair of cleanPart.split('&')) {
-      const [rawKey, rawValue = ''] = pair.split('=');
-      if (!rawKey) {
-        continue;
-      }
-
-      const key = decodeURIComponent(rawKey);
-      const value = decodeURIComponent(rawValue.replace(/\+/g, ' '));
-      params[key] = value;
-    }
-  }
-
-  return params;
-}
 
 export default function ResetPasswordScreen() {
   const { colors } = useTheme();
@@ -83,15 +59,7 @@ export default function ResetPasswordScreen() {
     const openRecoverySession = async () => {
       handledLinkRef.current = true;
       const initialUrl = url ?? (await Linking.getInitialURL());
-      const params = {
-        ...Object.fromEntries(
-          Object.entries(routeParams).map(([key, value]) => [
-            key,
-            Array.isArray(value) ? value[0] : value,
-          ])
-        ),
-        ...parseLinkParams(initialUrl),
-      };
+      const params = mergeAuthLinkParams(routeParams, initialUrl);
 
       if (params.error || params.error_description) {
         setStatus('invalid');

@@ -207,7 +207,7 @@ export default function AvailabilityScreen() {
           >
             <Ionicons name="notifications-outline" size={20} color={colors.accent} />
             <Text style={[typography.bodyMedium, { color: colors.textSecondary, flex: 1 }]}>
-              Study prompts will be sent during{' '}
+              Study nuggets will be sent during{' '}
               <Text style={{ color: colors.accent, fontWeight: '600' }}>
                 {availableCount} time {availableCount === 1 ? 'window' : 'windows'}
               </Text>

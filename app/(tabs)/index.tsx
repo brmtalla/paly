@@ -123,7 +123,7 @@ export default function TodayScreen() {
 
               <View style={styles.statsRow}>
                 <StatItem label="Classes" value={todaysClasses.length.toString()} colors={colors} />
-                <StatItem label="Prompts" value={todaysPrompts.length.toString()} colors={colors} />
+                <StatItem label="Nuggets" value={todaysPrompts.length.toString()} colors={colors} />
                 <StatItem
                   label="Completed"
                   value={todaysPrompts.filter((p) => p.read_at).length.toString()}
@@ -214,13 +214,13 @@ export default function TodayScreen() {
             </Animated.View>
           )}
 
-          {/* Study Prompts */}
+          {/* Study Nuggets */}
           <Animated.View
             entering={FadeInUp.delay(400).duration(600).springify()}
             style={styles.section}
           >
             <View style={styles.sectionHeader}>
-              <Text style={[typography.headlineSmall, { color: colors.text }]}>Study Prompts</Text>
+              <Text style={[typography.headlineSmall, { color: colors.text }]}>Study Nuggets</Text>
               <TouchableOpacity onPress={() => router.push('/(tabs)/study')}>
                 <Text style={[typography.labelMedium, { color: colors.white }]}>See All</Text>
               </TouchableOpacity>
@@ -281,7 +281,7 @@ export default function TodayScreen() {
                       },
                     ]}
                   >
-                    No study prompts yet.{'\n'}They&apos;ll appear after your classes!
+                    No study nuggets yet.{'\n'}They&apos;ll appear after your classes!
                   </Text>
                 </View>
               </Card>

@@ -127,7 +127,7 @@ export const useStudyStore = create<StudyState>((set, get) => ({
       set({ studyPrompts: data, isLoading: false });
     } catch (error) {
       console.error('Fetch study prompts error:', error);
-      set({ isLoading: false, error: 'Failed to load study prompts. Pull down to retry.' });
+      set({ isLoading: false, error: 'Failed to load study nuggets. Pull down to retry.' });
     }
   },
 

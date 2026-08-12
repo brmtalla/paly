@@ -83,7 +83,7 @@ export default function CompleteScreen() {
               ]}
             >
               {profile?.assistant_name || 'Paly'} is ready to help you study smarter. Your first
-              study prompts will arrive after your next class.
+              study nuggets will arrive after your next class.
             </Text>
           </Animated.View>
 
@@ -94,7 +94,7 @@ export default function CompleteScreen() {
           >
             <FeatureCheck icon="notifications" text="Class reminders are enabled" colors={colors} />
             <FeatureCheck icon="sparkles" text="AI synthesis ready to go" colors={colors} />
-            <FeatureCheck icon="book" text="Daily study prompts scheduled" colors={colors} />
+            <FeatureCheck icon="book" text="Daily study nuggets scheduled" colors={colors} />
           </Animated.View>
         </View>
 

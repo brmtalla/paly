@@ -1,13 +1,13 @@
 # Paly - Study Without Cramming
 
-Paly is a mobile study companion app that helps students learn consistently through personalized study prompts, AI-generated flashcards, and smart reminders.
+Paly is a mobile study companion app that helps students learn consistently through personalized study nuggets, AI-generated flashcards, and smart reminders.
 
 ## Features
 
 - **📚 Class Schedule Management**: Input your class schedule and receive reminders
 - **📝 Note Taking**: Take notes during class or upload PDFs, PPTs, and documents
 - **✨ AI Synthesis**: Automatically generate summaries, flashcards, and quiz questions from your notes
-- **🔔 Smart Reminders**: Receive personalized study prompts at random times throughout the day
+- **🔔 Smart Reminders**: Receive personalized study nuggets at random times throughout the day
 - **🎨 Personalized Theme**: Each user gets a unique accent color for their app experience
 - **🤖 Study Companion**: Name your AI companion (default: Paly) for a personal touch
 
@@ -34,16 +34,19 @@ Paly is a mobile study companion app that helps students learn consistently thro
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 cd Paly
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Start the development server:
+
 ```bash
 npm start
 ```
@@ -55,12 +58,14 @@ npm start
 The Supabase credentials are already configured in the app. For production, you should:
 
 1. Create a `.env` file:
+
 ```env
 EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 ```
 
 2. Set the Anthropic API key on the Supabase Edge Functions:
+
 ```bash
 supabase secrets set ANTHROPIC_API_KEY=sk-ant-your_anthropic_api_key
 ```
@@ -99,6 +104,7 @@ Paly/
 ## Key Features Explained
 
 ### Onboarding Flow
+
 1. Welcome screen with value proposition
 2. Name your study companion
 3. Choose your personalized theme color
@@ -106,7 +112,9 @@ Paly/
 5. Set availability windows for notifications
 
 ### Study Synthesis
+
 When you synthesize notes, the AI generates:
+
 - Concise summary
 - Key takeaways
 - Flashcards for memorization
@@ -114,8 +122,9 @@ When you synthesize notes, the AI generates:
 - Daily study chunks
 
 ### Notification System
+
 - Class reminders before each session
-- Random daily study prompts within available hours
+- Random daily study nuggets within available hours
 - Deep linking to relevant content
 
 ## License
@@ -125,5 +134,3 @@ MIT License - feel free to use this for your own projects!
 ## Credits
 
 Built with ❤️ for students who want to study smarter, not harder.
-
-
