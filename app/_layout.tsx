@@ -42,8 +42,14 @@ function RootLayoutNav() {
   useEffect(() => {
     if (!isInitialized || isLoading) return;
 
-    const inAuthGroup = segments[0] === '(auth)';
-    const inOnboardingGroup = segments[0] === '(onboarding)';
+    const [group, screen] = segments as string[];
+    const inAuthGroup = group === '(auth)';
+    const inOnboardingGroup = group === '(onboarding)';
+    const inPasswordReset = group === '(auth)' && screen === 'reset-password';
+
+    if (inPasswordReset) {
+      return;
+    }
 
     if (!user && !inAuthGroup) {
       // Redirect to welcome if not logged in

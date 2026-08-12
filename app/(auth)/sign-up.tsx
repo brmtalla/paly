@@ -7,8 +7,9 @@ import {
   Platform,
   ScrollView,
   Alert,
+  TouchableOpacity,
 } from 'react-native';
-import { Link, router } from 'expo-router';
+import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useForm, Controller } from 'react-hook-form';
@@ -85,12 +86,11 @@ export default function SignUpScreen() {
             </Text>
 
             <Button
-              variant="primary"
+              variant="secondary"
               size="lg"
               fullWidth
               style={{ marginTop: SPACING['2xl'] }}
               onPress={() => router.replace('/(auth)/sign-in')}
-              textStyle={{ color: colors.accent }}
             >
               Go to Sign In
             </Button>
@@ -114,17 +114,15 @@ export default function SignUpScreen() {
           >
             {/* Header */}
             <Animated.View entering={FadeInDown.delay(100).duration(600).springify()}>
-              <Link href="/(auth)/welcome" asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  icon={<Ionicons name="arrow-back" size={20} color={colors.text} />}
-                  style={styles.backButton}
-                  onPress={() => {}}
-                >
-                  Back
-                </Button>
-              </Link>
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={<Ionicons name="arrow-back" size={20} color={colors.text} />}
+                style={styles.backButton}
+                onPress={() => router.back()}
+              >
+                Back
+              </Button>
 
               <Text
                 style={[typography.displaySmall, { color: colors.text, marginTop: SPACING.xl }]}
@@ -159,6 +157,7 @@ export default function SignUpScreen() {
                 }}
                 render={({ field: { onChange, onBlur, value } }) => (
                   <Input
+                    variant="glass"
                     label="Email"
                     placeholder="you@university.edu"
                     keyboardType="email-address"
@@ -168,9 +167,7 @@ export default function SignUpScreen() {
                     onChangeText={onChange}
                     onBlur={onBlur}
                     error={errors.email?.message}
-                    leftIcon={
-                      <Ionicons name="mail-outline" size={20} color={colors.cardTextMuted} />
-                    }
+                    leftIcon={<Ionicons name="mail-outline" size={20} color={colors.textMuted} />}
                   />
                 )}
               />
@@ -187,6 +184,7 @@ export default function SignUpScreen() {
                 }}
                 render={({ field: { onChange, onBlur, value } }) => (
                   <Input
+                    variant="glass"
                     label="Password"
                     placeholder="Create a password"
                     isPassword
@@ -195,7 +193,7 @@ export default function SignUpScreen() {
                     onBlur={onBlur}
                     error={errors.password?.message}
                     leftIcon={
-                      <Ionicons name="lock-closed-outline" size={20} color={colors.cardTextMuted} />
+                      <Ionicons name="lock-closed-outline" size={20} color={colors.textMuted} />
                     }
                   />
                 )}
@@ -210,6 +208,7 @@ export default function SignUpScreen() {
                 }}
                 render={({ field: { onChange, onBlur, value } }) => (
                   <Input
+                    variant="glass"
                     label="Confirm Password"
                     placeholder="Confirm your password"
                     isPassword
@@ -218,20 +217,19 @@ export default function SignUpScreen() {
                     onBlur={onBlur}
                     error={errors.confirmPassword?.message}
                     leftIcon={
-                      <Ionicons name="lock-closed-outline" size={20} color={colors.cardTextMuted} />
+                      <Ionicons name="lock-closed-outline" size={20} color={colors.textMuted} />
                     }
                   />
                 )}
               />
 
               <Button
-                variant="primary"
+                variant="secondary"
                 size="lg"
                 fullWidth
                 loading={isLoading}
                 onPress={handleSubmit(onSubmit)}
                 style={{ marginTop: SPACING.md }}
-                textStyle={{ color: colors.accent }}
               >
                 Create Account
               </Button>
@@ -240,11 +238,11 @@ export default function SignUpScreen() {
                 <Text style={[typography.bodyMedium, { color: colors.textSecondary }]}>
                   Already have an account?{' '}
                 </Text>
-                <Link href="/(auth)/sign-in" asChild>
+                <TouchableOpacity onPress={() => router.push('/(auth)/sign-in')}>
                   <Text style={[typography.bodyMedium, { color: colors.text, fontWeight: '600' }]}>
                     Sign In
                   </Text>
-                </Link>
+                </TouchableOpacity>
               </View>
             </Animated.View>
           </ScrollView>

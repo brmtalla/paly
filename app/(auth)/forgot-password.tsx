@@ -7,8 +7,9 @@ import {
   Platform,
   ScrollView,
   Alert,
+  TouchableOpacity,
 } from 'react-native';
-import { Link, router } from 'expo-router';
+import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useForm, Controller } from 'react-hook-form';
@@ -74,12 +75,11 @@ export default function ForgotPasswordScreen() {
             </Text>
 
             <Button
-              variant="primary"
+              variant="secondary"
               size="lg"
               fullWidth
               style={{ marginTop: SPACING['2xl'] }}
               onPress={() => router.replace('/(auth)/sign-in')}
-              textStyle={{ color: colors.accent }}
             >
               Back to Sign In
             </Button>
@@ -112,17 +112,15 @@ export default function ForgotPasswordScreen() {
             showsVerticalScrollIndicator={false}
           >
             <Animated.View entering={FadeInDown.delay(100).duration(600).springify()}>
-              <Link href="/(auth)/sign-in" asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  icon={<Ionicons name="arrow-back" size={20} color={colors.text} />}
-                  style={styles.backButton}
-                  onPress={() => {}}
-                >
-                  Back
-                </Button>
-              </Link>
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={<Ionicons name="arrow-back" size={20} color={colors.text} />}
+                style={styles.backButton}
+                onPress={() => router.back()}
+              >
+                Back
+              </Button>
 
               <Text
                 style={[typography.displaySmall, { color: colors.text, marginTop: SPACING.xl }]}
@@ -156,6 +154,7 @@ export default function ForgotPasswordScreen() {
                 }}
                 render={({ field: { onChange, onBlur, value } }) => (
                   <Input
+                    variant="glass"
                     label="Email"
                     placeholder="you@university.edu"
                     keyboardType="email-address"
@@ -165,21 +164,18 @@ export default function ForgotPasswordScreen() {
                     onChangeText={onChange}
                     onBlur={onBlur}
                     error={errors.email?.message}
-                    leftIcon={
-                      <Ionicons name="mail-outline" size={20} color={colors.cardTextMuted} />
-                    }
+                    leftIcon={<Ionicons name="mail-outline" size={20} color={colors.textMuted} />}
                   />
                 )}
               />
 
               <Button
-                variant="primary"
+                variant="secondary"
                 size="lg"
                 fullWidth
                 loading={isLoading}
                 onPress={handleSubmit(onSubmit)}
                 style={{ marginTop: SPACING.md }}
-                textStyle={{ color: colors.accent }}
               >
                 Send Reset Link
               </Button>
@@ -188,11 +184,11 @@ export default function ForgotPasswordScreen() {
                 <Text style={[typography.bodyMedium, { color: colors.textSecondary }]}>
                   Remember your password?{' '}
                 </Text>
-                <Link href="/(auth)/sign-in" asChild>
+                <TouchableOpacity onPress={() => router.push('/(auth)/sign-in')}>
                   <Text style={[typography.bodyMedium, { color: colors.text, fontWeight: '600' }]}>
                     Sign In
                   </Text>
-                </Link>
+                </TouchableOpacity>
               </View>
             </Animated.View>
           </ScrollView>

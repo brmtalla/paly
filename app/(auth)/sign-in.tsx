@@ -7,8 +7,9 @@ import {
   Platform,
   ScrollView,
   Alert,
+  TouchableOpacity,
 } from 'react-native';
-import { Link } from 'expo-router';
+import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useForm, Controller } from 'react-hook-form';
@@ -62,17 +63,15 @@ export default function SignInScreen() {
           >
             {/* Header */}
             <Animated.View entering={FadeInDown.delay(100).duration(600).springify()}>
-              <Link href="/(auth)/welcome" asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  icon={<Ionicons name="arrow-back" size={20} color={colors.text} />}
-                  style={styles.backButton}
-                  onPress={() => {}}
-                >
-                  Back
-                </Button>
-              </Link>
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={<Ionicons name="arrow-back" size={20} color={colors.text} />}
+                style={styles.backButton}
+                onPress={() => router.back()}
+              >
+                Back
+              </Button>
 
               <Text
                 style={[typography.displaySmall, { color: colors.text, marginTop: SPACING.xl }]}
@@ -107,6 +106,7 @@ export default function SignInScreen() {
                 }}
                 render={({ field: { onChange, onBlur, value } }) => (
                   <Input
+                    variant="glass"
                     label="Email"
                     placeholder="you@university.edu"
                     keyboardType="email-address"
@@ -116,9 +116,7 @@ export default function SignInScreen() {
                     onChangeText={onChange}
                     onBlur={onBlur}
                     error={errors.email?.message}
-                    leftIcon={
-                      <Ionicons name="mail-outline" size={20} color={colors.cardTextMuted} />
-                    }
+                    leftIcon={<Ionicons name="mail-outline" size={20} color={colors.textMuted} />}
                   />
                 )}
               />
@@ -131,6 +129,7 @@ export default function SignInScreen() {
                 }}
                 render={({ field: { onChange, onBlur, value } }) => (
                   <Input
+                    variant="glass"
                     label="Password"
                     placeholder="Enter your password"
                     isPassword
@@ -139,31 +138,28 @@ export default function SignInScreen() {
                     onBlur={onBlur}
                     error={errors.password?.message}
                     leftIcon={
-                      <Ionicons name="lock-closed-outline" size={20} color={colors.cardTextMuted} />
+                      <Ionicons name="lock-closed-outline" size={20} color={colors.textMuted} />
                     }
                   />
                 )}
               />
 
-              <Link href={'/(auth)/forgot-password' as any} asChild>
-                <Text
-                  style={[
-                    typography.bodySmall,
-                    { color: colors.textSecondary, textAlign: 'right', marginTop: SPACING.sm },
-                  ]}
-                >
+              <TouchableOpacity
+                onPress={() => router.push('/(auth)/forgot-password')}
+                style={styles.forgotLink}
+              >
+                <Text style={[typography.bodySmall, { color: colors.textSecondary }]}>
                   Forgot password?
                 </Text>
-              </Link>
+              </TouchableOpacity>
 
               <Button
-                variant="primary"
+                variant="secondary"
                 size="lg"
                 fullWidth
                 loading={isLoading}
                 onPress={handleSubmit(onSubmit)}
                 style={{ marginTop: SPACING.md }}
-                textStyle={{ color: colors.accent }}
               >
                 Sign In
               </Button>
@@ -172,11 +168,11 @@ export default function SignInScreen() {
                 <Text style={[typography.bodyMedium, { color: colors.textSecondary }]}>
                   Don&apos;t have an account?{' '}
                 </Text>
-                <Link href="/(auth)/sign-up" asChild>
+                <TouchableOpacity onPress={() => router.push('/(auth)/sign-up')}>
                   <Text style={[typography.bodyMedium, { color: colors.text, fontWeight: '600' }]}>
                     Sign Up
                   </Text>
-                </Link>
+                </TouchableOpacity>
               </View>
             </Animated.View>
           </ScrollView>
@@ -206,6 +202,10 @@ const styles = StyleSheet.create({
   },
   form: {
     marginTop: SPACING['3xl'],
+  },
+  forgotLink: {
+    alignSelf: 'flex-end',
+    marginTop: SPACING.sm,
   },
   signUpPrompt: {
     flexDirection: 'row',

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { User, Session } from '@supabase/supabase-js';
+import * as Linking from 'expo-linking';
 import { supabase } from '../lib/supabase';
 import { Profile, ProfileUpdate } from '../types/database';
 
@@ -100,7 +101,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       set({ isLoading: true });
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'paly://reset-password',
+        redirectTo: Linking.createURL('/reset-password', { scheme: 'paly' }),
       });
       set({ isLoading: false });
       return { error: error as Error | null };

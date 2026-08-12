@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -79,6 +79,7 @@ export default function SubscriptionScreen() {
 
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual'>('annual');
   const [managingLoading, setManagingLoading] = useState(false);
+  const scrollRef = useRef<ScrollView>(null);
 
   const trial = getTrialStatus(profile);
 
@@ -116,6 +117,10 @@ export default function SubscriptionScreen() {
     }
   };
 
+  const scrollToSubscribe = () => {
+    scrollRef.current?.scrollToEnd({ animated: true });
+  };
+
   const monthlyPrice = monthlyPackage?.product.priceString || '$7.99';
   const annualPrice = annualPackage?.product.priceString || '$69.99';
   const annualMonthly = annualPackage
@@ -143,6 +148,7 @@ export default function SubscriptionScreen() {
         </Animated.View>
 
         <ScrollView
+          ref={scrollRef}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
@@ -191,10 +197,18 @@ export default function SubscriptionScreen() {
                 </Button>
               ) : (
                 <>
-                  <View style={styles.pricePreview}>
-                    <Text style={[typography.displaySmall, { color: '#6366F1' }]}>$7.99</Text>
-                    <Text style={[typography.bodySmall, { color: colors.textMuted }]}>/month</Text>
-                  </View>
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityHint="Scrolls to the Paly Pro trial button"
+                    style={[styles.textingButton, { backgroundColor: '#6366F1' }]}
+                    onPress={scrollToSubscribe}
+                  >
+                    <Ionicons name="chatbubble-ellipses" size={19} color="#FFFFFF" />
+                    <Text style={[typography.titleSmall, styles.textingButtonText]}>
+                      Want {profile?.assistant_name || 'Paly'} to text you?
+                    </Text>
+                    <Ionicons name="arrow-down" size={18} color="#FFFFFF" />
+                  </TouchableOpacity>
                   {!trial.hasUsedTrial && (
                     <Text
                       style={[
@@ -410,11 +424,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  pricePreview: {
+  textingButton: {
     flexDirection: 'row',
-    alignItems: 'baseline',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginTop: SPACING.lg,
-    gap: SPACING.xs,
+    gap: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.md,
+    borderRadius: RADIUS.lg,
+  },
+  textingButtonText: {
+    color: '#FFFFFF',
+    flexShrink: 1,
+    textAlign: 'center',
   },
   section: { marginTop: SPACING.xl },
   featureItem: {

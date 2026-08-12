@@ -13,6 +13,7 @@ import { useAuthStore } from '../../src/stores/authStore';
 import { useClassStore } from '../../src/stores/classStore';
 import { useStudyStore } from '../../src/stores/studyStore';
 import { Ionicons } from '@expo/vector-icons';
+import { ProfileAvatar } from '../../src/components/ProfileAvatar';
 
 export default function TodayScreen() {
   const { colors, colorScheme } = useTheme();
@@ -89,14 +90,16 @@ export default function TodayScreen() {
             </View>
 
             <TouchableOpacity
-              style={[styles.avatarButton, { backgroundColor: colors.white, ...SHADOWS.md }]}
+              style={styles.avatarButton}
               onPress={() => router.push('/(tabs)/profile')}
             >
-              <Text style={[styles.avatarText, { color: colors.background }]}>
-                {profile?.full_name?.charAt(0).toUpperCase() ||
-                  profile?.email?.charAt(0).toUpperCase() ||
-                  'U'}
-              </Text>
+              <ProfileAvatar
+                avatarUrl={profile?.avatar_url}
+                fallback={profile?.full_name || profile?.email || 'U'}
+                size={48}
+                borderRadius={16}
+                style={SHADOWS.md}
+              />
             </TouchableOpacity>
           </Animated.View>
 
@@ -393,13 +396,6 @@ const styles = StyleSheet.create({
   avatarButton: {
     width: 48,
     height: 48,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarText: {
-    fontSize: 18,
-    fontWeight: '600',
   },
   overviewCard: {
     marginBottom: SPACING.xl,

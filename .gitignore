@@ -38,6 +38,14 @@ yarn-error.*
 # Supabase CLI scratch state (link target, cached versions, pooler URL)
 supabase/.temp/
 
+# Private and intermediate App Store screenshot material
+app-store-screenshots/actual-source/
+app-store-screenshots/source/
+app-store-screenshots/0*.png
+app-store-screenshots/contact-sheet.png
+app-store-screenshots/actual-edited/contact-sheet.png
+app-store-screenshots/final-framed/contact-sheet.png
+
 # typescript
 *.tsbuildinfo
 

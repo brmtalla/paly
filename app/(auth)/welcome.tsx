@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Link } from 'expo-router';
+import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useTheme } from '../../src/theme/ThemeContext';
@@ -69,17 +69,24 @@ export default function WelcomeScreen() {
 
         {/* CTA Buttons */}
         <Animated.View entering={FadeInUp.delay(1000).duration(600)} style={styles.ctaContainer}>
-          <Link href="/(auth)/sign-up" asChild>
-            <Button variant="primary" size="lg" fullWidth textStyle={{ color: colors.accent }}>
-              Get Started
-            </Button>
-          </Link>
+          <Button
+            variant="secondary"
+            size="lg"
+            fullWidth
+            onPress={() => router.push('/(auth)/sign-up')}
+          >
+            Get Started
+          </Button>
 
-          <Link href="/(auth)/sign-in" asChild>
-            <Button variant="ghost" size="lg" fullWidth style={styles.signInButton}>
-              I already have an account
-            </Button>
-          </Link>
+          <Button
+            variant="ghost"
+            size="lg"
+            fullWidth
+            style={styles.signInButton}
+            onPress={() => router.push('/(auth)/sign-in')}
+          >
+            I already have an account
+          </Button>
         </Animated.View>
       </SafeAreaView>
     </View>

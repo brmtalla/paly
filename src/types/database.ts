@@ -8,6 +8,7 @@ export interface Database {
           id: string;
           email: string | null;
           full_name: string | null;
+          avatar_url: string | null;
           assistant_name: string;
           theme_color: string;
           phone_number: string | null;
@@ -39,6 +40,7 @@ export interface Database {
           id: string;
           email?: string | null;
           full_name?: string | null;
+          avatar_url?: string | null;
           assistant_name?: string;
           theme_color?: string;
           phone_number?: string | null;
@@ -63,6 +65,7 @@ export interface Database {
         Update: {
           email?: string | null;
           full_name?: string | null;
+          avatar_url?: string | null;
           assistant_name?: string;
           theme_color?: string;
           onboarding_completed?: boolean;

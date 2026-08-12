@@ -1,4 +1,80 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { ExpoConfig, ConfigContext } from 'expo/config';
+
+type EnvMap = Record<string, string | undefined>;
+
+let localEnvCache: EnvMap | null = null;
+let easEnvCache: EnvMap | null = null;
+
+function parseEnvFile(contents: string): EnvMap {
+  return contents.split(/\r?\n/).reduce<EnvMap>((env, rawLine) => {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#')) {
+      return env;
+    }
+
+    const equalsIndex = line.indexOf('=');
+    if (equalsIndex === -1) {
+      return env;
+    }
+
+    const name = line.slice(0, equalsIndex).trim();
+    let value = line.slice(equalsIndex + 1).trim();
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+
+    env[name] = value;
+    return env;
+  }, {});
+}
+
+function getLocalEnv(): EnvMap {
+  if (localEnvCache) {
+    return localEnvCache;
+  }
+
+  const envPath = path.join(process.cwd(), '.env');
+  try {
+    localEnvCache = parseEnvFile(fs.readFileSync(envPath, 'utf8'));
+  } catch {
+    localEnvCache = {};
+  }
+
+  return localEnvCache;
+}
+
+function getEasProfileEnv(): EnvMap {
+  if (easEnvCache) {
+    return easEnvCache;
+  }
+
+  const easPath = path.join(process.cwd(), 'eas.json');
+  try {
+    const eas = JSON.parse(fs.readFileSync(easPath, 'utf8')) as {
+      build?: Record<string, { env?: EnvMap }>;
+    };
+    const profile =
+      process.env.EAS_BUILD_PROFILE ||
+      process.env.EAS_BUILD_PROFILE_NAME ||
+      process.env.EAS_PROFILE ||
+      'production';
+
+    easEnvCache = eas.build?.[profile]?.env ?? {};
+  } catch {
+    easEnvCache = {};
+  }
+
+  return easEnvCache;
+}
+
+function publicEnv(name: string): string | undefined {
+  return process.env[name] || getLocalEnv()[name] || getEasProfileEnv()[name];
+}
 
 /**
  * Asserts a required public env var is present. Failing the build is
@@ -63,6 +139,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     supportsTablet: false,
     bundleIdentifier: 'com.paly.app',
     infoPlist: {
+      ITSAppUsesNonExemptEncryption: false,
       UIBackgroundModes: ['remote-notification'],
     },
   },
@@ -91,32 +168,40 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     'expo-document-picker',
+    [
+      'expo-image-picker',
+      {
+        photosPermission: 'Allow Paly to access your photos so you can choose a profile picture.',
+        cameraPermission: false,
+        microphonePermission: false,
+      },
+    ],
     'expo-font',
   ],
   experiments: {
     typedRoutes: true,
   },
   extra: {
-    supabaseUrl: required('EXPO_PUBLIC_SUPABASE_URL', process.env.EXPO_PUBLIC_SUPABASE_URL),
+    supabaseUrl: required('EXPO_PUBLIC_SUPABASE_URL', publicEnv('EXPO_PUBLIC_SUPABASE_URL')),
     supabaseAnonKey: required(
       'EXPO_PUBLIC_SUPABASE_ANON_KEY',
-      process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY
+      publicEnv('EXPO_PUBLIC_SUPABASE_ANON_KEY')
     ),
     revenueCat: {
       iosKey:
         buildPlatform === 'ios'
           ? requiredForBuild(
               'EXPO_PUBLIC_REVENUECAT_IOS_KEY',
-              process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY
+              publicEnv('EXPO_PUBLIC_REVENUECAT_IOS_KEY')
             )
-          : process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY,
+          : publicEnv('EXPO_PUBLIC_REVENUECAT_IOS_KEY'),
       androidKey:
         buildPlatform === 'android'
           ? requiredForBuild(
               'EXPO_PUBLIC_REVENUECAT_ANDROID_KEY',
-              process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY
+              publicEnv('EXPO_PUBLIC_REVENUECAT_ANDROID_KEY')
             )
-          : process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY,
+          : publicEnv('EXPO_PUBLIC_REVENUECAT_ANDROID_KEY'),
     },
     router: {
       origin: false,

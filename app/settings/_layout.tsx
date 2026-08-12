@@ -13,9 +13,11 @@ export default function SettingsLayout() {
       }}
     >
       <Stack.Screen name="subscription" />
+      <Stack.Screen name="account" />
       <Stack.Screen name="notifications" />
       <Stack.Screen name="companion" />
       <Stack.Screen name="availability" />
+      <Stack.Screen name="help" />
     </Stack>
   );
 }

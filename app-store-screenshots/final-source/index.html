@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=1284, height=2778, initial-scale=1" />
+    <title>Paly Framed App Store Screenshots</title>
+    <style>
+      :root {
+        --w: 1284px;
+        --h: 2778px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: var(--w);
+        height: var(--h);
+        margin: 0;
+        overflow: hidden;
+        background: #09101d;
+        font-family:
+          "Segoe UI",
+          Inter,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Helvetica Neue",
+          Arial,
+          sans-serif;
+      }
+
+      body {
+        -webkit-font-smoothing: antialiased;
+        text-rendering: geometricPrecision;
+      }
+
+      .shot {
+        position: relative;
+        width: var(--w);
+        height: var(--h);
+        overflow: hidden;
+        color: #fff;
+        background:
+          radial-gradient(ellipse at center, rgba(255, 255, 255, 0.1), transparent 44%, rgba(0, 0, 0, 0.4) 100%),
+          linear-gradient(150deg, var(--a), var(--b) 50%, var(--c));
+      }
+
+      .shot::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background:
+          linear-gradient(180deg, rgba(255,255,255,0.08), transparent 24%, transparent 72%, rgba(0,0,0,0.22)),
+          repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0 1px, transparent 1px 4px);
+        mix-blend-mode: soft-light;
+      }
+
+      .copy {
+        position: absolute;
+        z-index: 3;
+        top: 86px;
+        left: 88px;
+        right: 88px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 16px;
+        min-height: 78px;
+        padding: 12px 26px 12px 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.22);
+        background: rgba(255,255,255,0.13);
+        box-shadow: 0 16px 44px rgba(0,0,0,0.16);
+        backdrop-filter: blur(22px);
+        font-size: 28px;
+        line-height: 1;
+        font-weight: 850;
+        letter-spacing: 0;
+      }
+
+      .brand img {
+        width: 52px;
+        height: 52px;
+        border-radius: 16px;
+        display: block;
+      }
+
+      h1 {
+        max-width: 1040px;
+        margin: 52px 0 0;
+        font-size: 90px;
+        line-height: 0.98;
+        font-weight: 900;
+        letter-spacing: 0;
+      }
+
+      p {
+        max-width: 890px;
+        margin: 30px 0 0;
+        color: rgba(255,255,255,0.78);
+        font-size: 39px;
+        line-height: 1.32;
+        font-weight: 560;
+        letter-spacing: 0;
+      }
+
+      .device {
+        position: absolute;
+        z-index: 2;
+        left: 50%;
+        top: 724px;
+        width: 786px;
+        height: 1702px;
+        transform: translateX(-50%);
+        padding: 18px;
+        border-radius: 92px;
+        background:
+          linear-gradient(145deg, #243047, #050812 34%, #182138 72%, #03050b);
+        box-shadow:
+          0 78px 128px rgba(0,0,0,0.36),
+          0 18px 42px rgba(0,0,0,0.22),
+          inset 0 0 0 2px rgba(255,255,255,0.12),
+          inset 0 -18px 36px rgba(0,0,0,0.3);
+      }
+
+      .screen {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        border-radius: 74px;
+        background: #07101c;
+      }
+
+      .screen img {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: cover;
+      }
+
+      .glint {
+        position: absolute;
+        inset: 18px;
+        border-radius: 74px;
+        pointer-events: none;
+        background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent 34%, transparent 66%, rgba(255,255,255,0.04));
+        mix-blend-mode: screen;
+        opacity: 0.42;
+      }
+    </style>
+  </head>
+  <body>
+    <main id="root"></main>
+    <script>
+      const shots = [
+        {
+          slug: "01-study-without-cramming",
+          title: "Study without cramming",
+          subtitle: "See today's classes, prompts, and progress in one calm place.",
+          image: "../actual-edited/01-today-real-anonymized.png",
+          colors: ["#1d4ed8", "#14b8a6", "#f59e0b"],
+        },
+        {
+          slug: "02-build-your-semester",
+          title: "Build your semester once",
+          subtitle: "Add schedules, notes, uploads, and study tools for every class.",
+          image: "../actual-edited/02-classes-real-anonymized.png",
+          colors: ["#0f766e", "#4f46e5", "#ec4899"],
+        },
+        {
+          slug: "03-keep-every-class-ready",
+          title: "Keep every class ready",
+          subtitle: "Store lectures, instructors, uploads, and quizzes together.",
+          image: "../actual-edited/03-class-detail-real-anonymized.png",
+          colors: ["#0f766e", "#14b8a6", "#2563eb"],
+        },
+        {
+          slug: "04-review-in-small-bites",
+          title: "Review in small bites",
+          subtitle: "Daily prompts keep material fresh between lectures.",
+          image: "../actual-edited/04-study-real-anonymized.png",
+          colors: ["#0369a1", "#7c3aed", "#10b981"],
+        },
+        {
+          slug: "05-quiz-before-class",
+          title: "Quiz before class",
+          subtitle: "Check understanding while there is still time to review.",
+          image: "../actual-edited/05-quiz-real.png",
+          colors: ["#7c2d12", "#d97706", "#0f766e"],
+        },
+        {
+          slug: "06-request-study-chunks",
+          title: "Ask for the next chunk",
+          subtitle: "Get focused review whenever you want an extra nudge.",
+          image: "../actual-edited/06-class-study-real-anonymized.png",
+          colors: ["#172554", "#a21caf", "#14b8a6"],
+        },
+      ];
+
+      const params = new URLSearchParams(location.search);
+      const index = Math.max(0, Math.min(shots.length - 1, Number(params.get("shot") || 1) - 1));
+      const shot = shots[index];
+      document.title = `Paly ${shot.slug}`;
+      document.getElementById("root").innerHTML = `
+        <section class="shot" style="--a:${shot.colors[0]};--b:${shot.colors[1]};--c:${shot.colors[2]};">
+          <div class="copy">
+            <div class="brand"><img src="../../assets/icon.png" alt="" /> Paly</div>
+            <h1>${shot.title}</h1>
+            <p>${shot.subtitle}</p>
+          </div>
+          <div class="device">
+            <div class="screen"><img src="${shot.image}" alt="" /></div>
+            <div class="glint"></div>
+          </div>
+        </section>
+      `;
+    </script>
+  </body>
+</html>

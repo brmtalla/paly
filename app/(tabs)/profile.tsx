@@ -11,11 +11,8 @@ import { Card, Button, Background } from '../../src/components/ui';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useSubscriptionStore } from '../../src/stores/subscriptionStore';
 import { Ionicons } from '@expo/vector-icons';
-import { PALY_SITE_URL, PRIVACY_URL, SUPPORT_EMAIL, TERMS_URL } from '../../src/lib/constants';
-
-// No dedicated FAQ page exists yet; the site root lists the legal pages and
-// support contact.
-const FAQ_URL = PALY_SITE_URL;
+import { PRIVACY_URL, SUPPORT_EMAIL, TERMS_URL } from '../../src/lib/constants';
+import { ProfileAvatar } from '../../src/components/ProfileAvatar';
 
 export default function ProfileScreen() {
   const { colors, setAccentColor, accentColor, toggleColorScheme, colorScheme } = useTheme();
@@ -55,13 +52,13 @@ export default function ProfileScreen() {
               style={styles.headerContent}
               activeOpacity={0.7}
             >
-              <View style={[styles.avatar, { backgroundColor: colors.card, ...SHADOWS.lg }]}>
-                <Text style={[styles.avatarText, { color: colors.background }]}>
-                  {profile?.full_name?.charAt(0).toUpperCase() ||
-                    profile?.email?.charAt(0).toUpperCase() ||
-                    'U'}
-                </Text>
-              </View>
+              <ProfileAvatar
+                avatarUrl={profile?.avatar_url}
+                fallback={profile?.full_name || profile?.email || 'U'}
+                size={80}
+                borderRadius={24}
+                style={SHADOWS.lg}
+              />
               <View style={styles.headerText}>
                 <View style={styles.nameRow}>
                   <Text style={[typography.headlineMedium, { color: colors.text }]}>
@@ -209,7 +206,7 @@ export default function ProfileScreen() {
               <SettingsItem
                 icon="help-circle-outline"
                 label="Help & FAQ"
-                onPress={() => Linking.openURL(FAQ_URL)}
+                onPress={() => router.push('/settings/help')}
                 colors={colors}
               />
               <SettingsItem
@@ -332,17 +329,6 @@ const styles = StyleSheet.create({
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarText: {
-    fontSize: 32,
-    fontWeight: '600',
   },
   section: {
     marginTop: SPACING.xl,

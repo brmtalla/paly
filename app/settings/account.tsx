@@ -1,5 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import {
+  ActivityIndicator,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+  ScrollView,
+} from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
@@ -11,6 +20,7 @@ import { useAuthStore } from '../../src/stores/authStore';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../src/lib/supabase';
 import { SUPPORT_EMAIL } from '../../src/lib/constants';
+import { ProfileAvatar } from '../../src/components/ProfileAvatar';
 
 export default function AccountScreen() {
   const { colors } = useTheme();
@@ -18,12 +28,97 @@ export default function AccountScreen() {
   const [fullName, setFullName] = useState(profile?.full_name || '');
   const [email, setEmail] = useState(profile?.email || user?.email || '');
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [_emailChanged, setEmailChanged] = useState(false);
 
   const originalEmail = profile?.email || user?.email || '';
   const originalName = profile?.full_name || '';
 
   const hasChanges = fullName !== originalName || email !== originalEmail;
+  const avatarFallback = fullName || email || 'U';
+
+  const chooseAvatar = async () => {
+    if (!user) return;
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (result.canceled || !result.assets[0]) return;
+
+    setIsUploadingAvatar(true);
+    try {
+      const image = result.assets[0];
+      const contentType = image.mimeType || 'image/jpeg';
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(contentType)) {
+        throw new Error('Please choose a JPG, PNG, or WebP image.');
+      }
+
+      const imageData = await fetch(image.uri).then((response) => response.arrayBuffer());
+      if (imageData.byteLength > 5 * 1024 * 1024) {
+        throw new Error('Please choose an image smaller than 5 MB.');
+      }
+
+      const avatarPath = `${user.id}/avatar`;
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(avatarPath, imageData, {
+          contentType,
+          cacheControl: '3600',
+          upsert: true,
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from('avatars').getPublicUrl(avatarPath);
+      await updateProfile({ avatar_url: `${data.publicUrl}?v=${Date.now()}` });
+    } catch (error) {
+      console.error('Avatar upload error:', error);
+      Alert.alert(
+        'Could Not Update Photo',
+        error instanceof Error ? error.message : 'Please try again.'
+      );
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
+  const removeAvatar = async () => {
+    if (!user) return;
+
+    setIsUploadingAvatar(true);
+    try {
+      await updateProfile({ avatar_url: null });
+      const { error } = await supabase.storage.from('avatars').remove([`${user.id}/avatar`]);
+      if (error) console.warn('Avatar cleanup error:', error);
+    } catch (error) {
+      console.error('Avatar removal error:', error);
+      Alert.alert('Could Not Remove Photo', 'Please try again.');
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
+  const openAvatarMenu = () => {
+    const actions: Parameters<typeof Alert.alert>[2] = [
+      { text: 'Choose from Photos', onPress: () => void chooseAvatar() },
+      ...(profile?.avatar_url
+        ? [
+            {
+              text: 'Remove Photo',
+              style: 'destructive' as const,
+              onPress: () => void removeAvatar(),
+            },
+          ]
+        : []),
+      { text: 'Cancel', style: 'cancel' },
+    ];
+
+    Alert.alert('Profile Photo', undefined, actions);
+  };
 
   const handleSave = async () => {
     if (!fullName.trim()) {
@@ -94,11 +189,33 @@ export default function AccountScreen() {
             entering={FadeInUp.delay(200).duration(600).springify()}
             style={styles.previewSection}
           >
-            <View style={[styles.avatar, { backgroundColor: colors.card, ...SHADOWS.lg }]}>
-              <Text style={[styles.avatarText, { color: colors.background }]}>
-                {fullName.charAt(0).toUpperCase() || email.charAt(0).toUpperCase() || 'U'}
-              </Text>
-            </View>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Change profile photo"
+              activeOpacity={0.8}
+              disabled={isUploadingAvatar}
+              onPress={openAvatarMenu}
+              style={styles.avatarButton}
+            >
+              <ProfileAvatar
+                avatarUrl={profile?.avatar_url}
+                fallback={avatarFallback}
+                size={100}
+                borderRadius={30}
+                style={SHADOWS.lg}
+              />
+              <View style={[styles.cameraBadge, { backgroundColor: colors.accent }]}>
+                <Ionicons name="camera" size={17} color="#FFFFFF" />
+              </View>
+              {isUploadingAvatar ? (
+                <View style={styles.uploadingOverlay}>
+                  <ActivityIndicator color="#FFFFFF" />
+                </View>
+              ) : null}
+            </TouchableOpacity>
+            <Text style={[typography.labelMedium, { color: colors.text, marginTop: SPACING.md }]}>
+              Change photo
+            </Text>
           </Animated.View>
 
           {/* Name Input */}
@@ -241,16 +358,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: SPACING.xl,
   },
-  avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
+  avatarButton: {
+    position: 'relative',
   },
-  avatarText: {
-    fontSize: 40,
-    fontWeight: '600',
+  cameraBadge: {
+    position: 'absolute',
+    right: -4,
+    bottom: -4,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+  },
+  uploadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
   },
   infoSection: {
     marginTop: SPACING.xl,

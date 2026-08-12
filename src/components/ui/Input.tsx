@@ -24,6 +24,7 @@ interface InputProps extends TextInputProps {
   rightIcon?: React.ReactNode;
   containerStyle?: StyleProp<ViewStyle>;
   isPassword?: boolean;
+  variant?: 'card' | 'glass';
 }
 
 export function Input({
@@ -34,12 +35,16 @@ export function Input({
   rightIcon,
   containerStyle,
   isPassword = false,
+  variant = 'card',
   ...props
 }: InputProps) {
   const { colors } = useTheme();
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const borderColor = useSharedValue(colors.border);
+  const isGlass = variant === 'glass';
+  const inputTextColor = isGlass ? colors.text : colors.cardText;
+  const placeholderColor = isGlass ? colors.textMuted : colors.cardTextMuted;
 
   // Only use animated styles on native platforms
   const animatedBorderStyle = useAnimatedStyle(() => {
@@ -84,7 +89,7 @@ export function Input({
         style={[
           styles.inputContainer,
           {
-            backgroundColor: colors.card,
+            backgroundColor: isGlass ? colors.glassBackground : colors.card,
             borderColor:
               Platform.OS === 'web' ? getBorderColor() : error ? colors.error : colors.border,
             // `transition` is a web-only CSS property with no RN equivalent.
@@ -103,14 +108,14 @@ export function Input({
             {
               fontSize: typography.bodyLarge.fontSize,
               fontWeight: typography.bodyLarge.fontWeight,
-              color: colors.cardText,
+              color: inputTextColor,
               lineHeight: undefined,
             },
             !!leftIcon && { paddingLeft: 0 },
             !!(rightIcon || isPassword) && { paddingRight: 0 },
             props.style,
           ]}
-          placeholderTextColor={colors.cardTextMuted}
+          placeholderTextColor={placeholderColor}
           onFocus={handleFocus}
           onBlur={handleBlur}
           secureTextEntry={isPassword && !showPassword}
@@ -121,7 +126,7 @@ export function Input({
             <Ionicons
               name={showPassword ? 'eye-off-outline' : 'eye-outline'}
               size={22}
-              color={colors.cardTextMuted}
+              color={placeholderColor}
             />
           </TouchableOpacity>
         )}
