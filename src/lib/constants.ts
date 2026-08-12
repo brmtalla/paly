@@ -44,14 +44,15 @@ export const TRIAL_DAYS = 7;
 export const PALY_SMS_NUMBER = '+19293649402';
 
 /**
- * Public site hosting the legal pages.
+ * Public site. Serves the landing page plus the legal documents, built from
+ * landing/ and deployed on every push to master (see vercel.json).
  *
  * App Store Connect fetches the privacy URL at submission, so this has to point
  * somewhere that actually resolves — paly.app is not registered to us and
- * currently serves a parking page. When a real domain is in place, change this
- * one constant and redeploy landing/ there; nothing else references the host.
+ * serves a parking page. When a real domain is in place, change this one
+ * constant; nothing else references the host.
  */
-export const PALY_SITE_URL = 'https://paly-legal-logical-enterprises.vercel.app';
+export const PALY_SITE_URL = 'https://paly-legal.vercel.app';
 export const PRIVACY_URL = `${PALY_SITE_URL}/privacy-policy.html`;
 export const TERMS_URL = `${PALY_SITE_URL}/terms-of-service.html`;
 export const SUPPORT_EMAIL = 'support@paly.app';
