@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../config';
+import SectionHeading from './SectionHeading';
 
 type DemoState = 'idle' | 'uploading' | 'processing' | 'sending' | 'done' | 'error';
 
@@ -147,27 +148,23 @@ export default function Demo({ onComplete }: DemoProps) {
 
   return (
     <section id="demo" className="py-24 sm:py-32">
-      <div className="max-w-3xl mx-auto px-6">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
-            See it in action
-          </h2>
-          <p className="mt-4 text-lg text-gray-500 max-w-xl mx-auto">
-            Upload any lecture PDF and enter your number. We&apos;ll text you a
-            synthesis — on the house.
-          </p>
-        </div>
+      <div className="mx-auto max-w-3xl px-6">
+        <SectionHeading
+          eyebrow="Try it now"
+          title="Feed it a real lecture"
+          body="Upload any lecture PDF and enter your number. Paly texts you back a synthesis of it — once, free, no account needed."
+        />
 
-        <div className="glass-card p-8 sm:p-10">
+        <div className="mt-12 rounded-3xl border border-paly-950/[0.07] bg-white p-7 shadow-[0_24px_60px_-30px_rgba(12,26,56,0.25)] sm:p-10">
           {state === 'done' ? (
             <div className="text-center py-8">
-              <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-5">
-                <svg className="w-8 h-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <div className="animate-bubble-in mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-teal-500/10 text-teal-600 ring-1 ring-teal-500/20">
+                <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900">Sent!</h3>
-              <p className="mt-3 text-gray-500 max-w-sm mx-auto">
+              <h3 className="font-display text-2xl font-extrabold text-paly-950">On its way</h3>
+              <p className="mx-auto mt-3 max-w-sm leading-relaxed text-paly-950/55">
                 Check your texts — your synthesis is on its way. That&apos;s just a
                 taste of what Paly does every day, automatically.
               </p>
@@ -176,16 +173,16 @@ export default function Demo({ onComplete }: DemoProps) {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* File Upload */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-semibold text-paly-950">
                   Lecture PDF
                 </label>
                 <div
-                  className={`relative border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200 ${
+                  className={`relative cursor-pointer rounded-2xl border-2 border-dashed p-8 text-center transition-all duration-200 ease-out-quart ${
                     dragActive
-                      ? 'border-paly-500 bg-paly-50'
+                      ? 'scale-[1.01] border-paly-500 bg-paly-50'
                       : file
-                        ? 'border-paly-300 bg-paly-50/50'
-                        : 'border-gray-200 hover:border-paly-300 hover:bg-gray-50'
+                        ? 'border-paly-300 bg-paly-50/60'
+                        : 'border-paly-950/[0.12] hover:border-paly-300 hover:bg-paly-50/40'
                   }`}
                   onDragEnter={handleDrag}
                   onDragLeave={handleDrag}
@@ -204,19 +201,19 @@ export default function Demo({ onComplete }: DemoProps) {
 
                   {file ? (
                     <div className="flex items-center justify-center gap-3">
-                      <svg className="w-8 h-8 text-paly-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <svg className="h-8 w-8 text-paly-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                       </svg>
                       <div className="text-left">
-                        <p className="text-sm font-medium text-gray-900">{file.name}</p>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-sm font-semibold text-paly-950">{file.name}</p>
+                        <p className="text-xs text-paly-950/40">
                           {(file.size / 1024 / 1024).toFixed(1)} MB
                         </p>
                       </div>
                       {!isProcessing && (
                         <button
                           type="button"
-                          className="ml-2 text-gray-400 hover:text-gray-600"
+                          className="ml-2 text-paly-950/40 transition-colors duration-200 hover:text-paly-950"
                           onClick={(e) => {
                             e.stopPropagation();
                             setFile(null);
@@ -230,14 +227,14 @@ export default function Demo({ onComplete }: DemoProps) {
                     </div>
                   ) : (
                     <>
-                      <svg className="w-10 h-10 text-gray-300 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <svg className="mx-auto mb-3 h-10 w-10 text-paly-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                       </svg>
-                      <p className="text-sm text-gray-500">
-                        <span className="text-paly-600 font-medium">Click to upload</span> or drag
+                      <p className="text-sm text-paly-950/55">
+                        <span className="font-semibold text-paly-600">Click to upload</span> or drag
                         and drop
                       </p>
-                      <p className="text-xs text-gray-400 mt-1">PDF up to 10 MB</p>
+                      <p className="mt-1 text-xs text-paly-950/40">PDF up to 10 MB</p>
                     </>
                   )}
                 </div>
@@ -245,11 +242,11 @@ export default function Demo({ onComplete }: DemoProps) {
 
               {/* Phone Number */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-semibold text-paly-950">
                   Your phone number
                 </label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-medium text-paly-950/40">
                     +1
                   </span>
                   <input
@@ -258,17 +255,17 @@ export default function Demo({ onComplete }: DemoProps) {
                     onChange={handlePhoneChange}
                     placeholder="(555) 123-4567"
                     disabled={isProcessing}
-                    className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-paly-500/30 focus:border-paly-500 transition-all disabled:opacity-50"
+                    className="w-full rounded-xl border border-paly-950/[0.12] bg-white py-3.5 pl-12 pr-4 text-paly-950 placeholder-paly-950/25 transition-all duration-200 focus:border-paly-500 focus:outline-none focus:ring-2 focus:ring-paly-500/25 disabled:opacity-50"
                   />
                 </div>
-                <p className="text-xs text-gray-400 mt-2">
+                <p className="mt-2 text-xs leading-relaxed text-paly-950/40">
                   We&apos;ll text you the synthesis once. No spam, ever.
                 </p>
               </div>
 
               {/* Error */}
               {error && (
-                <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-100 rounded-xl">
+                <div className="flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3">
                   <svg className="w-4 h-4 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
                   </svg>
@@ -280,7 +277,7 @@ export default function Demo({ onComplete }: DemoProps) {
               <button
                 type="submit"
                 disabled={isProcessing}
-                className="w-full py-4 bg-paly-500 hover:bg-paly-400 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-paly-500/20 hover:shadow-paly-400/25 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:bg-paly-500"
+                className="w-full rounded-xl bg-paly-600 py-4 font-semibold text-white shadow-lift transition-all duration-200 ease-out-quart hover:-translate-y-0.5 hover:bg-paly-500 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:bg-paly-600"
               >
                 {isProcessing ? (
                   <span className="flex items-center justify-center gap-3">
