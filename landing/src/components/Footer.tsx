@@ -19,7 +19,7 @@ export default function Footer() {
       <div className="max-w-5xl mx-auto px-6 py-16">
         {/* CTA banner */}
         <div className="glass-card-dark p-10 sm:p-14 text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
+          <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
             Ready to stop cramming?
           </h2>
           <p className="mt-4 text-lg text-paly-200/80 max-w-lg mx-auto">
@@ -48,12 +48,10 @@ export default function Footer() {
 
         {/* Footer links */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-paly-500 flex items-center justify-center">
-              <span className="text-white font-bold text-sm">P</span>
-            </div>
-            <span className="text-gray-900 font-semibold">Paly</span>
-          </div>
+          <a href="/" className="flex items-center gap-2.5" aria-label="Paly home">
+            <img src="/paly-mark.png" alt="" width={28} height={28} className="h-7 w-7 object-contain" />
+            <span className="font-display font-bold tracking-tight text-paly-950">Paly</span>
+          </a>
 
           <div className="flex items-center gap-6 text-sm text-gray-400">
             <a href={DISCORD_INVITE_URL} target="_blank" rel="noopener noreferrer" className="hover:text-gray-600 transition-colors">
