@@ -68,7 +68,7 @@ Paly is an educational study companion app. Key points for review:
 
 1. **Account Required**: Users must create an account to use the app. This is necessary to sync study data across sessions and deliver personalized prompts.
 
-2. **AI Usage**: The app uses OpenAI's API to process user-uploaded educational content and generate study materials. No user data is used to train AI models.
+2. **AI Usage**: The app uses Anthropic's Claude API to process user-uploaded educational content and generate study materials. No user data is used to train AI models.
 
 3. **SMS Feature**: SMS study reminders are a Paly Pro feature and are entirely optional. They require double opt-in: the user must send us a text containing their account's link code from the handset they want to use, which is the only way a phone number is ever recorded. STOP/START/HELP keywords are honoured. Push notifications are the default delivery channel on every plan, so no user needs SMS to use the app.
 

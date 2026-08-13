@@ -61,7 +61,7 @@ serve(async (req) => {
     console.log("Synthesizing content, text length:", extractedText.length);
     const synthesis = await synthesize(extractedText);
 
-    const smsBody = `${synthesis}\n\n— Paly (paly.app)`;
+    const smsBody = `${synthesis}\n\n— Paly (paly.study)`;
 
     const smsResult = await sendSms(phoneNumber, smsBody);
 
