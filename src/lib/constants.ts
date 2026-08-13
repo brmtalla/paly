@@ -55,4 +55,4 @@ export const PALY_SMS_NUMBER = '+19293649402';
 export const PALY_SITE_URL = 'https://paly-legal.vercel.app';
 export const PRIVACY_URL = `${PALY_SITE_URL}/privacy-policy.html`;
 export const TERMS_URL = `${PALY_SITE_URL}/terms-of-service.html`;
-export const SUPPORT_EMAIL = 'support@paly.app';
+export const SUPPORT_EMAIL = 'support@paly.study';
