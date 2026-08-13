@@ -118,7 +118,6 @@ export default function PromptDetailScreen() {
                   fullWidth
                   icon={<Ionicons name="layers-outline" size={20} color={colors.accent} />}
                   onPress={() => router.push(`/study/flashcards/${prompt.synthesized_content_id}`)}
-                  textStyle={{ color: colors.accent }}
                 >
                   Review Flashcards
                 </Button>
@@ -131,7 +130,6 @@ export default function PromptDetailScreen() {
                   fullWidth
                   icon={<Ionicons name="help-circle-outline" size={20} color={colors.accent} />}
                   onPress={() => router.push(`/study/quiz/${prompt.synthesized_content_id}`)}
-                  textStyle={{ color: colors.accent }}
                 >
                   Take Quiz
                 </Button>

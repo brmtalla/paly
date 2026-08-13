@@ -208,9 +208,9 @@ export default function FlashcardsScreen() {
                   {hasUsedTrial ? 'Unlock Flashcards' : `Try Pro Free for ${TRIAL_DAYS} Days`}
                 </Button>
 
-                <Button variant="ghost" size="md" fullWidth onPress={() => router.back()}>
-                  Not now
-                </Button>
+                <TouchableOpacity onPress={() => router.back()} style={styles.notNow}>
+                  <Text style={[typography.labelLarge, { color: colors.white }]}>Not now</Text>
+                </TouchableOpacity>
               </GlassCard>
             </Animated.View>
           </View>
@@ -505,7 +505,6 @@ export default function FlashcardsScreen() {
                 size="lg"
                 fullWidth
                 onPress={() => router.back()}
-                textStyle={{ color: colors.accent }}
               >
                 Complete Session
               </Button>
@@ -545,6 +544,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignSelf: 'center',
     backgroundColor: 'rgba(255,255,255,0.18)',
+  },
+  notNow: {
+    alignSelf: 'center',
+    paddingVertical: SPACING.sm,
   },
   dayInfoRow: {
     flexDirection: 'row',

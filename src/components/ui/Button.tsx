@@ -70,22 +70,21 @@ export function Button({
     }
   };
 
-  // Accent-first: primary is a white pill on the colored page. In dark mode
-  // `card` is translucent, so a primary painted with it becomes maroon-on-maroon.
+  // Accent-first: primary is a card-colored pill. In dark mode that pill is
+  // translucent on the theme, so the label must be white — not accent.
   const getBackgroundColor = () => {
     if (disabled) return colors.cardTertiary;
     switch (variant) {
       case 'primary':
-        return colors.white;
+        return colors.card;
       case 'secondary':
-        return isDark ? colors.white : colors.glassBackground;
+        return colors.glassBackground;
       case 'outline':
         return 'transparent';
       case 'ghost':
-        // Dark-mode accents stay saturated, so transparent + white text disappears.
-        return isDark ? colors.white : 'transparent';
+        return 'transparent';
       default:
-        return colors.white;
+        return colors.card;
     }
   };
 
@@ -93,15 +92,15 @@ export function Button({
     if (disabled) return colors.textMuted;
     switch (variant) {
       case 'primary':
-        return colors.accent;
+        return isDark ? colors.white : colors.background;
       case 'secondary':
-        return isDark ? colors.accent : colors.text;
+        return colors.text;
       case 'outline':
         return colors.text;
       case 'ghost':
-        return isDark ? colors.accent : colors.white;
+        return colors.text;
       default:
-        return colors.accent;
+        return isDark ? colors.white : colors.background;
     }
   };
 

@@ -166,7 +166,6 @@ export default function QuizScreen() {
               fullWidth
               onPress={() => router.back()}
               style={{ marginTop: SPACING.xl }}
-              textStyle={{ color: colors.accent }}
             >
               Done
             </Button>
@@ -342,7 +341,6 @@ export default function QuizScreen() {
               fullWidth
               disabled={selectedAnswer === null}
               onPress={handleSubmit}
-              textStyle={{ color: colors.accent }}
             >
               Submit Answer
             </Button>
@@ -352,7 +350,6 @@ export default function QuizScreen() {
               size="lg"
               fullWidth
               onPress={handleNext}
-              textStyle={{ color: colors.accent }}
             >
               {currentIndex < questions.length - 1 ? 'Next Question' : 'See Results'}
             </Button>
