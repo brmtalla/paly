@@ -19,7 +19,7 @@ describe('auth deep links', () => {
   });
 
   it('leaves non-Paly URLs alone', () => {
-    expect(authRouteFromDeepLink('https://paly-legal.vercel.app')).toBeNull();
+    expect(authRouteFromDeepLink('https://www.paly.study')).toBeNull();
   });
 
   it('parses encoded query and fragment values without losing equals signs', () => {

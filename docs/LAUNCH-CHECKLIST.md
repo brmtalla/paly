@@ -19,7 +19,7 @@ Status as of the last automated check (2026-08-11).
 | SMS consent enforced | Every send path goes through `sendSmsToProfile()`; STOP/START/HELP honoured |
 | Migrations applied | 4 new, all recorded remotely; see `supabase/migrations/README.md` |
 | `REVENUECAT_SECRET_KEY` set | Was missing entirely — `grant-free-month` had been failing silently |
-| Legal pages hosted | https://paly-legal-logical-enterprises.vercel.app — verified by content, not status code (Vercel's SSO page also returns 200) |
+| Legal pages hosted | https://www.paly.study — `paly.study` is attached to the same Vercel project; verified by content, not status code (Vercel's SSO page also returns 200) |
 | Vercel auth disabled | Deployment protection was on by default and was blocking Apple from fetching the privacy URL |
 | `appl_` key set | `EXPO_PUBLIC_REVENUECAT_IOS_KEY` created in EAS `production` and `preview` |
 | RevenueCat wiring | `paly_pro_monthly` + `paly_pro_annual` created under the App Store app, attached to the `Paly Pro` entitlement and to `$rc_monthly` / `$rc_annual` |
@@ -112,6 +112,20 @@ Apple rejects apps requiring login without working credentials.
 prompt for Apple ID / ASC App ID / Team ID and cache them. The previous empty
 strings read as supplied-and-invalid and broke the command.
 
+### 5. Supabase auth URLs
+
+`supabase/config.toml` configures the local stack only; the hosted project takes
+its Site URL and redirect allow list from the dashboard. Sign-up sends
+`emailRedirectTo: paly://confirm`, and if that value is not on the allow list
+`/auth/v1/verify` falls back to the Site URL — the user lands on the website
+instead of the app and the link is spent.
+
+**Authentication → URL Configuration:**
+
+- [ ] Site URL: `https://www.paly.study`
+- [ ] Redirect URLs: `paly://confirm`, `paly:///confirm`,
+      `paly://reset-password`, `paly:///reset-password`
+
 ---
 
 ## 🟡 Device verification
@@ -145,9 +159,10 @@ Then, in rough order of how much it would hurt to get wrong:
 - **Rotate the RevenueCat `sk_` secret key** when convenient — it was pasted into
   a chat transcript. Regenerate in RevenueCat, then
   `supabase secrets set REVENUECAT_SECRET_KEY=sk_...`.
-- **Domain.** The legal pages are on a `*.vercel.app` URL, which is fine for
-  submission. When a real domain is registered, change `PALY_SITE_URL` in
-  `src/lib/constants.ts` and redeploy — nothing else references the host.
+- **Domain.** `paly.study` is registered and attached to the same Vercel project,
+  so the legal pages now serve from `https://www.paly.study` and `PALY_SITE_URL`
+  points there. The apex 308-redirects to `www`, so use the `www` form in App
+  Store Connect and anywhere else the URL is typed by hand.
 - **Supabase org is on the Pro plan**, so the project will not auto-pause. It was
   paused at the start of this work, which would have taken the whole backend
   down after launch.

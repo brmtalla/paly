@@ -12,7 +12,9 @@ enabled = true
 port = 54323
 
 [auth]
-site_url = "https://paly-legal.vercel.app"
+# Applies to the local stack only. The hosted project reads Site URL and
+# Redirect URLs from the dashboard, so this block has to be kept in step by hand.
+site_url = "https://www.paly.study"
 additional_redirect_urls = [
   "paly://confirm",
   "paly:///confirm",

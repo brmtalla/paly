@@ -47,12 +47,11 @@ export const PALY_SMS_NUMBER = '+19293649402';
  * Public site. Serves the landing page plus the legal documents, built from
  * landing/ and deployed on every push to master (see vercel.json).
  *
- * App Store Connect fetches the privacy URL at submission, so this has to point
- * somewhere that actually resolves — paly.app is not registered to us and
- * serves a parking page. When a real domain is in place, change this one
- * constant; nothing else references the host.
+ * App Store Connect fetches the privacy URL at submission and the in-app links
+ * have to agree with what is entered there, so this has to stay on the domain
+ * we own. The apex 308-redirects to www, so www is the form to use everywhere.
  */
-export const PALY_SITE_URL = 'https://paly-legal.vercel.app';
+export const PALY_SITE_URL = 'https://www.paly.study';
 export const PRIVACY_URL = `${PALY_SITE_URL}/privacy-policy.html`;
 export const TERMS_URL = `${PALY_SITE_URL}/terms-of-service.html`;
 export const SUPPORT_EMAIL = 'support@paly.study';
