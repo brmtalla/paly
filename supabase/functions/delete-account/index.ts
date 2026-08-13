@@ -53,7 +53,26 @@ serve(async (req) => {
       }
     }
 
-    // Delete user data in order (respecting foreign keys)
+    // The avatar lives in a different bucket and is not referenced by any row we
+    // delete below, so nothing else would ever reach it. Listing the folder
+    // rather than assuming the `{userId}/avatar` path means a stray object from
+    // an earlier naming scheme still gets collected.
+    const { data: avatarObjects } = await supabaseAdmin.storage.from('avatars').list(userId);
+
+    if (avatarObjects && avatarObjects.length > 0) {
+      const avatarPaths = avatarObjects.map((object: { name: string }) => `${userId}/${object.name}`);
+      const { error: avatarError } = await supabaseAdmin.storage.from('avatars').remove(avatarPaths);
+
+      if (avatarError) {
+        console.error('Avatar cleanup failed during account deletion:', avatarError);
+      }
+    }
+
+    // Delete user data in order (respecting foreign keys).
+    //
+    // `tutor_questions` and `paly_points_ledger` are absent on purpose: both
+    // reference profiles(id) on delete cascade, so removing the profile row at
+    // the end of this list takes them with it.
     const tables = [
       'push_tokens',
       'notification_preferences',

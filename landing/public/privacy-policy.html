@@ -37,16 +37,18 @@
   <p>We collect the following types of information:</p>
   <ul>
     <li><strong>Account Information:</strong> Email address and password (managed by Supabase Auth). Optionally, your full name.</li>
+    <li><strong>Profile Photo:</strong> Only if you choose one. We read the single image you pick from your photo library and store it; we never access the rest of your library, and you can remove the photo at any time from Settings &gt; Account.</li>
     <li><strong>Class & Study Data:</strong> Class schedules, notes you create, uploaded documents (PDFs, DOCX, PPTX, text files), AI-synthesized study content, quiz attempts, and study prompts.</li>
     <li><strong>Phone Number:</strong> Only recorded if you text us first. To receive Paly Pro study texts you send us a message containing your account's link code; we store the number that message came from so we can deliver to it via SendBlue. You can stop at any time by replying STOP, and we never obtain your number any other way.</li>
     <li><strong>Device Information:</strong> Push notification tokens for delivering in-app notifications. We collect your device platform (iOS/Android) for notification delivery.</li>
+    <li><strong>Subscription Information:</strong> Whether you are on Paly Pro, and the purchase and renewal history behind it, recorded through Apple's In-App Purchase system and RevenueCat. Payment is handled entirely by Apple — your card details never reach us.</li>
     <li><strong>Usage Data:</strong> Reading streaks, Paly Points, prompt read status, and quiz completion data to personalize your study experience.</li>
   </ul>
 
   <h2>How We Use Your Information</h2>
   <ul>
     <li>To provide and maintain the Paly study companion service</li>
-    <li>To generate AI-powered study materials from your notes and uploads using Anthropic (Claude)</li>
+    <li>To generate AI-powered study materials from your notes and uploads using Anthropic (Claude), and to answer questions you text to your companion, which are sent to Anthropic along with the study material they relate to</li>
     <li>To schedule and deliver study prompts via push notifications and/or SMS</li>
     <li>To track your study progress, streaks, and quiz performance</li>
     <li>To send you service-related communications</li>
