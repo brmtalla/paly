@@ -30,7 +30,7 @@ export function ProfileAvatar({
         />
       ) : (
         <Text
-          style={[styles.fallback, { color: colors.background, fontSize: Math.round(size * 0.38) }]}
+          style={[styles.fallback, { color: colors.onCard, fontSize: Math.round(size * 0.38) }]}
         >
           {fallback.charAt(0).toUpperCase() || 'U'}
         </Text>

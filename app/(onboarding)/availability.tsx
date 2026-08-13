@@ -29,7 +29,7 @@ const DEFAULT_BLOCKS: TimeBlock[] = [
 
 export default function AvailabilityScreen() {
   const { colors } = useTheme();
-  const { profile, updateProfile } = useAuthStore();
+  const { profile } = useAuthStore();
   const [blocks, setBlocks] = useState<TimeBlock[]>(DEFAULT_BLOCKS);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -53,9 +53,6 @@ export default function AvailabilityScreen() {
         });
       }
 
-      // Mark onboarding as complete
-      await updateProfile({ onboarding_completed: true });
-
       router.push('/(onboarding)/complete');
     } catch (error) {
       console.error('Error saving availability:', error);
@@ -74,7 +71,7 @@ export default function AvailabilityScreen() {
           <View style={[styles.progressBar, { backgroundColor: colors.glassBackground }]}>
             <View style={[styles.progressFill, { backgroundColor: colors.card, width: '100%' }]} />
           </View>
-          <Text style={[typography.labelSmall, { color: colors.textSecondary }]}>5 OF 5</Text>
+          <Text style={[typography.labelSmall, { color: colors.textSecondary }]}>4 OF 4</Text>
         </Animated.View>
 
         <ScrollView

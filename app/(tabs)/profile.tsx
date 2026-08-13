@@ -290,7 +290,7 @@ function SettingsItem({
         !isLast && { borderBottomWidth: 1, borderBottomColor: colors.cardSecondary },
       ]}
     >
-      <View style={[styles.settingsIcon, { backgroundColor: colors.background }]}>
+      <View style={[styles.settingsIcon, { backgroundColor: colors.accent }]}>
         <Ionicons name={icon} size={18} color={colors.text} />
       </View>
       <Text style={[typography.bodyLarge, { color: colors.cardText, flex: 1 }]}>{label}</Text>

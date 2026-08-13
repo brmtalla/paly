@@ -22,7 +22,7 @@ export default function WelcomeScreen() {
         >
           {/* App icon/logo */}
           <View style={[styles.logoContainer, { backgroundColor: colors.card, ...SHADOWS.lg }]}>
-            <Ionicons name="book" size={48} color={colors.background} />
+            <Ionicons name="book" size={48} color={colors.onCard} />
           </View>
 
           <Animated.Text

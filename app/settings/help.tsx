@@ -103,7 +103,7 @@ export default function HelpScreen() {
               variant="primary"
               size="lg"
               fullWidth
-              icon={<Ionicons name="mail-outline" size={20} color={colors.background} />}
+              icon={<Ionicons name="mail-outline" size={20} color={colors.accent} />}
               style={{ marginTop: SPACING.lg }}
               onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=Paly%20Support`)}
             >

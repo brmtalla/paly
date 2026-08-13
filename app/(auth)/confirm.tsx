@@ -74,7 +74,10 @@ export default function ConfirmEmailScreen() {
       }
 
       await useAuthStore.getState().fetchProfile();
-      router.replace('/(onboarding)/activate-texts');
+      const profile = useAuthStore.getState().profile;
+      router.replace(
+        profile?.onboarding_completed ? '/(tabs)' : '/(onboarding)/assistant'
+      );
     };
 
     void confirmEmail();

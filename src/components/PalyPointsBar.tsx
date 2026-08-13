@@ -104,7 +104,7 @@ export function PalyPointsBar() {
           </View>
         )}
       </View>
-      <View style={[styles.trackBar, { backgroundColor: colors.background }]}>
+      <View style={[styles.trackBar, { backgroundColor: colors.accent }]}>
         <Animated.View
           style={[
             styles.fillBar,

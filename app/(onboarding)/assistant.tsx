@@ -38,9 +38,9 @@ export default function AssistantScreen() {
         {/* Progress indicator */}
         <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.progress}>
           <View style={[styles.progressBar, { backgroundColor: colors.glassBackground }]}>
-            <View style={[styles.progressFill, { backgroundColor: colors.card, width: '40%' }]} />
+            <View style={[styles.progressFill, { backgroundColor: colors.card, width: '25%' }]} />
           </View>
-          <Text style={[typography.labelSmall, { color: colors.textSecondary }]}>2 OF 5</Text>
+          <Text style={[typography.labelSmall, { color: colors.textSecondary }]}>1 OF 4</Text>
         </Animated.View>
 
         {/* Content */}
@@ -129,7 +129,7 @@ export default function AssistantScreen() {
           <GlassCard padding="md">
             <View style={styles.previewHeader}>
               <View style={[styles.previewAvatar, { backgroundColor: colors.card }]}>
-                <Text style={{ color: colors.background, fontWeight: '600' }}>
+                <Text style={{ color: colors.onCard, fontWeight: '600' }}>
                   {assistantName.charAt(0).toUpperCase()}
                 </Text>
               </View>

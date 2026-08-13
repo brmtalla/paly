@@ -12,7 +12,7 @@ export default function TabsLayout() {
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: true,
-        tabBarActiveTintColor: colors.background, // Active = accent color (which is the background)
+        tabBarActiveTintColor: colors.onCard,
         tabBarInactiveTintColor: colors.cardTextMuted,
         tabBarStyle: {
           position: 'absolute',

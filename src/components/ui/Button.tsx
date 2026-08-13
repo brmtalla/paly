@@ -44,7 +44,8 @@ export function Button({
   style,
   textStyle,
 }: ButtonProps) {
-  const { colors } = useTheme();
+  const { colors, colorScheme } = useTheme();
+  const isDark = colorScheme === 'dark';
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => {
@@ -69,37 +70,38 @@ export function Button({
     }
   };
 
-  // Accent-first design: primary buttons are white/card colored
+  // Accent-first: primary is a white pill on the colored page. In dark mode
+  // `card` is translucent, so a primary painted with it becomes maroon-on-maroon.
   const getBackgroundColor = () => {
     if (disabled) return colors.cardTertiary;
     switch (variant) {
       case 'primary':
-        return colors.card; // White button on colored background
+        return colors.white;
       case 'secondary':
-        return colors.glassBackground;
+        return isDark ? colors.white : colors.glassBackground;
       case 'outline':
         return 'transparent';
       case 'ghost':
-        return 'transparent';
+        // Dark-mode accents stay saturated, so transparent + white text disappears.
+        return isDark ? colors.white : 'transparent';
       default:
-        return colors.card;
+        return colors.white;
     }
   };
 
-  // Text color: dark on white buttons, light on transparent
   const getTextColor = () => {
     if (disabled) return colors.textMuted;
     switch (variant) {
       case 'primary':
-        return colors.background; // Accent color text on white button
+        return colors.accent;
       case 'secondary':
-        return colors.text;
+        return isDark ? colors.accent : colors.text;
       case 'outline':
         return colors.text;
       case 'ghost':
-        return colors.text;
+        return isDark ? colors.accent : colors.white;
       default:
-        return colors.background;
+        return colors.accent;
     }
   };
 

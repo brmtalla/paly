@@ -16,6 +16,7 @@ import { typography } from '../../../src/theme/typography';
 import { SPACING, LAYOUT, RADIUS } from '../../../src/theme/spacing';
 import { Card, Background } from '../../../src/components/ui';
 import { useStudyStore } from '../../../src/stores/studyStore';
+import { toBullets } from '../../../src/lib/bullets';
 import { supabase } from '../../../src/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -129,7 +130,7 @@ export default function ChunkViewerScreen() {
           <Animated.View entering={FadeInDown.delay(100).duration(500)}>
             <Card style={styles.contentCard}>
               <Text style={[typography.bodyLarge, { color: colors.cardText, lineHeight: 26 }]}>
-                {prompt.content}
+                {toBullets(prompt.content)}
               </Text>
             </Card>
           </Animated.View>

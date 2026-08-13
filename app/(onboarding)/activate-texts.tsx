@@ -9,7 +9,7 @@ import { SPACING, LAYOUT, RADIUS } from '../../src/theme/spacing';
 import { Button, GlassCard } from '../../src/components/ui';
 import { IMessagePreview } from '../../src/components/iMessagePreview';
 import { useAuthStore } from '../../src/stores/authStore';
-import { PALY_SMS_NUMBER, TRIAL_DAYS } from '../../src/lib/constants';
+import { PALY_SMS_NUMBER } from '../../src/lib/constants';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function ActivateTextsScreen() {
@@ -51,7 +51,7 @@ export default function ActivateTextsScreen() {
   };
 
   const handleContinue = () => {
-    router.push('/(onboarding)/assistant');
+    router.replace('/(tabs)');
   };
 
   return (
@@ -60,9 +60,9 @@ export default function ActivateTextsScreen() {
         {/* Progress */}
         <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.progress}>
           <View style={[styles.progressBar, { backgroundColor: colors.glassBackground }]}>
-            <View style={[styles.progressFill, { backgroundColor: colors.card, width: '20%' }]} />
+            <View style={[styles.progressFill, { backgroundColor: colors.card, width: '100%' }]} />
           </View>
-          <Text style={[typography.labelSmall, { color: colors.textSecondary }]}>1 OF 5</Text>
+          <Text style={[typography.labelSmall, { color: colors.textSecondary }]}>LAST STEP</Text>
         </Animated.View>
 
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -76,7 +76,7 @@ export default function ActivateTextsScreen() {
             </View>
 
             <Text style={[typography.displaySmall, { color: colors.text, textAlign: 'center' }]}>
-              {isLinked ? `You're all set` : `Study without\nopening the app`}
+              {isLinked ? `You're all set` : `Get texts from\n${profile?.assistant_name || 'Paly'}`}
             </Text>
 
             <Text
@@ -91,8 +91,8 @@ export default function ActivateTextsScreen() {
               ]}
             >
               {isLinked
-                ? 'Your number is linked. With Paly Pro your daily chunks arrive in your messages — and you can text back with a question any time.'
-                : 'With Paly Pro your daily chunks land in your messages, and you can reply with a question. Paly answers out of your own material.'}
+                ? 'Your number is linked. Daily chunks will land in your messages — and you can text back with a question any time.'
+                : 'Pro is on. Link your number and the same study nuggets you see in the app will also arrive as texts.'}
             </Text>
           </Animated.View>
 
@@ -104,7 +104,7 @@ export default function ActivateTextsScreen() {
             <IMessagePreview
               delay={500}
               assistantName={profile?.assistant_name || 'Paly'}
-              caption={`An example thread — free for your first ${TRIAL_DAYS} days with Paly Pro.`}
+              caption="This is what a study text looks like once your number is linked."
             />
           </Animated.View>
 
@@ -112,7 +112,7 @@ export default function ActivateTextsScreen() {
           <Animated.View entering={FadeInUp.delay(700).duration(600).springify()}>
             <GlassCard padding="lg">
               <Text style={[typography.labelMedium, { color: colors.text }]}>
-                Either way, you&apos;re covered
+                Same nuggets, now in Messages
               </Text>
               <Text
                 style={[
@@ -120,9 +120,8 @@ export default function ActivateTextsScreen() {
                   { color: colors.textSecondary, marginTop: SPACING.xs },
                 ]}
               >
-                Every plan gets the same daily study chunks, quizzes, and notifications in the app.
-                Pro adds the texts — and the back-and-forth. Asking questions and getting them
-                answered from your own material only happens in the thread.
+                Everything still shows up in the app. Linking your number is how those chunks also
+                arrive as texts you can reply to.
               </Text>
 
               {!isLinked && (
@@ -135,7 +134,7 @@ export default function ActivateTextsScreen() {
                       { color: colors.textMuted, marginBottom: SPACING.sm },
                     ]}
                   >
-                    TO RECEIVE TEXTS LATER, LINK YOUR NUMBER NOW
+                    TO RECEIVE TEXTS, LINK YOUR NUMBER
                   </Text>
 
                   <Step
@@ -211,7 +210,7 @@ export default function ActivateTextsScreen() {
             </Button>
           ) : (
             <Button variant="ghost" size="md" onPress={handleContinue}>
-              I&apos;ll do this later
+              I&apos;ll link my number later
             </Button>
           )}
         </Animated.View>

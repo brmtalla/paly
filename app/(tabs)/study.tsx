@@ -11,6 +11,7 @@ import { Card, Background, ErrorState } from '../../src/components/ui';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useStudyStore } from '../../src/stores/studyStore';
 import { useClassStore } from '../../src/stores/classStore';
+import { toBullets } from '../../src/lib/bullets';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function StudyScreen() {
@@ -143,7 +144,7 @@ export default function StudyScreen() {
                                   : 'bulb'
                             }
                             size={18}
-                            color={colorScheme === 'dark' ? colors.white : colors.background}
+                            color={colors.onCard}
                           />
                         </View>
                         <View style={{ flex: 1 }}>
@@ -168,7 +169,7 @@ export default function StudyScreen() {
                         ]}
                         numberOfLines={2}
                       >
-                        {prompt.content}
+                        {toBullets(prompt.content)}
                       </Text>
                     </Card>
                   ))}
@@ -211,7 +212,7 @@ export default function StudyScreen() {
                             style={[typography.bodySmall, { color: colors.cardTextTertiary }]}
                             numberOfLines={1}
                           >
-                            {prompt.content}
+                            {toBullets(prompt.content)}
                           </Text>
                         </View>
                       </View>
@@ -247,7 +248,7 @@ export default function StudyScreen() {
                         <Ionicons
                           name="sparkles-outline"
                           size={40}
-                          color={colorScheme === 'dark' ? colors.white : colors.background}
+                          color={colors.onCard}
                         />
                       </View>
                       <Text
@@ -319,7 +320,7 @@ export default function StudyScreen() {
                           <Ionicons
                             name="card-outline"
                             size={20}
-                            color={colorScheme === 'dark' ? colors.white : colors.background}
+                            color={colors.onCard}
                           />
                         </View>
                         <View style={{ flex: 1 }}>
@@ -330,7 +331,7 @@ export default function StudyScreen() {
                             {format(parseISO(content.session_date), 'MMM d, yyyy')}
                           </Text>
                         </View>
-                        <View style={[styles.countBadge, { backgroundColor: colors.background }]}>
+                        <View style={[styles.countBadge, { backgroundColor: colors.accent }]}>
                           <Text style={[typography.labelSmall, { color: colors.white }]}>
                             {unlockedCount}/{flashcards.length}
                           </Text>
@@ -354,7 +355,7 @@ export default function StudyScreen() {
                       <Ionicons
                         name="card-outline"
                         size={40}
-                        color={colorScheme === 'dark' ? colors.white : colors.background}
+                        color={colors.onCard}
                       />
                     </View>
                     <Text
@@ -413,7 +414,7 @@ export default function StudyScreen() {
                           <Ionicons
                             name="help-circle-outline"
                             size={20}
-                            color={colorScheme === 'dark' ? colors.white : colors.background}
+                            color={colors.onCard}
                           />
                         </View>
                         <View style={{ flex: 1 }}>
@@ -424,7 +425,7 @@ export default function StudyScreen() {
                             {format(parseISO(content.session_date), 'MMM d, yyyy')}
                           </Text>
                         </View>
-                        <View style={[styles.countBadge, { backgroundColor: colors.background }]}>
+                        <View style={[styles.countBadge, { backgroundColor: colors.accent }]}>
                           <Text style={[typography.labelSmall, { color: colors.white }]}>
                             {questions.length} Q
                           </Text>
@@ -448,7 +449,7 @@ export default function StudyScreen() {
                       <Ionicons
                         name="help-circle-outline"
                         size={40}
-                        color={colorScheme === 'dark' ? colors.white : colors.background}
+                        color={colors.onCard}
                       />
                     </View>
                     <Text

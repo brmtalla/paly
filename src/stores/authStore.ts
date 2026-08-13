@@ -10,6 +10,7 @@ interface AuthState {
   profile: Profile | null;
   isLoading: boolean;
   isInitialized: boolean;
+  isProfileReady: boolean;
 
   // Actions
   initialize: () => Promise<void>;
@@ -31,6 +32,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   profile: null,
   isLoading: true,
   isInitialized: false,
+  isProfileReady: false,
 
   initialize: async () => {
     try {
@@ -40,27 +42,35 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       } = await supabase.auth.getSession();
 
       if (session?.user) {
-        set({ user: session.user, session });
+        set({ user: session.user, session, isProfileReady: false });
         await get().fetchProfile();
+      } else {
+        set({ isProfileReady: true });
       }
 
       // Listen for auth changes
-      supabase.auth.onAuthStateChange((_event, session) => {
-        set({ user: session?.user ?? null, session });
+      supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'INITIAL_SESSION') return;
 
-        if (session?.user) {
+        if (event === 'SIGNED_OUT' || !session?.user) {
+          set({ user: null, session: null, profile: null, isProfileReady: true });
+          return;
+        }
+
+        if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
           // Supabase can deadlock when another client call is awaited inside
           // this callback. Defer profile loading until the auth event returns.
+          set({ user: session.user, session, isProfileReady: false });
           setTimeout(() => void get().fetchProfile(), 0);
         } else {
-          set({ profile: null });
+          set({ user: session.user, session });
         }
       });
 
       set({ isLoading: false, isInitialized: true });
     } catch (error) {
       console.error('Auth initialization error:', error);
-      set({ isLoading: false, isInitialized: true });
+      set({ isLoading: false, isInitialized: true, isProfileReady: true });
     }
   },
 
@@ -96,10 +106,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       set({ isLoading: true });
       await supabase.auth.signOut();
-      set({ user: null, session: null, profile: null, isLoading: false });
+      set({ user: null, session: null, profile: null, isLoading: false, isProfileReady: true });
     } catch (error) {
       console.error('Sign out error:', error);
-      set({ isLoading: false });
+      set({ isLoading: false, isProfileReady: true });
     }
   },
 
@@ -133,7 +143,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return { error: error as Error };
       }
       await supabase.auth.signOut();
-      set({ user: null, session: null, profile: null, isLoading: false });
+      set({ user: null, session: null, profile: null, isLoading: false, isProfileReady: true });
       return { error: null };
     } catch (error) {
       set({ isLoading: false });
@@ -145,7 +155,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   fetchProfile: async () => {
     const { user } = get();
-    if (!user) return;
+    if (!user) {
+      set({ isProfileReady: true });
+      return;
+    }
 
     try {
       const { data, error } = await supabase
@@ -155,9 +168,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         .single();
 
       if (error) throw error;
-      set({ profile: data });
+      set({ profile: data, isProfileReady: true });
     } catch (error) {
       console.error('Fetch profile error:', error);
+      set({ isProfileReady: true });
     }
   },
 

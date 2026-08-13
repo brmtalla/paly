@@ -12,11 +12,12 @@ import { PalyPointsBar } from '../../src/components/PalyPointsBar';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useClassStore } from '../../src/stores/classStore';
 import { useStudyStore } from '../../src/stores/studyStore';
+import { toBullets } from '../../src/lib/bullets';
 import { Ionicons } from '@expo/vector-icons';
 import { ProfileAvatar } from '../../src/components/ProfileAvatar';
 
 export default function TodayScreen() {
-  const { colors, colorScheme } = useTheme();
+  const { colors } = useTheme();
   const { profile } = useAuthStore();
   const { fetchClasses, getTodaysClasses, getUpcomingClass } = useClassStore();
   const {
@@ -113,7 +114,7 @@ export default function TodayScreen() {
                   <Ionicons
                     name="today"
                     size={20}
-                    color={colorScheme === 'dark' ? colors.background : colors.background}
+                    color={colors.accent}
                   />
                 </View>
                 <Text style={[typography.titleMedium, { color: colors.cardText }]}>
@@ -201,7 +202,7 @@ export default function TodayScreen() {
                     </Text>
                   </View>
                   <TouchableOpacity
-                    style={[styles.takeNotesButton, { backgroundColor: colors.background }]}
+                    style={[styles.takeNotesButton, { backgroundColor: colors.accent }]}
                     onPress={() => router.push(`/notes/new?classId=${upcomingClass.classData.id}`)}
                   >
                     <Ionicons name="create-outline" size={18} color={colors.white} />
@@ -248,7 +249,7 @@ export default function TodayScreen() {
                               : 'bulb'
                         }
                         size={16}
-                        color={colors.background}
+                        color={colors.accent}
                       />
                     </View>
                     <Text style={[typography.labelSmall, { color: colors.cardText }]}>
@@ -259,7 +260,7 @@ export default function TodayScreen() {
                     style={[typography.bodyMedium, { color: colors.cardText }]}
                     numberOfLines={2}
                   >
-                    {prompt.content}
+                    {toBullets(prompt.content)}
                   </Text>
                 </Card>
               ))
@@ -269,7 +270,7 @@ export default function TodayScreen() {
                   <Ionicons
                     name="sparkles-outline"
                     size={40}
-                    color={colorScheme === 'dark' ? colors.white : colors.background + '30'}
+                    color={colors.onCard}
                   />
                   <Text
                     style={[
@@ -329,7 +330,7 @@ export default function TodayScreen() {
                     <View
                       style={[styles.classIcon, { backgroundColor: colors.white, ...SHADOWS.sm }]}
                     >
-                      <Ionicons name="chevron-forward" size={16} color={colors.background} />
+                      <Ionicons name="chevron-forward" size={16} color={colors.accent} />
                     </View>
                   </View>
                 </Card>
@@ -340,7 +341,7 @@ export default function TodayScreen() {
                   <Ionicons
                     name="calendar-outline"
                     size={32}
-                    color={colorScheme === 'dark' ? colors.white : colors.background + '30'}
+                    color={colors.onCard}
                   />
                   <Text
                     style={[

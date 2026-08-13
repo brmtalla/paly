@@ -24,7 +24,7 @@ import { Ionicons } from '@expo/vector-icons';
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function ClassesScreen() {
-  const { colors, colorScheme } = useTheme();
+  const { colors } = useTheme();
   const { profile } = useAuthStore();
   const { classes, fetchClasses, deleteClass, error: classesError } = useClassStore();
   const { isPro, presentPaywallIfNeeded } = useSubscriptionStore();
@@ -105,7 +105,7 @@ export default function ClassesScreen() {
             style={[styles.addButton, { backgroundColor: colors.white, ...SHADOWS.md }]}
             onPress={handleAddClass}
           >
-            <Ionicons name="add" size={24} color={colors.background} />
+            <Ionicons name="add" size={24} color={colors.accent} />
           </TouchableOpacity>
         </Animated.View>
 
@@ -126,13 +126,13 @@ export default function ClassesScreen() {
             style={styles.statsContainer}
           >
             <View style={[styles.statCard, { backgroundColor: colors.white, ...SHADOWS.md }]}>
-              <Text style={[typography.headlineLarge, { color: colors.background }]}>
+              <Text style={[typography.headlineLarge, { color: colors.accent }]}>
                 {classes.length}
               </Text>
               <Text
                 style={[
                   typography.labelSmall,
-                  { color: colorScheme === 'dark' ? colors.background : colors.cardTextSecondary },
+                  { color: colors.accent },
                 ]}
               >
                 ACTIVE CLASSES
@@ -234,7 +234,7 @@ export default function ClassesScreen() {
                   {/* Quick actions */}
                   <View style={styles.actionsContainer}>
                     <TouchableOpacity
-                      style={[styles.actionButton, { backgroundColor: colors.background }]}
+                      style={[styles.actionButton, { backgroundColor: colors.accent }]}
                       onPress={() => router.push(`/notes/new?classId=${classData.id}`)}
                     >
                       <Ionicons name="create-outline" size={16} color={colors.white} />
@@ -283,7 +283,7 @@ export default function ClassesScreen() {
                     size="md"
                     style={{ marginTop: SPACING.xl }}
                     onPress={handleAddClass}
-                    icon={<Ionicons name="add" size={20} color={colors.background} />}
+                    icon={<Ionicons name="add" size={20} color={colors.accent} />}
                   >
                     Add Class
                   </Button>

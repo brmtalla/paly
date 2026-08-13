@@ -213,7 +213,11 @@ export default function SubscriptionScreen() {
                     <Text
                       style={[
                         typography.bodySmall,
-                        { color: colors.textSecondary, textAlign: 'center' },
+                        {
+                          color: colors.textSecondary,
+                          textAlign: 'center',
+                          marginTop: SPACING.md,
+                        },
                       ]}
                     >
                       Start with {TRIAL_DAYS} days free — cancel anytime.

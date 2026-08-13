@@ -49,6 +49,12 @@ interface ThemeColors {
   white: string;
   whiteAlpha: string;
 
+  /**
+   * Glyphs sitting on `card` when that card is a chip on the accent page.
+   * White in dark mode — using `background` here is how icons went maroon-on-maroon.
+   */
+  onCard: string;
+
   // Semantic
   success: string;
   warning: string;
@@ -129,6 +135,7 @@ export function ThemeProvider({ children, initialAccentColor }: ThemeProviderPro
       // Elements that need to be white
       white: '#FFFFFF',
       whiteAlpha: 'rgba(255, 255, 255, 0.2)',
+      onCard: isDark ? '#FFFFFF' : derived.accent,
 
       // Semantic
       success: SEMANTIC_COLORS.success,

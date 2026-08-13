@@ -95,7 +95,7 @@ export default function CompanionScreen() {
                   onPress={() => setName(suggestion)}
                   style={{
                     ...styles.suggestionChip,
-                    ...(name === suggestion ? { backgroundColor: colors.background } : {}),
+                    ...(name === suggestion ? { backgroundColor: colors.accent } : {}),
                   }}
                 >
                   <Text

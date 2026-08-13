@@ -111,9 +111,9 @@ export default function ScheduleScreen() {
         {/* Progress indicator */}
         <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.progress}>
           <View style={[styles.progressBar, { backgroundColor: colors.backgroundTertiary }]}>
-            <View style={[styles.progressFill, { backgroundColor: colors.accent, width: '80%' }]} />
+            <View style={[styles.progressFill, { backgroundColor: colors.accent, width: '75%' }]} />
           </View>
-          <Text style={[typography.labelSmall, { color: colors.textMuted }]}>4 OF 5</Text>
+          <Text style={[typography.labelSmall, { color: colors.textMuted }]}>3 OF 4</Text>
         </Animated.View>
 
         <ScrollView
@@ -155,10 +155,10 @@ export default function ScheduleScreen() {
           <Animated.View entering={FadeInUp.delay(500).duration(400)}>
             <TouchableOpacity
               onPress={addNewClass}
-              style={[styles.addButton, { borderColor: colors.accent }]}
+              style={[styles.addButton, { borderColor: colors.white }]}
             >
-              <Ionicons name="add" size={24} color={colors.accent} />
-              <Text style={[typography.labelLarge, { color: colors.accent }]}>
+              <Ionicons name="add" size={24} color={colors.white} />
+              <Text style={[typography.labelLarge, { color: colors.white }]}>
                 Add Another Class
               </Text>
             </TouchableOpacity>

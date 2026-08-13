@@ -25,7 +25,7 @@ const queryClient = new QueryClient({
 
 function RootLayoutNav() {
   const { colors, colorScheme } = useTheme();
-  const { isInitialized, profile, user, isLoading } = useAuthStore();
+  const { isInitialized, isProfileReady, profile, user, isLoading } = useAuthStore();
   const { initialize: initSubscription } = useSubscriptionStore();
   const segments = useSegments();
 
@@ -40,32 +40,39 @@ function RootLayoutNav() {
   }, [user?.id]);
 
   useEffect(() => {
-    if (!isInitialized || isLoading) return;
+    if (!isInitialized || isLoading || !isProfileReady) return;
 
     const [group, screen] = segments as string[];
     const inAuthGroup = group === '(auth)';
     const inOnboardingGroup = group === '(onboarding)';
     const inPasswordReset = group === '(auth)' && screen === 'reset-password';
+    // Paywall and SMS linking sit after setup. Kick them to tabs from any
+    // other onboarding screen once setup is marked complete, but leave these.
+    const postSetupOnboarding =
+      screen === 'paywall' || screen === 'complete' || screen === 'activate-texts';
 
     if (inPasswordReset) {
       return;
     }
 
     if (!user && !inAuthGroup) {
-      // Redirect to welcome if not logged in
       router.replace('/(auth)/welcome');
     } else if (user) {
       if (!profile?.onboarding_completed && !inOnboardingGroup) {
-        // Redirect to onboarding if not completed
-        router.replace('/(onboarding)/activate-texts');
-      } else if (profile?.onboarding_completed && (inAuthGroup || inOnboardingGroup)) {
-        // Redirect to tabs if logged in and onboarded
+        router.replace('/(onboarding)/assistant');
+      } else if (profile?.onboarding_completed && inAuthGroup) {
+        router.replace('/(tabs)');
+      } else if (profile?.onboarding_completed && inOnboardingGroup && !postSetupOnboarding) {
         router.replace('/(tabs)');
       }
     }
-  }, [user, profile, isInitialized, isLoading, segments]);
+  }, [user, profile, isInitialized, isLoading, isProfileReady, segments]);
 
   if (!isInitialized) {
+    return null;
+  }
+
+  if (user && !isProfileReady) {
     return null;
   }
 

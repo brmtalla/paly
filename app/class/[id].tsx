@@ -319,7 +319,7 @@ export default function ClassDetailScreen() {
                   {classData.class_sessions?.map((session, index) => (
                     <View
                       key={index}
-                      style={[styles.dayBadge, { backgroundColor: colors.background }]}
+                      style={[styles.dayBadge, { backgroundColor: colors.accent }]}
                     >
                       <Text style={[typography.labelSmall, { color: colors.text }]}>
                         {getDayLabel(session.day_of_week)}
@@ -366,7 +366,7 @@ export default function ClassDetailScreen() {
             <Animated.View entering={FadeInDown.delay(250).duration(600).springify()}>
               <Card style={styles.instructorCard}>
                 <View style={styles.instructorHeader}>
-                  <View style={[styles.instructorAvatar, { backgroundColor: colors.background }]}>
+                  <View style={[styles.instructorAvatar, { backgroundColor: colors.accent }]}>
                     <Ionicons name="person" size={20} color={colors.text} />
                   </View>
                   <View style={styles.instructorInfo}>
@@ -405,7 +405,7 @@ export default function ClassDetailScreen() {
               style={[styles.quickAction, { backgroundColor: colors.card, ...SHADOWS.md }]}
               onPress={() => router.push(`/notes/new?classId=${id}`)}
             >
-              <View style={[styles.quickActionIcon, { backgroundColor: colors.background }]}>
+              <View style={[styles.quickActionIcon, { backgroundColor: colors.accent }]}>
                 <Ionicons name="create-outline" size={24} color={colors.text} />
               </View>
               <Text style={[typography.labelMedium, { color: colors.cardText }]}>Take Notes</Text>
@@ -416,7 +416,7 @@ export default function ClassDetailScreen() {
               onPress={handleUploadSlides}
               disabled={isUploading}
             >
-              <View style={[styles.quickActionIcon, { backgroundColor: colors.background }]}>
+              <View style={[styles.quickActionIcon, { backgroundColor: colors.accent }]}>
                 {isUploading ? (
                   <ActivityIndicator size="small" color={colors.text} />
                 ) : (
@@ -433,7 +433,7 @@ export default function ClassDetailScreen() {
               onPress={() => handleRequestChunk(false)}
               disabled={requestingChunk}
             >
-              <View style={[styles.quickActionIcon, { backgroundColor: colors.background }]}>
+              <View style={[styles.quickActionIcon, { backgroundColor: colors.accent }]}>
                 {requestingChunk ? (
                   <ActivityIndicator size="small" color={colors.text} />
                 ) : (
@@ -449,7 +449,7 @@ export default function ClassDetailScreen() {
               style={[styles.quickAction, { backgroundColor: colors.card, ...SHADOWS.md }]}
               onPress={() => router.push(`/class/${id}/study`)}
             >
-              <View style={[styles.quickActionIcon, { backgroundColor: colors.background }]}>
+              <View style={[styles.quickActionIcon, { backgroundColor: colors.accent }]}>
                 <Ionicons name="book-outline" size={24} color={colors.text} />
               </View>
               <Text style={[typography.labelMedium, { color: colors.cardText }]}>Study</Text>
@@ -489,7 +489,7 @@ export default function ClassDetailScreen() {
             ) : (
               <Card style={styles.quizStatusCard}>
                 <View style={styles.quizStatusRow}>
-                  <View style={[styles.streakBadge, { backgroundColor: colors.background }]}>
+                  <View style={[styles.streakBadge, { backgroundColor: colors.accent }]}>
                     <Text style={[typography.headlineSmall, { color: colors.text }]}>{streak}</Text>
                   </View>
                   <View style={{ flex: 1, marginLeft: SPACING.md }}>
@@ -547,7 +547,7 @@ export default function ClassDetailScreen() {
                 return (
                   <Card key={upload.id} style={styles.uploadCard}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                      <View style={[styles.uploadIcon, { backgroundColor: colors.background }]}>
+                      <View style={[styles.uploadIcon, { backgroundColor: colors.accent }]}>
                         <Ionicons name={iconName as any} size={22} color={colors.text} />
                       </View>
                       <View style={{ flex: 1 }}>

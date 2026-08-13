@@ -72,7 +72,7 @@ export default function NotesScreen() {
             style={[styles.addButton, { backgroundColor: colors.white, ...SHADOWS.md }]}
             onPress={() => router.push('/notes/new')}
           >
-            <Ionicons name="add" size={24} color={colors.background} />
+            <Ionicons name="add" size={24} color={colors.accent} />
           </TouchableOpacity>
         </Animated.View>
 
@@ -95,7 +95,7 @@ export default function NotesScreen() {
               <Text
                 style={[
                   typography.labelMedium,
-                  { color: !selectedClassId ? colors.background : colors.textSecondary },
+                  { color: !selectedClassId ? colors.accent : colors.textSecondary },
                 ]}
               >
                 All Notes
@@ -118,7 +118,7 @@ export default function NotesScreen() {
                     typography.labelMedium,
                     {
                       color:
-                        selectedClassId === classData.id ? colors.background : colors.textSecondary,
+                        selectedClassId === classData.id ? colors.accent : colors.textSecondary,
                     },
                   ]}
                 >
@@ -184,10 +184,10 @@ export default function NotesScreen() {
                         <View
                           style={[
                             styles.synthesizedBadge,
-                            { backgroundColor: colors.background + '15' },
+                            { backgroundColor: colors.accent + '20' },
                           ]}
                         >
-                          <Ionicons name="sparkles" size={12} color={colors.background} />
+                          <Ionicons name="sparkles" size={12} color={colors.onCard} />
                         </View>
                       )}
                     </View>
@@ -250,7 +250,7 @@ export default function NotesScreen() {
                     size="md"
                     style={{ marginTop: SPACING.xl }}
                     onPress={() => router.push('/notes/new')}
-                    icon={<Ionicons name="create-outline" size={20} color={colors.background} />}
+                    icon={<Ionicons name="create-outline" size={20} color={colors.accent} />}
                   >
                     Create Note
                   </Button>

@@ -108,7 +108,7 @@ export default function SignInScreen() {
                   <Input
                     variant="glass"
                     label="Email"
-                    placeholder="you@university.edu"
+                    placeholder="you@email.com"
                     keyboardType="email-address"
                     autoCapitalize="none"
                     autoComplete="email"

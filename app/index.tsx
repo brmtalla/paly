@@ -5,13 +5,13 @@ import { useTheme } from '../src/theme/ThemeContext';
 
 export default function Index() {
   const { colors } = useTheme();
-  const { user, profile, isLoading, isInitialized } = useAuthStore();
+  const { user, profile, isLoading, isInitialized, isProfileReady } = useAuthStore();
 
   // Show loading state
-  if (!isInitialized || isLoading) {
+  if (!isInitialized || isLoading || (user && !isProfileReady)) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <ActivityIndicator size="large" color={colors.accent} />
+        <ActivityIndicator size="large" color={colors.white} />
       </View>
     );
   }
@@ -23,7 +23,7 @@ export default function Index() {
 
   // Logged in but not completed onboarding
   if (!profile?.onboarding_completed) {
-    return <Redirect href="/(onboarding)/activate-texts" />;
+    return <Redirect href="/(onboarding)/assistant" />;
   }
 
   // Fully onboarded - go to main app

@@ -171,7 +171,7 @@ export default function FlashcardsScreen() {
             <Animated.View entering={FadeIn.duration(400)} style={{ width: '100%' }}>
               <GlassCard padding="lg">
                 <View style={styles.lockBadge}>
-                  <Ionicons name="diamond" size={28} color={colors.accent} />
+                  <Ionicons name="diamond" size={28} color={colors.onCard} />
                 </View>
 
                 <Text
@@ -316,12 +316,12 @@ export default function FlashcardsScreen() {
               <Ionicons
                 name={showAll ? 'lock-open-outline' : 'grid-outline'}
                 size={14}
-                color={colors.accent || colors.text}
+                color={colors.text}
               />
               <Text
                 style={[
                   typography.labelSmall,
-                  { color: colors.accent || colors.text, marginLeft: 4 },
+                  { color: colors.text, marginLeft: 4 },
                 ]}
               >
                 {showAll ? 'Scheduled Only' : 'View All'}
@@ -544,7 +544,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'center',
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: 'rgba(255,255,255,0.18)',
   },
   dayInfoRow: {
     flexDirection: 'row',

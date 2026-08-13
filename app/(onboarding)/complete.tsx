@@ -82,8 +82,8 @@ export default function CompleteScreen() {
                 },
               ]}
             >
-              {profile?.assistant_name || 'Paly'} is ready to help you study smarter. Your first
-              study nuggets will arrive after your next class.
+              {profile?.assistant_name || 'Paly'} is ready. Unlock texts to your phone — or start
+              with study nuggets in the app.
             </Text>
           </Animated.View>
 
@@ -100,9 +100,9 @@ export default function CompleteScreen() {
 
         {/* CTA */}
         <Animated.View entering={FadeIn.delay(800).duration(600)} style={styles.cta}>
-          <Button variant="primary" size="lg" fullWidth onPress={handleStart}>
-            Start Using Paly
-          </Button>
+            <Button variant="primary" size="lg" fullWidth onPress={handleStart}>
+              Continue
+            </Button>
         </Animated.View>
       </SafeAreaView>
     </View>

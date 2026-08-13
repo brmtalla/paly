@@ -12,13 +12,13 @@ export default function OnboardingLayout() {
         animation: 'slide_from_right',
       }}
     >
-      <Stack.Screen name="activate-texts" />
       <Stack.Screen name="assistant" />
       <Stack.Screen name="theme" />
       <Stack.Screen name="schedule" />
       <Stack.Screen name="availability" />
       <Stack.Screen name="complete" />
       <Stack.Screen name="paywall" />
+      <Stack.Screen name="activate-texts" />
     </Stack>
   );
 }

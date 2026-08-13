@@ -34,102 +34,129 @@ export interface Synthesis {
   dailyChunks: DailyChunk[];
 }
 
-/**
- * The model returns each day's chunk as an array of bullets, not as one string
- * it was asked nicely to format. That is the whole point: a schema the model
- * cannot satisfy with a paragraph is worth more than any amount of instruction
- * telling it not to write one.
- */
-const SYNTHESIS_SCHEMA = {
-  type: 'object',
-  additionalProperties: false,
-  required: ['summary', 'keyTakeaways', 'flashcards', 'quizQuestions', 'dailyChunks'],
-  properties: {
-    summary: {
-      type: 'string',
-      description:
-        'Two or three paragraphs covering the full scope of the material and how its concepts connect. Read in the app, not sent as a text.',
-    },
-    keyTakeaways: {
-      type: 'array',
-      description: '8-12 items. Each is one complete thought, 1-3 sentences, no bullet marker.',
-      items: { type: 'string' },
-    },
-    flashcards: {
-      type: 'array',
-      description:
-        '15-25 cards spread evenly across the study days: foundations early, applications late.',
-      items: {
-        type: 'object',
-        additionalProperties: false,
-        required: ['front', 'back', 'day'],
-        properties: {
-          front: { type: 'string', description: 'A question testing one concept.' },
-          back: { type: 'string', description: 'A 2-4 sentence answer that explains, not just names.' },
-          day: { type: 'integer', description: 'The study day this card unlocks on.' },
+function synthesisSchema(numStudyDays: number) {
+  return {
+    type: 'object',
+    additionalProperties: false,
+    required: ['summary', 'keyTakeaways', 'flashcards', 'quizQuestions', 'dailyChunks'],
+    properties: {
+      summary: {
+        type: 'string',
+        description:
+          'Two or three paragraphs covering the full scope of the testable material and how its concepts connect. Read in the app, not sent as a text. Do not recap assignments, agendas, or logistics.',
+      },
+      keyTakeaways: {
+        type: 'array',
+        minItems: 8,
+        maxItems: 12,
+        description: '8-12 exam-ready points. Each is one complete thought, 1-2 sentences, no bullet marker.',
+        items: { type: 'string' },
+      },
+      flashcards: {
+        type: 'array',
+        minItems: 12,
+        maxItems: 25,
+        description:
+          '12-25 cards spread across the study days by concept, not by source length. Foundations early, mechanisms middle, comparisons and exam traps late.',
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['front', 'back', 'day'],
+          properties: {
+            front: { type: 'string', description: 'A question testing one concept.' },
+            back: {
+              type: 'string',
+              description: 'A 2-4 sentence answer that explains, not just names.',
+            },
+            day: { type: 'integer', description: 'The study day this card unlocks on.' },
+          },
         },
       },
-    },
-    quizQuestions: {
-      type: 'array',
-      description: '10-15 questions mixing recall, application, and synthesis.',
-      items: {
-        type: 'object',
-        additionalProperties: false,
-        required: ['question', 'options', 'correct_index', 'explanation'],
-        properties: {
-          question: { type: 'string' },
-          options: { type: 'array', description: 'Four options; wrong ones are real misconceptions.', items: { type: 'string' } },
-          correct_index: { type: 'integer', description: 'Zero-based index into options.' },
-          explanation: {
-            type: 'string',
-            description: 'Why the right answer is right and each wrong one is wrong.',
+      quizQuestions: {
+        type: 'array',
+        minItems: 8,
+        maxItems: 15,
+        description: '8-15 questions mixing recall, application, and synthesis of the testable ideas.',
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['question', 'options', 'correct_index', 'explanation'],
+          properties: {
+            question: { type: 'string' },
+            options: {
+              type: 'array',
+              minItems: 4,
+              maxItems: 4,
+              description: 'Four options; wrong ones are real misconceptions.',
+              items: { type: 'string' },
+            },
+            correct_index: { type: 'integer', description: 'Zero-based index into options.' },
+            explanation: {
+              type: 'string',
+              description: 'Why the right answer is right and each wrong one is wrong.',
+            },
+          },
+        },
+      },
+      dailyChunks: {
+        type: 'array',
+        minItems: numStudyDays,
+        maxItems: numStudyDays,
+        description: `Exactly ${numStudyDays} entries, day 1 through ${numStudyDays}, covering the material by concept weight.`,
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['day', 'bullets'],
+          properties: {
+            day: { type: 'integer' },
+            bullets: {
+              type: 'array',
+              minItems: 5,
+              maxItems: 9,
+              description:
+                "5-9 bullets. Each is ONE idea in 1-2 sentences, no leading marker. Never a paragraph. When introducing a term, open with it in caps: 'CAP THEOREM: a distributed system can only guarantee 2 of consistency, availability, and partition tolerance.'",
+              items: { type: 'string' },
+            },
           },
         },
       },
     },
-    dailyChunks: {
-      type: 'array',
-      description: 'One entry per study day, in order.',
-      items: {
-        type: 'object',
-        additionalProperties: false,
-        required: ['day', 'bullets'],
-        properties: {
-          day: { type: 'integer' },
-          bullets: {
-            type: 'array',
-            description:
-              "5-9 bullets. Each is one standalone idea in 1-2 sentences, written without a leading marker — the app adds it. Open with the key term in caps when introducing one, e.g. 'CONSIDERATION: something of value exchanged — money, goods, services, or a promise'.",
-            items: { type: 'string' },
-          },
-        },
-      },
-    },
-  },
-} as const;
+  } as const;
+}
 
 function systemPrompt(numStudyDays: number): string {
-  return `You build study material for a student who will receive it one day at a time, on their phone, over ${numStudyDays} days before their next class.
+  return `You turn lecture material into a ${numStudyDays}-day study plan that a student reads on their phone, one day at a time, until the day before their next class. The same bullets are shown in the app and sent as a text. Never write a paragraph for a daily chunk.
 
-Work from the material you are given. Cover every definition, mechanism, relationship, and worked example in it — the student is learning this to be examined on it, not skimming for the gist. Spread the source evenly across the ${numStudyDays} days rather than front-loading it.
+WHAT TO KEEP
+Cover every testable idea: definitions, mechanisms, relationships, worked examples, named theorems, numbers that would appear on an exam. The student is learning this to be examined on it.
 
-Sequence the days so each one can be read on its own but builds on the last:
-- Day 1 establishes the vocabulary and the shape of the topic.
-- Early days break down each major concept with examples.
-- Middle days cover how concepts relate — processes, mechanisms, cause and effect.
-- Later days cover applications, edge cases, comparisons, and the misconceptions students actually have.
-- The final day connects the topics to each other and to how they would be examined.
+WHAT TO DROP
+Throw out filler. Do not study-ify agendas, "any questions" slides, assignment rubrics, due dates, references, YouTube links, workshop logistics, or in-class exercise instructions. One passing mention is enough if the class actually did an exercise.
 
-When a day's material builds on an earlier day, say so in a few words as you introduce it. That reference is what makes the spacing work.
+HOW TO SPLIT THE DAYS
+Split by concept weight, not by slide count or page count. A long narrative history section is lighter than a short, dense mechanisms section. Spread the testable ideas evenly across all ${numStudyDays} days — do not front-load, and do not leave day ${numStudyDays} as a thin recap.
 
-Each day's bullets are read in a text message, so each one carries a single idea a student can finish in a breath. Aim for 5-9 of them per day, adding up to roughly 700-1200 characters.`;
+Sequence so each day stands alone but builds on the last:
+- Day 1: vocabulary and the shape of the topic.
+- Early days: each major concept, with a concrete example.
+- Middle days: how concepts relate — processes, mechanisms, cause and effect.
+- Later days: applications, edge cases, comparisons, and the misconceptions students actually have.
+- Final day: how the topics connect, and how they would be examined.
+
+When a day builds on an earlier one, say so in a few words as you open it.
+
+BULLET RULES (this is the product)
+- 5-9 bullets per day.
+- One idea per bullet, 1-2 sentences, readable in a breath.
+- No paragraphs. No multi-idea run-ons.
+- When introducing a term, open with the term in CAPS, then a colon, then the point.
+- These bullets are the study nugget. Do not summarize so hard that a key point disappears, and do not regurgitate the source.`;
 }
 
 function userPrompt(content: string, className: string | undefined, numStudyDays: number): string {
   const source = className ? `lecture material from ${className}` : 'lecture material';
 
-  return `Here is the ${source}. Build ${numStudyDays} days of study content from it.
+  return `Here is the ${source}. Build exactly ${numStudyDays} days of study content from it. Drop filler. Keep every testable idea. Split by concept weight, not source length.
 
 ${content.substring(0, 100000)}`;
 }
@@ -160,7 +187,7 @@ export async function synthesizeStudyContent(
     thinking: { type: 'adaptive' },
     output_config: {
       effort: 'medium',
-      format: { type: 'json_schema', schema: SYNTHESIS_SCHEMA },
+      format: { type: 'json_schema', schema: synthesisSchema(numStudyDays) },
     },
   });
 

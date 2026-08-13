@@ -10,6 +10,7 @@ import { SPACING, LAYOUT, RADIUS, SHADOWS } from '../../src/theme/spacing';
 import { Card, Button, Background } from '../../src/components/ui';
 import { useStudyStore } from '../../src/stores/studyStore';
 import { useClassStore } from '../../src/stores/classStore';
+import { toBullets } from '../../src/lib/bullets';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function PromptDetailScreen() {
@@ -83,7 +84,7 @@ export default function PromptDetailScreen() {
               <Ionicons
                 name={getPromptIcon(prompt.prompt_type)}
                 size={48}
-                color={colors.background}
+                color={colors.onCard}
               />
             </View>
 
@@ -104,7 +105,7 @@ export default function PromptDetailScreen() {
 
             <Card style={styles.promptCard}>
               <Text style={[typography.bodyLarge, { color: colors.cardText, lineHeight: 28 }]}>
-                {prompt.content}
+                {toBullets(prompt.content)}
               </Text>
             </Card>
 
@@ -136,7 +137,7 @@ export default function PromptDetailScreen() {
                 </Button>
               )}
 
-              <Button variant="ghost" size="lg" fullWidth onPress={() => router.back()}>
+              <Button variant="primary" size="lg" fullWidth onPress={() => router.back()}>
                 Done
               </Button>
             </View>

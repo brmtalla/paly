@@ -40,18 +40,24 @@ function splitSentences(text: string): string[] {
  * Renders study content as a bullet list.
  *
  * Accepts the array synthesis now produces, or a string from a row written
- * before that change.
+ * before that change. Paragraph-shaped items get split so the phone never
+ * sees a wall of prose.
  */
-export function toBullets(input: string | string[] | null | undefined): string {
-  if (!input) return '';
-
-  const items = Array.isArray(input) ? input : linesFrom(input);
-
+export function normalizeBulletItems(items: string[]): string[] {
   return items
     .map((item) => stripMarker(item))
     .filter(Boolean)
-    .map((item) => `${BULLET} ${item}`)
-    .join('\n');
+    .flatMap((item) => (item.length > 180 ? splitSentences(item) : [item]))
+    .map((item) => stripMarker(item))
+    .filter(Boolean);
+}
+
+export function toBullets(input: string | string[] | null | undefined): string {
+  if (!input) return '';
+
+  const items = normalizeBulletItems(Array.isArray(input) ? input : linesFrom(input));
+
+  return items.map((item) => `${BULLET} ${item}`).join('\n');
 }
 
 /**

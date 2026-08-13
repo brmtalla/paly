@@ -243,7 +243,7 @@ export default function ClassStudyScreen() {
                       <View
                         style={[
                           styles.studyIcon,
-                          { backgroundColor: isRead ? '#34C75920' : colors.background },
+                          { backgroundColor: isRead ? '#34C75920' : colors.accent },
                         ]}
                       >
                         <Ionicons
@@ -339,7 +339,7 @@ export default function ClassStudyScreen() {
                                 ? colors.error + '20'
                                 : isDueSoon
                                   ? '#FF950020'
-                                  : colors.background,
+                                  : colors.accent,
                             },
                           ]}
                         >
@@ -410,7 +410,7 @@ export default function ClassStudyScreen() {
                     { backgroundColor: colors.card, ...SHADOWS.md },
                   ]}
                 >
-                  <View style={[styles.studyIcon, { backgroundColor: colors.background }]}>
+                  <View style={[styles.studyIcon, { backgroundColor: colors.accent }]}>
                     {requestingChunk ? (
                       <ActivityIndicator size="small" color={colors.text} />
                     ) : (
@@ -448,7 +448,7 @@ export default function ClassStudyScreen() {
                 </Text>
                 {classContent.map((content) => (
                   <Card key={`sms-${content.id}`} style={styles.studyCard}>
-                    <View style={[styles.studyIcon, { backgroundColor: colors.background }]}>
+                    <View style={[styles.studyIcon, { backgroundColor: colors.accent }]}>
                       <Ionicons name="chatbubble-ellipses-outline" size={24} color={colors.text} />
                     </View>
                     <View style={styles.studyContent}>
@@ -462,7 +462,7 @@ export default function ClassStudyScreen() {
                     <TouchableOpacity
                       onPress={() => handleSendNow(content.id)}
                       disabled={sendingId === content.id}
-                      style={[styles.textMeButton, { backgroundColor: colors.background }]}
+                      style={[styles.textMeButton, { backgroundColor: colors.accent }]}
                     >
                       {sendingId === content.id ? (
                         <ActivityIndicator size="small" color={colors.text} />
@@ -497,7 +497,7 @@ export default function ClassStudyScreen() {
                     onPress={() => router.push(`/study/flashcards/${content.id}`)}
                   >
                     <Card style={styles.studyCard}>
-                      <View style={[styles.studyIcon, { backgroundColor: colors.background }]}>
+                      <View style={[styles.studyIcon, { backgroundColor: colors.accent }]}>
                         <Ionicons name="layers-outline" size={24} color={colors.text} />
                       </View>
                       <View style={styles.studyContent}>
