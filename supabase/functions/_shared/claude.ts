@@ -19,7 +19,10 @@ export function claude(): Anthropic {
     throw new Error('ANTHROPIC_API_KEY is not configured');
   }
 
-  client ??= new Anthropic({ apiKey: ANTHROPIC_API_KEY });
+  // The SDK already backs off on 429 and 5xx; the default of 2 is thin for a
+  // synthesis run, where losing the retry means a student watches their upload
+  // fail after a minute and a half of waiting.
+  client ??= new Anthropic({ apiKey: ANTHROPIC_API_KEY, maxRetries: 4 });
   return client;
 }
 

@@ -8,6 +8,15 @@ import { hasPassingQuizAttempt } from '../_shared/quiz.ts';
 import { nudgeExpiringTrials } from '../_shared/trial.ts';
 import { formatPromptMessage, pushPreview, pushTitle } from '../_shared/promptMessage.ts';
 
+/**
+ * Prompts cluster on the same wall-clock times, so a popular slot arrives as a
+ * spike rather than a trickle. The batch has to be big enough to drain one.
+ */
+const BATCH_SIZE = 200;
+
+/** Sends are IO-bound; this is what keeps a full batch well inside the cron interval. */
+const CONCURRENCY = 8;
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -43,7 +52,7 @@ serve(async (req) => {
       .lte('scheduled_for', nowISO)
       .is('delivered_at', null)
       .order('scheduled_for')
-      .limit(50);
+      .limit(BATCH_SIZE);
 
     if (fetchError) {
       console.error('Fetch prompts error:', fetchError);
@@ -83,15 +92,37 @@ serve(async (req) => {
     let pushed = 0;
     let texted = 0;
 
-    for (const prompt of duePrompts) {
-      const pairKey = `${prompt.user_id}:${prompt.class_id}`;
-
+    const sendable = duePrompts.filter((prompt) => {
       // Block delivery for classes with overdue quizzes at level 3+
-      if (blockedUserClassPairs.has(pairKey) && prompt.prompt_type !== 'quiz') {
+      if (
+        blockedUserClassPairs.has(`${prompt.user_id}:${prompt.class_id}`) &&
+        prompt.prompt_type !== 'quiz'
+      ) {
         blocked++;
-        continue;
+        return false;
       }
+      return true;
+    });
 
+    // Claim before sending. `delivered_at` is the claim: the filter means only
+    // rows that were still unclaimed come back, so two overlapping cron runs
+    // cannot both pick up the same prompt and text a student twice. Anything
+    // that then fails to reach them is released again below.
+    const claimedAt = new Date().toISOString();
+    const { data: claimed } = await supabaseAdmin
+      .from('study_prompts')
+      .update({ delivered_at: claimedAt })
+      .in(
+        'id',
+        sendable.map((p) => p.id)
+      )
+      .is('delivered_at', null)
+      .select('id');
+
+    const claimedIds = new Set((claimed ?? []).map((row) => row.id));
+    const mine = sendable.filter((prompt) => claimedIds.has(prompt.id));
+
+    const deliver = async (prompt: (typeof mine)[number]) => {
       const profile = profileMap.get(prompt.user_id);
       const className = (prompt as any).classes?.name || 'your class';
       const assistantName = profile?.assistant_name || 'Paly';
@@ -121,14 +152,30 @@ serve(async (req) => {
 
       // A prompt counts as delivered if it reached the student either way.
       if (pushOk || smsOk) {
-        await supabaseAdmin
-          .from('study_prompts')
-          .update({ delivered_at: new Date().toISOString() })
-          .eq('id', prompt.id);
         delivered++;
-      } else {
-        failed++;
+        return null;
       }
+
+      failed++;
+      return prompt.id;
+    };
+
+    // Sending is almost entirely waiting on SendBlue and Expo, so the batch
+    // goes out in parallel. Serially, a full batch took long enough that a run
+    // could still be going when the next one fired five minutes later.
+    const released: string[] = [];
+    for (let i = 0; i < mine.length; i += CONCURRENCY) {
+      const results = await Promise.all(mine.slice(i, i + CONCURRENCY).map(deliver));
+      for (const id of results) if (id) released.push(id);
+    }
+
+    // Reaching nobody means the claim was wrong — put it back so the next run
+    // retries rather than leaving the student silently skipped.
+    if (released.length > 0) {
+      await supabaseAdmin
+        .from('study_prompts')
+        .update({ delivered_at: null })
+        .in('id', released);
     }
 
     return new Response(
@@ -140,6 +187,7 @@ serve(async (req) => {
         failed,
         blocked,
         total: duePrompts.length,
+        claimed: mine.length,
         quizEnforcement: quizEnforcementResults,
         trialNudges,
       }),
