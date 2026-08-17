@@ -17,8 +17,10 @@ export const SUPABASE_ANON_KEY = required(
   import.meta.env.VITE_SUPABASE_ANON_KEY
 );
 
-// Empty until the server exists — the footer link hides rather than 404s.
-export const DISCORD_INVITE_URL = import.meta.env.VITE_DISCORD_URL || '';
+// A public invite, so it lives in the source rather than an env var. Set to
+// never expire — a landing page outlives any 30-day link.
+export const DISCORD_INVITE_URL =
+  import.meta.env.VITE_DISCORD_URL || 'https://discord.gg/fs3UzdvKta';
 
 // Set once the apps are live; the download buttons stay hidden until then.
 export const APP_STORE_URL = import.meta.env.VITE_APP_STORE_URL || '';
