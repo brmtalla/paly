@@ -5,13 +5,13 @@ Attached. Recorded on a physical [DEVICE], iOS [VERSION]. Starts at launch and c
 [DEVICE], iOS [VERSION].
 
 3. WHAT THE APP DOES
-Paly is a study companion for students aged 16+. It solves cramming: spacing material across the days before a class retains far better, but scheduling that by hand is more work than students will do. The student adds their classes and weekly timetable, then uploads lecture slides or notes (PDF/DOCX/PPTX) after class. The app generates a summary, key takeaways, flashcards, a quiz and short daily study chunks, then schedules them across the days before that class next meets, at times the student marks as free. Each arrives as a push notification. Before the next class they must pass a quiz on the material; not passing pauses delivery until they do.
+Paly is a study companion for students aged 16+. It solves cramming: spacing material across the days before a class retains far better, but building that schedule by hand is more work than students will do. The student adds their classes and timetable, then uploads slides or notes (PDF/DOCX/PPTX) after class. The app generates a summary, key takeaways, flashcards, a quiz and short daily chunks, then schedules them across the days before that class next meets, at times the student marks as free. Each arrives as a push notification. Before the next class they must pass a quiz on the material; not passing pauses delivery until they do.
 
 4. SETUP AND ACCESS
 Demo credentials are in the Sign-In Information fields. The account is pre-populated, so no setup is needed: 2 classes with schedules, 2 notes, one synthesized set (summary, 5 takeaways, 6 flashcards, 5 quiz questions, 4 daily chunks), 5 prompts, a 4-day streak.
 - Study tab: delivered chunks; tap to read in full.
 - Classes tab: open one for its synthesized content, flashcards and quiz.
-- Upload: inside a class, "Upload material" takes a PDF/DOCX/PPTX. Any lecture PDF works; synthesis takes 60-100s with on-screen progress.
+- Upload: inside a class, "Upload material" takes a PDF/DOCX/PPTX. Synthesis takes 60-100s with on-screen progress.
 - Quiz: inside a class, "Take quiz". 80% passes.
 - Settings > Subscription: the paid plans.
 - Settings > Delete Account: permanent deletion of the account and its data.
@@ -19,7 +19,7 @@ No permission is required to use the app. The only system prompt is the notifica
 
 5. EXTERNAL SERVICES
 - Supabase: authentication, database, storage for uploads (US).
-- Anthropic (Claude): the AI that reads uploads and generates the study content. Called from our server only, never the device.
+- Anthropic (Claude): the AI that reads uploads and generates the study content. Called from our server, never the device.
 - RevenueCat: subscription entitlement management. All payments go through Apple IAP; it processes none.
 - SendBlue: iMessage/SMS delivery for Pro subscribers who opt in by texting a code from their own handset. Not exercised by this review.
 - Expo Push Notification service (APNs).
@@ -29,7 +29,7 @@ No advertising or analytics SDK and no ATT prompt: the app does not track users 
 None. Features and content are identical in every region, English only, both subscriptions in all 175 regions. No geographic gating.
 
 7. REGULATED INDUSTRY / THIRD-PARTY MATERIAL
-Neither applies. The only material processed is the student's own notes and lecture files, uploaded for their private use. Nothing is shared between accounts, published, or visible to any other user. For copyright safety the original upload and its extracted text are deleted as soon as synthesis finishes; only the derived study material remains, in that student's own account.
+Neither applies. The only material processed is the student's own notes and lecture files, uploaded for their private use. Nothing is shared between accounts, published, or visible to any other user. For copyright safety the original upload and its extracted text are deleted once synthesis finishes; only the derived study material remains, in that student's account.
 
 8. IN-APP PURCHASE
 One auto-renewing subscription, Paly Pro:
