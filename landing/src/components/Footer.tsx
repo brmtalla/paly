@@ -1,5 +1,6 @@
 import { DISCORD_INVITE_URL, PLAY_STORE_URL } from '../config';
 import AppStoreBadge from './AppStoreBadge';
+import DiscordButton from './DiscordButton';
 
 export default function Footer() {
 
@@ -16,8 +17,13 @@ export default function Footer() {
           </h2>
           <p className="mx-auto mt-4 max-w-lg text-lg leading-relaxed text-paly-100/70">
             Upload after class. Show up to the next one already knowing it.
+            <br className="hidden sm:block" />
+            <span className="text-paly-200/60">
+              Join the Discord and we&apos;ll tell you the moment it&apos;s on the App Store.
+            </span>
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <DiscordButton />
             <AppStoreBadge tone="dark" />
             {PLAY_STORE_URL ? (
               <a

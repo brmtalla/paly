@@ -1,5 +1,6 @@
 import PhoneMockup from './PhoneMockup';
 import AppStoreBadge from './AppStoreBadge';
+import DiscordButton from './DiscordButton';
 
 const PROOF = [
   { stat: '5 min', label: 'from slides to study plan' },
@@ -95,8 +96,9 @@ export default function Hero() {
             </a>
           </div>
 
-          <div className="animate-fade-in-up stagger-3 mt-7 flex justify-center lg:justify-start">
+          <div className="animate-fade-in-up stagger-3 mt-7 flex flex-col items-center gap-4 sm:flex-row lg:justify-start">
             <AppStoreBadge tone="dark" />
+            <DiscordButton variant="outline" label="Join the Discord" className="w-full sm:w-auto" />
           </div>
 
           <dl className="animate-fade-in-up stagger-4 mt-12 grid grid-cols-3 gap-4 border-t border-white/10 pt-7">
