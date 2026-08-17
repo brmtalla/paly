@@ -34,6 +34,13 @@ export interface Synthesis {
   dailyChunks: DailyChunk[];
 }
 
+/**
+ * Structured outputs rejects array size constraints outright: `minItems` and
+ * `maxItems` other than 0 or 1 fail the whole request with a 400, taking the
+ * upload down with them. Counts belong in `description`, where the model
+ * follows them closely — that is what produces exactly `numStudyDays` chunks
+ * and four options a question.
+ */
 function synthesisSchema(numStudyDays: number) {
   return {
     type: 'object',
@@ -47,15 +54,11 @@ function synthesisSchema(numStudyDays: number) {
       },
       keyTakeaways: {
         type: 'array',
-        minItems: 8,
-        maxItems: 12,
         description: '8-12 exam-ready points. Each is one complete thought, 1-2 sentences, no bullet marker.',
         items: { type: 'string' },
       },
       flashcards: {
         type: 'array',
-        minItems: 12,
-        maxItems: 25,
         description:
           '12-25 cards spread across the study days by concept, not by source length. Foundations early, mechanisms middle, comparisons and exam traps late.',
         items: {
@@ -74,8 +77,6 @@ function synthesisSchema(numStudyDays: number) {
       },
       quizQuestions: {
         type: 'array',
-        minItems: 8,
-        maxItems: 15,
         description: '8-15 questions mixing recall, application, and synthesis of the testable ideas.',
         items: {
           type: 'object',
@@ -85,8 +86,6 @@ function synthesisSchema(numStudyDays: number) {
             question: { type: 'string' },
             options: {
               type: 'array',
-              minItems: 4,
-              maxItems: 4,
               description: 'Four options; wrong ones are real misconceptions.',
               items: { type: 'string' },
             },
@@ -100,8 +99,6 @@ function synthesisSchema(numStudyDays: number) {
       },
       dailyChunks: {
         type: 'array',
-        minItems: numStudyDays,
-        maxItems: numStudyDays,
         description: `Exactly ${numStudyDays} entries, day 1 through ${numStudyDays}, covering the material by concept weight.`,
         items: {
           type: 'object',
@@ -111,8 +108,6 @@ function synthesisSchema(numStudyDays: number) {
             day: { type: 'integer' },
             bullets: {
               type: 'array',
-              minItems: 5,
-              maxItems: 9,
               description:
                 "5-9 bullets. Each is ONE idea in 1-2 sentences, no leading marker. Never a paragraph. When introducing a term, open with it in caps: 'CAP THEOREM: a distributed system can only guarantee 2 of consistency, availability, and partition tolerance.'",
               items: { type: 'string' },
