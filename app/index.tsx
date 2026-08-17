@@ -23,7 +23,7 @@ export default function Index() {
 
   // Logged in but not completed onboarding
   if (!profile?.onboarding_completed) {
-    return <Redirect href="/(onboarding)/assistant" />;
+    return <Redirect href="/(onboarding)/activate-texts" />;
   }
 
   // Fully onboarded - go to main app

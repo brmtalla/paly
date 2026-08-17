@@ -10,15 +10,14 @@ export default function OnboardingPaywall() {
   const { refreshCustomerInfo } = useSubscriptionStore();
   const finishing = useRef(false);
 
-  const finish = async (subscribed: boolean) => {
+  const finish = async () => {
     if (finishing.current) return;
     finishing.current = true;
 
     try {
       await refreshCustomerInfo();
-      const nowPro = subscribed || useSubscriptionStore.getState().isPro;
       await updateProfile({ onboarding_completed: true });
-      router.replace(nowPro ? '/(onboarding)/activate-texts' : '/(tabs)');
+      router.replace('/(tabs)');
     } catch (error) {
       finishing.current = false;
       console.error('Failed to finish onboarding after paywall:', error);
@@ -30,13 +29,13 @@ export default function OnboardingPaywall() {
     <View style={styles.container}>
       <RevenueCatUI.Paywall
         onPurchaseCompleted={() => {
-          void finish(true);
+          void finish();
         }}
         onRestoreCompleted={() => {
-          void finish(false);
+          void finish();
         }}
         onDismiss={() => {
-          void finish(false);
+          void finish();
         }}
       />
     </View>

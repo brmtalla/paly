@@ -111,9 +111,9 @@ export default function ScheduleScreen() {
         {/* Progress indicator */}
         <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.progress}>
           <View style={[styles.progressBar, { backgroundColor: colors.backgroundTertiary }]}>
-            <View style={[styles.progressFill, { backgroundColor: colors.accent, width: '75%' }]} />
+            <View style={[styles.progressFill, { backgroundColor: colors.accent, width: '80%' }]} />
           </View>
-          <Text style={[typography.labelSmall, { color: colors.textMuted }]}>3 OF 4</Text>
+          <Text style={[typography.labelSmall, { color: colors.textMuted }]}>4 OF 5</Text>
         </Animated.View>
 
         <ScrollView

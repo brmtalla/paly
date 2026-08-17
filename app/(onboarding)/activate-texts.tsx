@@ -60,9 +60,9 @@ export default function ActivateTextsScreen() {
         {/* Progress */}
         <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.progress}>
           <View style={[styles.progressBar, { backgroundColor: colors.glassBackground }]}>
-            <View style={[styles.progressFill, { backgroundColor: colors.card, width: '100%' }]} />
+            <View style={[styles.progressFill, { backgroundColor: colors.card, width: '20%' }]} />
           </View>
-          <Text style={[typography.labelSmall, { color: colors.textSecondary }]}>LAST STEP</Text>
+          <Text style={[typography.labelSmall, { color: colors.textSecondary }]}>1 OF 5</Text>
         </Animated.View>
 
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>

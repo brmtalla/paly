@@ -59,7 +59,7 @@ function RootLayoutNav() {
       router.replace('/(auth)/welcome');
     } else if (user) {
       if (!profile?.onboarding_completed && !inOnboardingGroup) {
-        router.replace('/(onboarding)/assistant');
+        router.replace('/(onboarding)/activate-texts');
       } else if (profile?.onboarding_completed && inAuthGroup) {
         router.replace('/(tabs)');
       } else if (profile?.onboarding_completed && inOnboardingGroup && !postSetupOnboarding) {
