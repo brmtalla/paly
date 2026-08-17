@@ -1,4 +1,5 @@
 import PhoneMockup from './PhoneMockup';
+import AppStoreBadge from './AppStoreBadge';
 
 const PROOF = [
   { stat: '5 min', label: 'from slides to study plan' },
@@ -92,6 +93,10 @@ export default function Hero() {
             >
               See how it works
             </a>
+          </div>
+
+          <div className="animate-fade-in-up stagger-3 mt-7 flex justify-center lg:justify-start">
+            <AppStoreBadge tone="dark" />
           </div>
 
           <dl className="animate-fade-in-up stagger-4 mt-12 grid grid-cols-3 gap-4 border-t border-white/10 pt-7">

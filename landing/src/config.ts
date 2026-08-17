@@ -17,7 +17,8 @@ export const SUPABASE_ANON_KEY = required(
   import.meta.env.VITE_SUPABASE_ANON_KEY
 );
 
-export const DISCORD_INVITE_URL = import.meta.env.VITE_DISCORD_URL || 'https://discord.gg/paly';
+// Empty until the server exists — the footer link hides rather than 404s.
+export const DISCORD_INVITE_URL = import.meta.env.VITE_DISCORD_URL || '';
 
 // Set once the apps are live; the download buttons stay hidden until then.
 export const APP_STORE_URL = import.meta.env.VITE_APP_STORE_URL || '';

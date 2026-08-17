@@ -1,18 +1,7 @@
-import { APP_STORE_URL, DISCORD_INVITE_URL, PLAY_STORE_URL } from '../config';
+import { DISCORD_INVITE_URL, PLAY_STORE_URL } from '../config';
+import AppStoreBadge from './AppStoreBadge';
 
 export default function Footer() {
-  const storeLinks = [
-    {
-      label: 'Download for iOS',
-      url: APP_STORE_URL,
-      className: 'bg-white text-paly-900 hover:bg-paly-50 shadow-lift',
-    },
-    {
-      label: 'Download for Android',
-      url: PLAY_STORE_URL,
-      className: 'border border-white/20 text-white hover:bg-white/10',
-    },
-  ].filter((link) => link.url);
 
   return (
     <footer className="border-t border-paly-950/[0.06] bg-white">
@@ -28,24 +17,18 @@ export default function Footer() {
           <p className="mx-auto mt-4 max-w-lg text-lg leading-relaxed text-paly-100/70">
             Upload after class. Show up to the next one already knowing it.
           </p>
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-            {storeLinks.length > 0 ? (
-              storeLinks.map((link) => (
-                <a
-                  key={link.label}
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`rounded-2xl px-8 py-4 font-semibold transition-all duration-200 ease-out-quart hover:-translate-y-0.5 ${link.className}`}
-                >
-                  {link.label}
-                </a>
-              ))
-            ) : (
-              <p className="text-paly-200/70 font-medium">
-                Coming soon to the App Store and Google Play.
-              </p>
-            )}
+          <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <AppStoreBadge tone="dark" />
+            {PLAY_STORE_URL ? (
+              <a
+                href={PLAY_STORE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-2xl border border-white/20 px-8 py-4 font-semibold text-white transition-all duration-200 ease-out-quart hover:-translate-y-0.5 hover:bg-white/10"
+              >
+                Download for Android
+              </a>
+            ) : null}
           </div>
           </div>
         </div>
@@ -58,9 +41,16 @@ export default function Footer() {
           </a>
 
           <div className="flex items-center gap-6 text-sm text-paly-950/45">
-            <a href={DISCORD_INVITE_URL} target="_blank" rel="noopener noreferrer" className="transition-colors duration-200 hover:text-paly-700">
-              Discord
-            </a>
+            {DISCORD_INVITE_URL ? (
+              <a
+                href={DISCORD_INVITE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="transition-colors duration-200 hover:text-paly-700"
+              >
+                Discord
+              </a>
+            ) : null}
             <a href="/privacy-policy.html" className="transition-colors duration-200 hover:text-paly-700">
               Privacy
             </a>
