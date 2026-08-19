@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Confirm your email — Paly</title>
+    <link rel="icon" href="/paly-mark.png" />
+    <style>
+      :root {
+        --paly-50: #eef3fc;
+        --paly-100: #d8e4f8;
+        --paly-600: #2050b0;
+        --paly-700: #1b4090;
+        --paly-950: #0c1a38;
+        --teal: #0d9488;
+        --red: #b42318;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background: radial-gradient(120% 120% at 50% 0%, #17357a 0%, var(--paly-950) 55%);
+        color: #fff;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      .card {
+        width: 100%;
+        max-width: 420px;
+        text-align: center;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 28px;
+        padding: 40px 28px 32px;
+        backdrop-filter: blur(12px);
+      }
+      .mark { width: 64px; height: 64px; border-radius: 18px; background: #fff; padding: 8px; object-fit: contain; }
+      h1 { margin: 22px 0 0; font-size: 1.6rem; line-height: 1.2; letter-spacing: -0.02em; }
+      p { margin: 12px 0 0; line-height: 1.6; color: rgba(216, 228, 248, 0.78); font-size: 0.98rem; }
+      .btn {
+        display: inline-block; margin-top: 26px; width: 100%;
+        padding: 15px 24px; border-radius: 16px;
+        background: #fff; color: var(--paly-950);
+        font-weight: 650; font-size: 1rem; text-decoration: none;
+        transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.2s;
+      }
+      .btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px -12px rgba(0, 0, 0, 0.6); }
+      .hint { margin-top: 16px; font-size: 0.82rem; color: rgba(216, 228, 248, 0.5); }
+      /* The spinner is the default state: most people never see anything else,
+         because the deep link fires and iOS swaps to the app immediately. */
+      .spinner {
+        width: 26px; height: 26px; margin: 24px auto 0;
+        border: 3px solid rgba(255, 255, 255, 0.25);
+        border-top-color: #fff; border-radius: 50%;
+        animation: spin 0.9s linear infinite;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      [hidden] { display: none !important; }
+      @media (prefers-reduced-motion: reduce) {
+        .spinner { animation-duration: 3s; }
+        .btn { transition: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <img class="mark" src="/paly-mark.png" alt="Paly" width="64" height="64" />
+
+      <div id="working">
+        <h1>Opening Paly…</h1>
+        <p>Confirming your email and signing you in.</p>
+        <div class="spinner" role="status" aria-label="Opening Paly"></div>
+        <p class="hint">Didn&rsquo;t jump to the app? Tap the button below.</p>
+        <a class="btn" id="open" href="#">Open Paly</a>
+      </div>
+
+      <div id="failed" hidden>
+        <h1 id="failed-title">This link has expired</h1>
+        <p id="failed-body">
+          Confirmation links can only be used once. Open Paly and request a new one.
+        </p>
+        <a class="btn" href="paly://confirm">Open Paly</a>
+      </div>
+
+      <div id="desktop" hidden>
+        <h1>Open this on your phone</h1>
+        <p>
+          Paly lives on your iPhone, so this link needs to be opened there. Forward the email to
+          yourself and tap it on your phone.
+        </p>
+      </div>
+    </main>
+
+    <script>
+      (function () {
+        // Supabase puts params in the query string, but some clients move them
+        // to the fragment, so both have to be read.
+        var params = new URLSearchParams(location.search);
+        new URLSearchParams(location.hash.replace(/^#/, '')).forEach(function (v, k) {
+          if (!params.has(k)) params.set(k, v);
+        });
+
+        var working = document.getElementById('working');
+        var failed = document.getElementById('failed');
+        var desktop = document.getElementById('desktop');
+
+        function show(el) {
+          [working, failed, desktop].forEach(function (n) { n.hidden = n !== el; });
+        }
+
+        // Supabase reports its own failures as error params rather than a bad
+        // token, so surface its wording instead of guessing.
+        var err = params.get('error_description') || params.get('error');
+        if (err) {
+          document.getElementById('failed-body').textContent = err;
+          show(failed);
+          return;
+        }
+
+        // Everything after the scheme is handed straight to the app, which is
+        // what calls verifyOtp. Nothing here consumes the token, so a second
+        // tap on the email still works.
+        var target = 'paly://confirm' + (params.toString() ? '?' + params.toString() : '');
+        document.getElementById('open').setAttribute('href', target);
+
+        var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (!isMobile) {
+          show(desktop);
+          return;
+        }
+
+        location.replace(target);
+      })();
+    </script>
+  </body>
+</html>
