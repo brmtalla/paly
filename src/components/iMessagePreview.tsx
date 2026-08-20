@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { AccessibilityInfo, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   FadeInUp,
   cancelAnimation,
@@ -125,8 +125,10 @@ export function IMessagePreview({ caption, assistantName = 'Paly', delay = 0 }: 
 
   return (
     <Animated.View entering={FadeInUp.delay(delay).duration(600).springify()}>
-      <View style={styles.phoneShell}>
+      <View style={styles.phone}>
         <View style={styles.screen}>
+          <View style={styles.notch} />
+
           <View style={styles.threadHeader}>
             <View style={[styles.avatar, { backgroundColor: colors.accent }]}>
               <Text style={styles.avatarText}>{assistantName.charAt(0).toUpperCase()}</Text>
@@ -186,13 +188,6 @@ export function IMessagePreview({ caption, assistantName = 'Paly', delay = 0 }: 
             ) : null}
           </ScrollView>
         </View>
-
-        <Image
-          source={require('../../assets/iphone-frame.png')}
-          resizeMode="stretch"
-          accessibilityIgnoresInvertColors
-          style={styles.frame}
-        />
       </View>
 
       {caption ? (
@@ -210,32 +205,35 @@ export function IMessagePreview({ caption, assistantName = 'Paly', delay = 0 }: 
 }
 
 const styles = StyleSheet.create({
-  phoneShell: {
+  phone: {
     width: '88%',
-    maxWidth: 310,
-    aspectRatio: 2070 / 4040,
+    maxWidth: 300,
     alignSelf: 'center',
-    position: 'relative',
-    overflow: 'hidden',
-    backgroundColor: '#FFFFFF',
+    // Drawn rather than a stretched PNG: the image had transparent margins, so
+    // the shell colour behind it showed as a white box, and its 2070x4040
+    // aspect ratio made the phone taller than the screen and clipped it.
+    backgroundColor: '#1C1C1E',
+    borderRadius: 40,
+    padding: 9,
+    shadowColor: '#000',
+    shadowOpacity: 0.28,
+    shadowRadius: 22,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 10,
   },
   screen: {
-    position: 'absolute',
-    left: '8.1%',
-    right: '8.1%',
-    // Pull the glass up under the notch so the parent color cannot show
-    // through as a strip between the bezel and the thread.
-    top: '2.35%',
-    bottom: '3.9%',
-    zIndex: 1,
     overflow: 'hidden',
-    borderRadius: 38,
+    borderRadius: 32,
     backgroundColor: '#FFFFFF',
   },
-  frame: {
-    ...StyleSheet.absoluteFillObject,
-    width: '100%',
-    height: '100%',
+  notch: {
+    width: 82,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#1C1C1E',
+    alignSelf: 'center',
+    marginTop: 7,
+    marginBottom: 3,
     zIndex: 2,
   },
   threadHeader: {
@@ -245,7 +243,7 @@ const styles = StyleSheet.create({
     gap: 5,
     minHeight: 52,
     paddingHorizontal: SPACING.md,
-    paddingTop: 28,
+    paddingTop: SPACING.sm,
     paddingBottom: SPACING.sm,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#D1D1D6',
@@ -274,7 +272,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   threadScroll: {
-    flex: 1,
+    height: 300,
   },
   thread: {
     flexGrow: 1,

@@ -50,8 +50,11 @@ export default function ActivateTextsScreen() {
     Linking.openURL(smsUrl);
   };
 
+  // Step 1 of 5 — both the linked and the skip path continue into setup.
+  // Sending this to /(tabs) while onboarding is incomplete makes the root
+  // layout redirect straight back here, which reads as a dead button.
   const handleContinue = () => {
-    router.replace('/(tabs)');
+    router.push('/(onboarding)/assistant');
   };
 
   return (

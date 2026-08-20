@@ -46,10 +46,10 @@ function RootLayoutNav() {
     const inAuthGroup = group === '(auth)';
     const inOnboardingGroup = group === '(onboarding)';
     const inPasswordReset = group === '(auth)' && screen === 'reset-password';
-    // Paywall and SMS linking sit after setup. Kick them to tabs from any
-    // other onboarding screen once setup is marked complete, but leave these.
-    const postSetupOnboarding =
-      screen === 'paywall' || screen === 'complete' || screen === 'activate-texts';
+    // The paywall and the finish screen sit after setup. Kick users to tabs
+    // from any other onboarding screen once setup is marked complete.
+    // activate-texts is step 1 again, so it is no longer in this list.
+    const postSetupOnboarding = screen === 'paywall' || screen === 'complete';
 
     if (inPasswordReset) {
       return;
