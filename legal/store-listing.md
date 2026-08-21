@@ -101,6 +101,18 @@ Paly is an educational study companion app. Key points for review:
 
 ---
 
+## Heads up: this file is not what is live
+
+The description in App Store Connect is shorter than the Full Description
+above and words things differently — it was edited directly in ASC and this
+file was never updated to match. **App Store Connect is the source of truth.**
+Do not paste the copy above over the live description without comparing first;
+it would replace the newer copy with an older draft.
+
+The Guideline 3.1.2 fix was applied by appending the subscription block and the
+two links to the live ASC description (1,033 -> 1,919 chars), leaving the rest
+of the live copy untouched.
+
 ## Fixing the Guideline 3.1.2 rejection (Terms of Use link)
 
 Apple's automated check rejected the submission because the product page offered
