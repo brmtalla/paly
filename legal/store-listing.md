@@ -40,6 +40,12 @@ Paly is your personal study companion that transforms your lecture notes into bi
 
 Paly uses spaced repetition principles to help you remember more with less effort. Upload your slides after class and let your AI companion handle the rest.
 
+**Paly Pro subscription**
+Paly is free to use. Paly Pro is an optional auto-renewing subscription that delivers your study chunks as texts and lets you text questions back to your study assistant. It is offered monthly or annually; the price in your local currency is shown in the app before you confirm. Payment is charged to your Apple ID at confirmation of purchase. Your subscription renews automatically unless cancelled at least 24 hours before the end of the current period, and your account is charged for renewal within 24 hours prior to the end of that period. Manage or cancel your subscription in Settings > [your name] > Subscriptions. Cancelling stops the next renewal and does not refund the current period.
+
+Terms of Use (EULA): https://www.paly.study/terms
+Privacy Policy: https://www.paly.study/privacy
+
 ## Keywords (iOS, 100 chars)
 study,flashcards,quiz,notes,AI,spaced repetition,college,university,student,companion,reminders
 
@@ -92,3 +98,45 @@ Paly is an educational study companion app. Key points for review:
 
 8. **Account Deletion**: Settings > Account > Delete Account permanently removes
    the account, all study data, and uploaded files, per Guideline 5.1.1(v).
+
+---
+
+## Fixing the Guideline 3.1.2 rejection (Terms of Use link)
+
+Apple's automated check rejected the submission because the product page offered
+auto-renewable subscriptions without a functional Terms of Use (EULA) link. The
+copy above now carries that link, but **the description in App Store Connect is
+a separate copy and has to be updated there** — editing this file changes
+nothing on the product page.
+
+### Required, in App Store Connect
+
+1. **App Store → (version) → Description** — replace with the Full Description
+   above. The two links at the end are what the reviewer is looking for; they
+   must be present and must resolve.
+2. Confirm **App Store → (version) → Privacy Policy URL** is
+   `https://www.paly.study/privacy`.
+
+That is enough to clear the rejection, because it uses Apple's standard EULA and
+points at our terms alongside it.
+
+### Only if using a custom EULA instead
+
+**App Information → License Agreement → Edit** and paste the terms text there.
+Choose one path or the other — a custom agreement in that field replaces the
+standard Apple EULA, and Apple checks whichever one applies.
+
+### Deploy before resubmitting
+
+The links resolve through rewrites in `vercel.json` (`/terms`, `/privacy`), so
+they only work once the site is deployed. Load both URLs in a browser and
+confirm they render before hitting Submit — a link that 404s is the same
+rejection again.
+
+### Also worth fixing while in here
+
+The purchase screen is RevenueCat's hosted paywall (`RevenueCatUI.Paywall`), so
+its footer links are set in the RevenueCat dashboard, not in this repo. Under
+**Paywalls → (paywall) → Footer**, set the Terms and Privacy URLs to the two
+links above. Guideline 3.1.2 wants the disclosure on the purchase screen as well
+as the product page, and an empty footer there is a common second rejection.

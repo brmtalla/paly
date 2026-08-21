@@ -18,6 +18,14 @@
     {
       "source": "/reset-password",
       "destination": "/reset-password.html"
+    },
+    {
+      "source": "/terms",
+      "destination": "/terms-of-service.html"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/privacy-policy.html"
     }
   ]
 }
