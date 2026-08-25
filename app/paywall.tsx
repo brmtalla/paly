@@ -3,6 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import RevenueCatUI from 'react-native-purchases-ui';
 import { useSubscriptionStore } from '../src/stores/subscriptionStore';
+import { SubscriptionLegalBar } from '../src/components/SubscriptionLegalBar';
 
 export default function PaywallModal() {
   const { refreshCustomerInfo } = useSubscriptionStore();
@@ -19,6 +20,7 @@ export default function PaywallModal() {
         onRestoreCompleted={close}
         onDismiss={close}
       />
+      <SubscriptionLegalBar />
     </View>
   );
 }

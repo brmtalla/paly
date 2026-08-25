@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import RevenueCatUI from 'react-native-purchases-ui';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useSubscriptionStore } from '../../src/stores/subscriptionStore';
+import { SubscriptionLegalBar } from '../../src/components/SubscriptionLegalBar';
 
 export default function OnboardingPaywall() {
   const { updateProfile } = useAuthStore();
@@ -38,6 +39,7 @@ export default function OnboardingPaywall() {
           void finish();
         }}
       />
+      <SubscriptionLegalBar />
     </View>
   );
 }
