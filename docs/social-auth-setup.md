@@ -1,5 +1,65 @@
 # Sign in with Apple & Google — console setup
 
+**Status: done, except one field.** Everything below was configured on
+2026-08-26. The only outstanding item is the Google client secret — see
+"What is left" at the bottom.
+
+| Where           | What                                                             | State |
+| --------------- | ---------------------------------------------------------------- | ----- |
+| Apple Developer | Sign In with Apple on `com.paly.app`, primary App ID             | done  |
+| Supabase        | Apple provider on, Client IDs `com.paly.app`                     | done  |
+| Google Cloud    | project **Paly** (`paly-506702`)                                 | done  |
+| Google Cloud    | consent screen: app name Paly, External, support + contact email | done  |
+| Google Cloud    | Web client + iOS client                                          | done  |
+| Supabase        | Google provider on, both client IDs, skip-nonce on               | done  |
+| EAS             | both client IDs in production, preview, development              | done  |
+| `.env`          | both client IDs for local runs                                   | done  |
+
+**Client IDs** (public identifiers, safe in the repo):
+
+```
+iOS  210607068581-04qmcdkoo3s4gg1u4jbthunl5cjv8p6h.apps.googleusercontent.com
+Web  210607068581-2ic9duein9mbgn2hnel4vgs4352n4e00.apps.googleusercontent.com
+```
+
+## What is left
+
+1. **Google client secret → Supabase.** Authentication → Providers → Google →
+   _Client Secret (for OAuth)_. It was shown once when the Web client was
+   created and cannot be re-displayed; generate a new one on the Web client if
+   it is lost. Only the **web** OAuth flow uses it — the app's native
+   `signInWithIdToken` flow does not, so Google sign-in on iOS works without it.
+2. **Publish the consent screen.** Google Auth Platform → Audience → _Publish
+   app_. Until then OAuth is restricted to accounts listed as test users, so
+   Google sign-in fails for everyone else with no obvious error. Basic
+   email/profile scopes need no Google verification review.
+
+## Notes worth keeping
+
+**Why "Skip nonce checks" is on.** The native Google SDK does not return a
+nonce, so Supabase's nonce validation rejects the ID token and sign-in fails.
+Supabase's own field description points at iOS for exactly this reason. It is a
+real reduction in defence-in-depth, accepted because the native flow cannot
+supply a nonce.
+
+**Why a separate Google Cloud project.** The console defaulted to the _Emode_
+project. OAuth consent screens show the project's app name, so Paly's users
+would have been asked to grant access to "Emode".
+
+**Why two Google clients.** The iOS client is what the native sheet
+authenticates against; the Web client is the audience the ID token is minted
+for, and is what Supabase validates. iOS-only apps still need both.
+
+**Apple's name quirk.** Apple returns the user's real name only on the very
+first authorisation for an Apple ID, null every time after, which is why the app
+writes it immediately on first sign-in. Deleting the account does not reset
+this — use Settings → Sign-In & Security → Sign in with Apple → Paly → _Stop
+Using Apple ID_ to get a genuine first run.
+
+---
+
+## Original setup reference
+
 The app code is done. What remains is console configuration in three places,
 none of which can be scripted from here because it involves developer accounts
 and credentials.
@@ -52,10 +112,10 @@ External, app name Paly, your support email.
 
 Create **two** clients under **Create Credentials → OAuth client ID**:
 
-| Type | Field | Value |
-|---|---|---|
-| **iOS** | Bundle ID | `com.paly.app` |
-| **Web application** | — | no redirect URIs needed |
+| Type                | Field     | Value                   |
+| ------------------- | --------- | ----------------------- |
+| **iOS**             | Bundle ID | `com.paly.app`          |
+| **Web application** | —         | no redirect URIs needed |
 
 Both are needed even though the app is iOS-only:
 
@@ -87,7 +147,7 @@ eas env:create --name EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID --value "..." --environme
 ```
 
 These are public identifiers, not secrets — they ship inside any iOS binary
-regardless. The Web client *secret* is a real secret, but it lives only in
+regardless. The Web client _secret_ is a real secret, but it lives only in
 Supabase and never in this repo.
 
 The iOS URL scheme Google requires is **derived** from the iOS client ID in
@@ -127,7 +187,7 @@ Apple returns the user's real name **only on the very first authorisation** for
 a given Apple ID. Every later sign-in returns null for it. The app writes it
 immediately on first sign-in for that reason.
 
-If you test, delete the account, and test again, Apple will *not* send the name
+If you test, delete the account, and test again, Apple will _not_ send the name
 the second time — it still considers your Apple ID as having authorised the app.
 To get a genuine first-run: **Settings → your name → Sign-In & Security → Sign in
 with Apple → Paly → Stop Using Apple ID**, then try again.
