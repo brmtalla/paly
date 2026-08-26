@@ -7,6 +7,7 @@ import { useTheme } from '../../src/theme/ThemeContext';
 import { typography } from '../../src/theme/typography';
 import { SPACING, LAYOUT, SHADOWS } from '../../src/theme/spacing';
 import { Button } from '../../src/components/ui';
+import { SocialAuthButtons } from '../../src/components/SocialAuthButtons';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function WelcomeScreen() {
@@ -69,6 +70,8 @@ export default function WelcomeScreen() {
 
         {/* CTA Buttons */}
         <Animated.View entering={FadeInUp.delay(1000).duration(600)} style={styles.ctaContainer}>
+          <SocialAuthButtons />
+
           <Button
             variant="secondary"
             size="lg"
