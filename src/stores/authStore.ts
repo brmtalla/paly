@@ -3,6 +3,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { EMAIL_CONFIRM_REDIRECT_URL, PASSWORD_RESET_REDIRECT_URL } from '../lib/authLinks';
 import { Profile, ProfileUpdate } from '../types/database';
+import { getAppleCredential, getGoogleIdToken } from '../lib/socialAuth';
 
 interface AuthState {
   user: User | null;
@@ -16,7 +17,11 @@ interface AuthState {
   initialize: () => Promise<void>;
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signInWithApple: () => Promise<{ error: Error | null }>;
+  signInWithGoogle: () => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  /** Internal: seeds the display name from a provider on first sign-in. */
+  persistFullNameIfEmpty: (fullName: string) => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
   deleteAccount: () => Promise<{ error: Error | null }>;
   fetchProfile: () => Promise<void>;
@@ -99,6 +104,80 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     } catch (error) {
       set({ isLoading: false });
       return { error: error as Error };
+    }
+  },
+
+  /**
+   * Apple and Google both hand back an ID token that Supabase verifies itself,
+   * so there is no browser redirect and no session to reconcile by hand — the
+   * onAuthStateChange listener above picks up SIGNED_IN exactly as it does for
+   * a password login, and the on_auth_user_created trigger creates the profile.
+   */
+  signInWithApple: async () => {
+    try {
+      set({ isLoading: true });
+      const { identityToken, fullName } = await getAppleCredential();
+
+      const { error } = await supabase.auth.signInWithIdToken({
+        provider: 'apple',
+        token: identityToken,
+      });
+      if (error) throw error;
+
+      // Apple returns the name only on the first authorisation ever, so it has
+      // to be written now; there is no way to ask for it again later.
+      if (fullName) await get().persistFullNameIfEmpty(fullName);
+
+      set({ isLoading: false });
+      return { error: null };
+    } catch (error) {
+      set({ isLoading: false });
+      return { error: error as Error };
+    }
+  },
+
+  signInWithGoogle: async () => {
+    try {
+      set({ isLoading: true });
+      const { idToken, fullName } = await getGoogleIdToken();
+
+      const { error } = await supabase.auth.signInWithIdToken({
+        provider: 'google',
+        token: idToken,
+      });
+      if (error) throw error;
+
+      if (fullName) await get().persistFullNameIfEmpty(fullName);
+
+      set({ isLoading: false });
+      return { error: null };
+    } catch (error) {
+      set({ isLoading: false });
+      return { error: error as Error };
+    }
+  },
+
+  /**
+   * Only fills a blank name. A returning user may have edited theirs, and the
+   * provider's value should not overwrite that on every sign-in.
+   */
+  persistFullNameIfEmpty: async (fullName: string) => {
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      const id = userData.user?.id;
+      if (!id) return;
+
+      const { data: existing } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', id)
+        .single();
+
+      if (existing?.full_name) return;
+      await supabase.from('profiles').update({ full_name: fullName }).eq('id', id);
+    } catch (error) {
+      // A missing display name must never block a successful sign-in.
+      console.warn('Could not persist provider name:', error);
     }
   },
 

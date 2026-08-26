@@ -17,6 +17,7 @@ import { useTheme } from '../../src/theme/ThemeContext';
 import { typography } from '../../src/theme/typography';
 import { SPACING, LAYOUT } from '../../src/theme/spacing';
 import { Button, Input } from '../../src/components/ui';
+import { SocialAuthButtons } from '../../src/components/SocialAuthButtons';
 import { useAuthStore } from '../../src/stores/authStore';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -146,6 +147,8 @@ export default function SignUpScreen() {
               entering={FadeInUp.delay(300).duration(600).springify()}
               style={styles.form}
             >
+              <SocialAuthButtons />
+
               <Controller
                 control={control}
                 name="email"

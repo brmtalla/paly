@@ -114,6 +114,21 @@ function requiredForBuild(name: string, value: string | undefined): string | und
 // Only the key for the platform being built is needed; a local run needs neither.
 const buildPlatform = process.env.EAS_BUILD_PLATFORM;
 
+const googleIosClientId = publicEnv('EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID');
+const googleWebClientId = publicEnv('EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID');
+
+/**
+ * Google's iOS SDK needs the reversed client ID registered as a URL scheme, or
+ * the sign-in sheet never returns. It is just the client ID with the two halves
+ * swapped, so deriving it here keeps one source of truth instead of a second
+ * env var that can silently disagree with the first.
+ *
+ * 123-abc.apps.googleusercontent.com -> com.googleusercontent.apps.123-abc
+ */
+const googleIosUrlScheme = googleIosClientId
+  ? `com.googleusercontent.apps.${googleIosClientId.replace('.apps.googleusercontent.com', '')}`
+  : undefined;
+
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'Paly',
@@ -138,6 +153,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     // mode. Flip to true once the layouts have actually been checked there.
     supportsTablet: false,
     bundleIdentifier: 'com.paly.app',
+    // Adds the Sign In with Apple entitlement. Guideline 4.8 requires a
+    // privacy-preserving login alongside Google, and this is it.
+    usesAppleSignIn: true,
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
       UIBackgroundModes: ['remote-notification'],
@@ -159,6 +177,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   plugins: [
     'expo-router',
     'expo-secure-store',
+    ...(googleIosUrlScheme
+      ? ([['@react-native-google-signin/google-signin', { iosUrlScheme: googleIosUrlScheme }]] as [
+          string,
+          unknown,
+        ][])
+      : []),
     [
       'expo-notifications',
       {
@@ -202,6 +226,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
               publicEnv('EXPO_PUBLIC_REVENUECAT_ANDROID_KEY')
             )
           : publicEnv('EXPO_PUBLIC_REVENUECAT_ANDROID_KEY'),
+    },
+    google: {
+      // From Google Cloud > Credentials. The iOS client is what the native
+      // sheet uses; the Web client is the audience Supabase validates the
+      // returned ID token against, so both are needed even on iOS only.
+      iosClientId: googleIosClientId,
+      webClientId: googleWebClientId,
     },
     router: {
       origin: false,
