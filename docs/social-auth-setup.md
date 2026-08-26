@@ -22,7 +22,59 @@ iOS  210607068581-04qmcdkoo3s4gg1u4jbthunl5cjv8p6h.apps.googleusercontent.com
 Web  210607068581-2ic9duein9mbgn2hnel4vgs4352n4e00.apps.googleusercontent.com
 ```
 
-## What is left
+## Brand verification — the remaining Google step
+
+Publishing to production made this necessary. Until it is done Google shows an
+**"unverified app" interstitial** before the consent screen and displays only the
+domain — not "Paly", not the logo. Sign-in still works: Data Access verification
+is _not_ required, because the app requests no sensitive or restricted scopes.
+This is the lighter-weight brand review, not the full scope audit.
+
+The logo (`marketing/google-oauth-logo.png`, 120x120 from the app icon) and all
+consent-screen fields are already in place. What remains:
+
+### 1. Verify `paly.study` in Google Search Console
+
+This is a hard prerequisite and the part people get wrong:
+
+- It must be a **Domain property (DNS-level)**, _not_ a "URL prefix" property.
+- It must be verified by a Google account that is a **Project Owner of
+  `paly-506702`** — the same account as the console, not a different one.
+
+search.google.com/search-console → Add property → **Domain** → `paly.study` →
+add the TXT record it gives you at the domain registrar → Verify.
+
+### 2. Submit
+
+console.cloud.google.com/auth/branding → **Verify branding**.
+
+Automated review usually returns within minutes. If it cannot decide, it goes to
+manual review, typically **2-3 business days**. Results expire after 7 days, so
+publish the branding once it passes rather than leaving it sitting.
+
+### 3. Publish branding
+
+After it passes, click **Publish branding** — verification alone does not put it
+live.
+
+### What review checks
+
+- The home page must be **publicly reachable**, not behind a login, and clearly
+  relevant to the app.
+- The privacy policy must be **on the same domain as the home page** and linked
+  from the consent screen. `paly.study/privacy` satisfies this.
+- Authorized domains must list the top private domain of every URI used —
+  currently `paly.study` and `eftafqxzqijsueviocsv.supabase.co`.
+
+### On the support email
+
+`brandonmtalla@gmail.com` is shown to users on the consent screen. The dropdown
+only offers the signed-in account and Google Groups it manages, so
+`support@paly.study` cannot be selected unless it becomes a Workspace account or
+a Group. It blocks nothing — verification does not require a domain email — but
+it is the personal address that users will see.
+
+## Also outstanding
 
 1. **Google client secret → Supabase.** Authentication → Providers → Google →
    _Client Secret (for OAuth)_. It was shown once when the Web client was
