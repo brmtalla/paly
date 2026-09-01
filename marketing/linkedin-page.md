@@ -8,15 +8,15 @@ character limits, which are noted so edits stay safe.
 
 ## Identity
 
-| Field | Value |
-|---|---|
-| **Name** | `Paly` |
-| **LinkedIn public URL** | `linkedin.com/company/paly-study` |
-| **Website** | `https://www.paly.study` |
-| **Industry** | E-Learning Providers |
-| **Company size** | 0-1 employees |
-| **Company type** | Privately Held |
-| **Location** | Set to your city — LinkedIn requires one, and pages without a location rank worse in search |
+| Field                   | Value                                                                                       |
+| ----------------------- | ------------------------------------------------------------------------------------------- |
+| **Name**                | `Paly`                                                                                      |
+| **LinkedIn public URL** | `linkedin.com/company/paly-study`                                                           |
+| **Website**             | `https://www.paly.study`                                                                    |
+| **Industry**            | E-Learning Providers                                                                        |
+| **Company size**        | 0-1 employees                                                                               |
+| **Company type**        | Privately Held                                                                              |
+| **Location**            | Set to your city — LinkedIn requires one, and pages without a location rank worse in search |
 
 > **On the URL:** "Paly" is the long-standing nickname for Palo Alto High School,
 > so `/company/paly` is probably taken and would compete with that school for
@@ -80,10 +80,10 @@ iOS apps
 
 ## Images
 
-| Asset | Spec | Use |
-|---|---|---|
-| **Logo** | 300x300 px min, PNG, under 4 MB | `assets/icon.png` — 1024x1024, LinkedIn downsizes it cleanly |
-| **Cover** | 1128x191 px | `marketing/linkedin-cover.png` — built to exact size |
+| Asset     | Spec                            | Use                                                          |
+| --------- | ------------------------------- | ------------------------------------------------------------ |
+| **Logo**  | 300x300 px min, PNG, under 4 MB | `assets/icon.png` — 1024x1024, LinkedIn downsizes it cleanly |
+| **Cover** | 1128x191 px                     | `marketing/linkedin-cover.png` — built to exact size         |
 
 The cover is deliberately sparse. LinkedIn overlays the logo avatar on the
 **bottom-left** of the cover, so the leftmost ~260 px is kept empty; the avatar
@@ -106,23 +106,50 @@ drawn, not live, so edits mean re-rendering.
 
 ---
 
-## First post
+## First post — use this one now
 
-A page with zero posts looks abandoned, and LinkedIn suppresses pages that have
-never posted. Publish this the moment the page exists.
+The app is not on the App Store yet, so nothing here claims it is. LinkedIn
+suppresses pages that have never posted, so this goes up as soon as the page
+exists rather than waiting for the launch.
 
 ```
-I built Paly because I kept watching people study the same way I did — nothing all week, then everything the night before.
+Every student I know studies the same way I did: nothing for two weeks, then everything the night before.
 
-Paly takes the notes you already have and turns them into a week of small daily study prompts, quizzes, and flashcards, delivered across the days between your classes. With Pro they arrive as texts, and you can text questions back.
+It's not laziness. Lectures have a time. Assignments have a due date. Reviewing has neither — so it loses to everything that does.
 
-It's on the App Store now. If you're a student, I'd genuinely like to know whether it changes anything about how your week goes.
+That's the whole idea behind Paly. Upload your notes or your lecture slides, and it breaks them into small pieces spread across the days between your classes. Not a study plan you have to stick to. Material that shows up on its own, small enough to actually finish, while the lecture is still fresh.
 
-https://www.paly.study
+With Paly Pro it arrives as texts, and you can text questions back.
+
+Building it solo. Coming to iPhone shortly.
+
+paly.study
 ```
 
-Hold this post until the App Store review clears — it claims availability, and
-right now version 1.0 is still Waiting for Review.
+The hook is written to survive LinkedIn's ~200-character truncation: the cut
+lands just after "It's not laziness," which is the line that earns the tap on
+"see more". No hashtags and no "excited to announce" — founder posts shaped like
+press releases get scrolled.
+
+---
+
+## Launch post — only once 1.0 is actually live
+
+Swap the last two lines for the App Store link. Do not post this until the
+listing is public; the previous draft claimed availability while the app was
+still in review, which is the kind of thing people check.
+
+```
+Paly is live on the App Store.
+
+Every student I know studies the same way I did: nothing for two weeks, then everything the night before. Not laziness — reviewing is the only part of school with no deadline, so it loses to everything that has one.
+
+Paly turns the notes you already take into small daily pieces, spread across the days between your classes. With Pro they arrive as texts, and you can text questions back.
+
+If you're a student, I'd genuinely like to know whether it changes anything about how your week goes.
+
+<App Store link>
+```
 
 ---
 
