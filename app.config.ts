@@ -147,10 +147,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     backgroundColor: '#FFFFFF',
   },
   ios: {
-    // iPhone-only for v1. Declaring iPad support means App Review tests on an
-    // iPad, and every layout here is phone-first and untested at that size —
-    // an avoidable rejection. The app still installs on iPad in compatibility
-    // mode. Flip to true once the layouts have actually been checked there.
+    // iPhone-only for v1. This does not prevent installation on iPad, where the
+    // app runs in compatibility mode, so critical flows must still remain
+    // scrollable and usable at the compatibility window size.
     supportsTablet: false,
     bundleIdentifier: 'com.paly.app',
     // Adds the Sign In with Apple entitlement. Guideline 4.8 requires a

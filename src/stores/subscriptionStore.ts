@@ -5,7 +5,7 @@ import Purchases, {
   LOG_LEVEL,
   PURCHASES_ERROR_CODE,
 } from 'react-native-purchases';
-import RevenueCatUI, { PAYWALL_RESULT } from 'react-native-purchases-ui';
+import RevenueCatUI from 'react-native-purchases-ui';
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import {
@@ -58,9 +58,7 @@ interface SubscriptionState {
   purchaseAnnual: () => Promise<boolean>;
   restorePurchases: () => Promise<boolean>;
 
-  // RevenueCat-hosted UI
-  presentPaywall: () => Promise<boolean>;
-  presentPaywallIfNeeded: () => Promise<boolean>;
+  // RevenueCat-hosted subscription management
   presentCustomerCenter: () => Promise<void>;
 
   // Helpers
@@ -118,7 +116,7 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => {
 
     fetchOfferings: async () => {
       try {
-        set({ isLoading: true });
+        set({ isLoading: true, error: null });
         const offerings = await Purchases.getOfferings();
         const current = offerings.current;
         if (!current) {
@@ -136,7 +134,7 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => {
           current.annual ||
           null;
 
-        set({ monthlyPackage: monthly, annualPackage: annual, isLoading: false });
+        set({ monthlyPackage: monthly, annualPackage: annual, isLoading: false, error: null });
       } catch (error: any) {
         console.error('[RC] fetch offerings error:', error);
         set({ isLoading: false, error: error?.message });
@@ -181,25 +179,6 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => {
         set({ isRestoring: false, error: error?.message });
         return false;
       }
-    },
-
-    presentPaywall: async () => {
-      const result = await RevenueCatUI.presentPaywall();
-      await get().refreshCustomerInfo();
-      return result === PAYWALL_RESULT.PURCHASED || result === PAYWALL_RESULT.RESTORED;
-    },
-
-    presentPaywallIfNeeded: async () => {
-      const result = await RevenueCatUI.presentPaywallIfNeeded({
-        requiredEntitlementIdentifier: ENTITLEMENT_PRO,
-      });
-      await get().refreshCustomerInfo();
-      // NOT_PRESENTED means the user already has the entitlement.
-      return (
-        result === PAYWALL_RESULT.NOT_PRESENTED ||
-        result === PAYWALL_RESULT.PURCHASED ||
-        result === PAYWALL_RESULT.RESTORED
-      );
     },
 
     presentCustomerCenter: async () => {

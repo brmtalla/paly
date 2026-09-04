@@ -25,7 +25,7 @@ Status as of the last automated check (2026-08-11).
 | RevenueCat wiring | `paly_pro_monthly` + `paly_pro_annual` created under the App Store app, attached to the `Paly Pro` entitlement and to `$rc_monthly` / `$rc_annual` |
 | App icons | Built from the supplied Paly logo (`assets/paly-logo-source.png`); the Expo placeholder rings would have failed Guideline 4.0 |
 | App Store Connect products | Subscription group `Paly Pro`, `paly_pro_monthly` ($9.99/mo) and `paly_pro_annual` ($69.99/yr), both localized, both with a 7-day free trial across 175 regions, no end date |
-| RevenueCat paywall | `Paly Pro Paywall` published and attached to the `default` offering (`pw0458effe05bf49ff`) |
+| Subscription purchase flow | App-owned paywall reads localized prices from the RevenueCat `default` offering; the full billed amount is the dominant price and the layout adapts on iPad |
 | Build guard | An EAS build now fails if the RevenueCat key for that platform is missing |
 | CI green | typecheck clean · lint at its 18-warning budget · format clean · 38 tests |
 
@@ -151,9 +151,9 @@ Then, in rough order of how much it would hurt to get wrong:
 
 ## Notes
 
-- **iPhone-only.** `supportsTablet` is now `false`. Declaring iPad support means
-  App Review tests on iPad, and the layouts are phone-first and untested there.
-  The app still installs on iPad in compatibility mode.
+- **iPhone-only.** `supportsTablet` is `false`, but the app can still be installed
+  on iPad in compatibility mode. Critical flows must be tested there; the
+  subscription paywall is scrollable and width-aware for that reason.
 - **Android is deferred**, so no FCM credentials, Play service account, or
   `goog_` key are needed. Nothing in the code needs changing for this.
 - **Rotate the RevenueCat `sk_` secret key** when convenient — it was pasted into

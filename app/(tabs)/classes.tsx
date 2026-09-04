@@ -27,14 +27,13 @@ export default function ClassesScreen() {
   const { colors } = useTheme();
   const { profile } = useAuthStore();
   const { classes, fetchClasses, deleteClass, error: classesError } = useClassStore();
-  const { isPro, presentPaywallIfNeeded } = useSubscriptionStore();
+  const { isPro } = useSubscriptionStore();
   const [refreshing, setRefreshing] = useState(false);
 
-  const handleAddClass = async () => {
+  const handleAddClass = () => {
     if (!isPro && classes.length >= FREE_CLASS_LIMIT) {
-      // RevenueCat-hosted paywall — auto-skips if entitlement is already active.
-      const unlocked = await presentPaywallIfNeeded();
-      if (!unlocked) return;
+      router.push('/paywall');
+      return;
     }
     router.push('/class/new');
   };
@@ -129,14 +128,7 @@ export default function ClassesScreen() {
               <Text style={[typography.headlineLarge, { color: colors.accent }]}>
                 {classes.length}
               </Text>
-              <Text
-                style={[
-                  typography.labelSmall,
-                  { color: colors.accent },
-                ]}
-              >
-                ACTIVE CLASSES
-              </Text>
+              <Text style={[typography.labelSmall, { color: colors.accent }]}>ACTIVE CLASSES</Text>
             </View>
             <View
               style={[styles.statCard, { backgroundColor: colors.glassBackground, ...SHADOWS.md }]}

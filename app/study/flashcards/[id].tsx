@@ -17,9 +17,6 @@ import { SPACING, LAYOUT, RADIUS, SHADOWS } from '../../../src/theme/spacing';
 import { Button, Background, GlassCard } from '../../../src/components/ui';
 import { useStudyStore } from '../../../src/stores/studyStore';
 import { useSubscriptionStore } from '../../../src/stores/subscriptionStore';
-import { useAuthStore } from '../../../src/stores/authStore';
-import { TRIAL_DAYS } from '../../../src/lib/constants';
-import { getTrialStatus } from '../../../src/lib/trial';
 import { Ionicons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
@@ -39,9 +36,7 @@ export default function FlashcardsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors, colorScheme } = useTheme();
   const { synthesizedContent, awardPoints } = useStudyStore();
-  const { isPro, presentPaywall } = useSubscriptionStore();
-  const { profile } = useAuthStore();
-  const { hasUsedTrial } = getTrialStatus(profile);
+  const { isPro } = useSubscriptionStore();
 
   const content = synthesizedContent.find((c) => c.id === id);
   const allFlashcards = (content?.flashcards || []) as {
@@ -202,10 +197,10 @@ export default function FlashcardsScreen() {
                   variant="primary"
                   size="lg"
                   fullWidth
-                  onPress={presentPaywall}
+                  onPress={() => router.push('/paywall')}
                   style={{ marginTop: SPACING.xl }}
                 >
-                  {hasUsedTrial ? 'Unlock Flashcards' : `Try Pro Free for ${TRIAL_DAYS} Days`}
+                  View Pro Plans
                 </Button>
 
                 <TouchableOpacity onPress={() => router.back()} style={styles.notNow}>
@@ -318,12 +313,7 @@ export default function FlashcardsScreen() {
                 size={14}
                 color={colors.text}
               />
-              <Text
-                style={[
-                  typography.labelSmall,
-                  { color: colors.text, marginLeft: 4 },
-                ]}
-              >
+              <Text style={[typography.labelSmall, { color: colors.text, marginLeft: 4 }]}>
                 {showAll ? 'Scheduled Only' : 'View All'}
               </Text>
             </TouchableOpacity>
@@ -500,12 +490,7 @@ export default function FlashcardsScreen() {
           {/* Complete Button */}
           {currentIndex === visibleCards.length - 1 && (
             <View style={styles.completeContainer}>
-              <Button
-                variant="primary"
-                size="lg"
-                fullWidth
-                onPress={() => router.back()}
-              >
+              <Button variant="primary" size="lg" fullWidth onPress={() => router.back()}>
                 Complete Session
               </Button>
             </View>

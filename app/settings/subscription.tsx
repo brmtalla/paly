@@ -18,10 +18,10 @@ import { Card, Button } from '../../src/components/ui';
 import { useAuthStore } from '../../src/stores/authStore';
 import {
   useSubscriptionStore,
+  ENTITLEMENT_PRO,
   FREE_CLASS_LIMIT,
   PALY_POINTS_FREE_MONTH_THRESHOLD,
 } from '../../src/stores/subscriptionStore';
-import { TRIAL_DAYS } from '../../src/lib/constants';
 import { getTrialStatus, trialLabel } from '../../src/lib/trial';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -66,35 +66,23 @@ export default function SubscriptionScreen() {
   const {
     isPro,
     customerInfo,
-    monthlyPackage,
-    annualPackage,
-    isLoading,
     isRestoring,
-    fetchOfferings,
     restorePurchases,
     refreshCustomerInfo,
-    presentPaywall,
     presentCustomerCenter,
   } = useSubscriptionStore();
 
-  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual'>('annual');
   const [managingLoading, setManagingLoading] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
 
   const trial = getTrialStatus(profile);
 
   useEffect(() => {
-    fetchOfferings();
     refreshCustomerInfo();
   }, []);
 
-  const handleSubscribe = async () => {
-    // Use the RevenueCat-hosted paywall — fully styled, A/B-testable, includes
-    // the trial copy and product list configured in the RC dashboard.
-    const success = await presentPaywall();
-    if (success) {
-      Alert.alert('Welcome to Pro!', 'You now have access to all Paly Pro features.');
-    }
+  const handleSubscribe = () => {
+    router.push('/paywall');
   };
 
   const handleManage = async () => {
@@ -121,13 +109,7 @@ export default function SubscriptionScreen() {
     scrollRef.current?.scrollToEnd({ animated: true });
   };
 
-  const monthlyPrice = monthlyPackage?.product.priceString || '$7.99';
-  const annualPrice = annualPackage?.product.priceString || '$69.99';
-  const annualMonthly = annualPackage
-    ? `$${(annualPackage.product.price / 12).toFixed(2)}`
-    : '$5.83';
-
-  const expirationDate = customerInfo?.entitlements.active['pro']?.expirationDate;
+  const expirationDate = customerInfo?.entitlements.active[ENTITLEMENT_PRO]?.expirationDate;
   const renewsAt = expirationDate
     ? new Date(expirationDate).toLocaleDateString('en-US', {
         month: 'long',
@@ -199,7 +181,7 @@ export default function SubscriptionScreen() {
                 <>
                   <TouchableOpacity
                     accessibilityRole="button"
-                    accessibilityHint="Scrolls to the Paly Pro trial button"
+                    accessibilityHint="Scrolls to the Paly Pro plans button"
                     style={[styles.textingButton, { backgroundColor: '#6366F1' }]}
                     onPress={scrollToSubscribe}
                   >
@@ -220,7 +202,7 @@ export default function SubscriptionScreen() {
                         },
                       ]}
                     >
-                      Start with {TRIAL_DAYS} days free — cancel anytime.
+                      A free trial may be available to eligible new subscribers.
                     </Text>
                   )}
                 </>
@@ -268,11 +250,7 @@ export default function SubscriptionScreen() {
             <Text
               style={[typography.headlineSmall, { color: colors.text, marginBottom: SPACING.lg }]}
             >
-              {isPro
-                ? 'Your Pro Features'
-                : trial.hasUsedTrial
-                  ? 'Upgrade to Pro'
-                  : `Try Pro free for ${TRIAL_DAYS} days`}
+              {isPro ? 'Your Pro Features' : 'Upgrade to Pro'}
             </Text>
             {PRO_FEATURES.map((f) => (
               <View key={f.title} style={styles.featureItem}>
@@ -290,116 +268,44 @@ export default function SubscriptionScreen() {
             ))}
           </Animated.View>
 
-          {/* Plan selector + CTA (only for free users) */}
+          {/* Pricing is shown on the dedicated purchase screen so every entry
+              point uses one consistent, App Review-compliant hierarchy. */}
           {!isPro && (
-            <>
-              <Animated.View
-                entering={FadeInUp.delay(400).duration(600).springify()}
-                style={styles.section}
+            <Animated.View
+              entering={FadeInUp.delay(400).duration(600).springify()}
+              style={styles.ctaSection}
+            >
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityHint="Opens monthly and annual App Store pricing"
+                style={[styles.subscribeButton, { backgroundColor: '#6366F1', ...SHADOWS.lg }]}
+                onPress={handleSubscribe}
               >
-                <View style={styles.planSelector}>
-                  {/* Annual */}
-                  <TouchableOpacity
-                    style={[
-                      styles.planCard2,
-                      {
-                        borderColor:
-                          selectedPlan === 'annual' ? '#6366F1' : colors.backgroundSecondary,
-                        borderWidth: selectedPlan === 'annual' ? 2 : 1,
-                        backgroundColor: selectedPlan === 'annual' ? '#6366F110' : colors.card,
-                      },
-                    ]}
-                    onPress={() => setSelectedPlan('annual')}
-                  >
-                    <View
-                      style={[
-                        styles.saveBadge,
-                        {
-                          backgroundColor: '#6366F1',
-                          alignSelf: 'flex-start',
-                          marginBottom: SPACING.xs,
-                        },
-                      ]}
-                    >
-                      <Text style={[typography.labelSmall, { color: '#fff' }]}>BEST VALUE</Text>
-                    </View>
-                    <Text style={[typography.titleSmall, { color: colors.text }]}>Annual</Text>
-                    <Text style={[typography.headlineSmall, { color: '#6366F1' }]}>
-                      {annualMonthly}/mo
-                    </Text>
-                    <Text style={[typography.labelSmall, { color: colors.textMuted }]}>
-                      {annualPrice}/year
-                    </Text>
-                  </TouchableOpacity>
-
-                  {/* Monthly */}
-                  <TouchableOpacity
-                    style={[
-                      styles.planCard2,
-                      {
-                        borderColor:
-                          selectedPlan === 'monthly' ? '#6366F1' : colors.backgroundSecondary,
-                        borderWidth: selectedPlan === 'monthly' ? 2 : 1,
-                        backgroundColor: selectedPlan === 'monthly' ? '#6366F110' : colors.card,
-                      },
-                    ]}
-                    onPress={() => setSelectedPlan('monthly')}
-                  >
-                    <View style={{ height: 20, marginBottom: SPACING.xs }} />
-                    <Text style={[typography.titleSmall, { color: colors.text }]}>Monthly</Text>
-                    <Text style={[typography.headlineSmall, { color: colors.text }]}>
-                      {monthlyPrice}/mo
-                    </Text>
-                    <Text style={[typography.labelSmall, { color: colors.textMuted }]}>
-                      Billed monthly
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </Animated.View>
-
-              <Animated.View
-                entering={FadeInUp.delay(500).duration(600).springify()}
-                style={styles.ctaSection}
-              >
-                <TouchableOpacity
-                  style={[styles.subscribeButton, { backgroundColor: '#6366F1', ...SHADOWS.lg }]}
-                  onPress={handleSubscribe}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <ActivityIndicator color="#fff" />
-                  ) : (
-                    <Text style={[typography.titleMedium, { color: '#fff' }]}>
-                      {trial.hasUsedTrial ? 'Get Paly Pro' : `Try ${TRIAL_DAYS} Days Free`}
-                    </Text>
-                  )}
-                </TouchableOpacity>
-
-                <Text
-                  style={[typography.bodySmall, { color: colors.textMuted, textAlign: 'center' }]}
-                >
-                  {trial.hasUsedTrial
-                    ? `${selectedPlan === 'annual' ? `${annualPrice}/year` : `${monthlyPrice}/month`}. Cancel anytime.`
-                    : `Free for ${TRIAL_DAYS} days, then ${
-                        selectedPlan === 'annual' ? `${annualPrice}/year` : `${monthlyPrice}/month`
-                      }. Cancel anytime.`}
+                <Text style={[typography.titleMedium, { color: '#fff' }]}>
+                  View Plans and Pricing
                 </Text>
+              </TouchableOpacity>
 
-                <TouchableOpacity
-                  onPress={handleRestore}
-                  disabled={isRestoring}
-                  style={{ alignItems: 'center' }}
-                >
-                  {isRestoring ? (
-                    <ActivityIndicator size="small" color={colors.textMuted} />
-                  ) : (
-                    <Text style={[typography.bodySmall, { color: colors.textMuted }]}>
-                      Restore Purchases
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              </Animated.View>
-            </>
+              <Text
+                style={[typography.bodySmall, { color: colors.textMuted, textAlign: 'center' }]}
+              >
+                Review the exact billed amount before subscribing.
+              </Text>
+
+              <TouchableOpacity
+                onPress={handleRestore}
+                disabled={isRestoring}
+                style={{ alignItems: 'center' }}
+              >
+                {isRestoring ? (
+                  <ActivityIndicator size="small" color={colors.textMuted} />
+                ) : (
+                  <Text style={[typography.bodySmall, { color: colors.textMuted }]}>
+                    Restore Purchases
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </Animated.View>
           )}
         </ScrollView>
       </SafeAreaView>
@@ -459,9 +365,6 @@ const styles = StyleSheet.create({
   },
   progressBar: { height: 6, borderRadius: 3, marginTop: SPACING.md, overflow: 'hidden' },
   progressFill: { height: '100%', borderRadius: 3 },
-  planSelector: { flexDirection: 'row', gap: SPACING.md },
-  planCard2: { flex: 1, borderRadius: RADIUS.xl, padding: SPACING.lg, gap: 2 },
-  saveBadge: { paddingHorizontal: SPACING.sm, paddingVertical: 2, borderRadius: RADIUS.sm },
   ctaSection: { marginTop: SPACING['2xl'], gap: SPACING.md },
   subscribeButton: { borderRadius: RADIUS.xl, paddingVertical: SPACING.lg, alignItems: 'center' },
 });

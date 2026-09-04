@@ -1,30 +1,19 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
-import RevenueCatUI from 'react-native-purchases-ui';
 import { useSubscriptionStore } from '../src/stores/subscriptionStore';
-import { SubscriptionLegalBar } from '../src/components/SubscriptionLegalBar';
+import { ProPaywall } from '../src/components/ProPaywall';
 
 export default function PaywallModal() {
   const { refreshCustomerInfo } = useSubscriptionStore();
 
   const close = () => {
-    refreshCustomerInfo();
-    if (router.canGoBack()) router.back();
+    void refreshCustomerInfo();
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/(tabs)');
+    }
   };
 
-  return (
-    <View style={styles.container}>
-      <RevenueCatUI.Paywall
-        onPurchaseCompleted={close}
-        onRestoreCompleted={close}
-        onDismiss={close}
-      />
-      <SubscriptionLegalBar />
-    </View>
-  );
+  return <ProPaywall onClose={close} onPurchaseCompleted={close} />;
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-});

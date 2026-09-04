@@ -79,8 +79,8 @@ Configure once per store, then RevenueCat surfaces it automatically:
    trial, 1 week, all territories.
 2. **Play Console** → subscription → *Base plan* → add a **Free trial** offer of
    7 days.
-3. **RevenueCat** → confirm the offer appears on the product, and that the
-   paywall shows the trial copy.
+3. **RevenueCat** → confirm the offer appears on the product. The in-app paywall
+   checks App Store eligibility before it shows any trial copy.
 
 Keep `TRIAL_DAYS` in `src/lib/constants.ts` in step with the store config — it
 drives the in-app copy only, never entitlement.

@@ -22,7 +22,6 @@ import { useClassStore } from '../../src/stores/classStore';
 import { useNoteStore } from '../../src/stores/noteStore';
 import { useStudyStore } from '../../src/stores/studyStore';
 import { useAuthStore } from '../../src/stores/authStore';
-import { useSubscriptionStore } from '../../src/stores/subscriptionStore';
 import { supabase } from '../../src/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -39,7 +38,6 @@ export default function ClassDetailScreen() {
     requestNextChunk,
   } = useStudyStore();
   const { profile } = useAuthStore();
-  const { presentPaywall } = useSubscriptionStore();
   const [isUploading, setIsUploading] = useState(false);
   const [_isProcessing, _setIsProcessing] = useState(false);
   const [synthesizingUploadId, setSynthesizingUploadId] = useState<string | null>(null);
@@ -170,7 +168,7 @@ export default function ClassDetailScreen() {
       } else if (result?.error === 'pro_required') {
         Alert.alert('Paly Pro', result.message, [
           { text: 'Not now', style: 'cancel' },
-          { text: 'See Pro', onPress: () => presentPaywall() },
+          { text: 'See Pro', onPress: () => router.push('/paywall') },
         ]);
       } else if (result?.error === 'insufficient_points') {
         Alert.alert('Not Enough Points', result.message);
@@ -317,10 +315,7 @@ export default function ClassDetailScreen() {
               <View style={styles.schedule}>
                 <View style={styles.days}>
                   {classData.class_sessions?.map((session, index) => (
-                    <View
-                      key={index}
-                      style={[styles.dayBadge, { backgroundColor: colors.accent }]}
-                    >
+                    <View key={index} style={[styles.dayBadge, { backgroundColor: colors.accent }]}>
                       <Text style={[typography.labelSmall, { color: colors.text }]}>
                         {getDayLabel(session.day_of_week)}
                       </Text>

@@ -1,10 +1,8 @@
 import React, { useRef } from 'react';
-import { View, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
-import RevenueCatUI from 'react-native-purchases-ui';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useSubscriptionStore } from '../../src/stores/subscriptionStore';
-import { SubscriptionLegalBar } from '../../src/components/SubscriptionLegalBar';
+import { ProPaywall } from '../../src/components/ProPaywall';
 
 export default function OnboardingPaywall() {
   const { updateProfile } = useAuthStore();
@@ -26,24 +24,5 @@ export default function OnboardingPaywall() {
     }
   };
 
-  return (
-    <View style={styles.container}>
-      <RevenueCatUI.Paywall
-        onPurchaseCompleted={() => {
-          void finish();
-        }}
-        onRestoreCompleted={() => {
-          void finish();
-        }}
-        onDismiss={() => {
-          void finish();
-        }}
-      />
-      <SubscriptionLegalBar />
-    </View>
-  );
+  return <ProPaywall onClose={finish} onPurchaseCompleted={finish} />;
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-});

@@ -19,7 +19,6 @@ import { Card, Background } from '../../../src/components/ui';
 import { useClassStore } from '../../../src/stores/classStore';
 import { useStudyStore } from '../../../src/stores/studyStore';
 import { useAuthStore } from '../../../src/stores/authStore';
-import { useSubscriptionStore } from '../../../src/stores/subscriptionStore';
 import { supabase } from '../../../src/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -35,7 +34,6 @@ export default function ClassStudyScreen() {
     requestNextChunk,
   } = useStudyStore();
   const { profile } = useAuthStore();
-  const { presentPaywall } = useSubscriptionStore();
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [requestingChunk, setRequestingChunk] = useState(false);
   const [weeklyUsage, setWeeklyUsage] = useState<{ used: number; limit: number } | null>(null);
@@ -65,7 +63,7 @@ export default function ClassStudyScreen() {
   const offerUpgrade = (message: string) =>
     Alert.alert('Paly Pro', message, [
       { text: 'Not now', style: 'cancel' },
-      { text: 'See Pro', onPress: () => presentPaywall() },
+      { text: 'See Pro', onPress: () => router.push('/paywall') },
     ]);
 
   const handleSendNow = async (contentId: string) => {
