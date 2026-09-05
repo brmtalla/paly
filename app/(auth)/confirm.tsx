@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import * as Linking from 'expo-linking';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -75,9 +75,7 @@ export default function ConfirmEmailScreen() {
 
       await useAuthStore.getState().fetchProfile();
       const profile = useAuthStore.getState().profile;
-      router.replace(
-        profile?.onboarding_completed ? '/(tabs)' : '/(onboarding)/activate-texts'
-      );
+      router.replace(profile?.onboarding_completed ? '/(tabs)' : '/(onboarding)/activate-texts');
     };
 
     void confirmEmail();
@@ -86,43 +84,48 @@ export default function ConfirmEmailScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SafeAreaView style={styles.safeArea}>
-        <Animated.View entering={FadeInDown.duration(500)} style={styles.content}>
-          <View style={[styles.icon, { backgroundColor: colors.glassBackground }]}>
-            <Ionicons
-              name={status === 'checking' ? 'mail-open-outline' : 'alert-circle-outline'}
-              size={42}
-              color={colors.text}
-            />
-          </View>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <Animated.View entering={FadeInDown.duration(500)} style={styles.content}>
+            <View style={[styles.icon, { backgroundColor: colors.glassBackground }]}>
+              <Ionicons
+                name={status === 'checking' ? 'mail-open-outline' : 'alert-circle-outline'}
+                size={42}
+                color={colors.text}
+              />
+            </View>
 
-          <Text style={[typography.headlineMedium, styles.centerText, { color: colors.text }]}>
-            {status === 'checking' ? 'Opening Paly' : 'Link expired'}
-          </Text>
-          <Text style={[typography.bodyLarge, styles.message, { color: colors.textSecondary }]}>
-            {message}
-          </Text>
+            <Text style={[typography.headlineMedium, styles.centerText, { color: colors.text }]}>
+              {status === 'checking' ? 'Opening Paly' : 'Link expired'}
+            </Text>
+            <Text style={[typography.bodyLarge, styles.message, { color: colors.textSecondary }]}>
+              {message}
+            </Text>
 
-          {status === 'invalid' ? (
-            <Animated.View entering={FadeInUp.duration(400)} style={styles.actions}>
-              <Button
-                variant="secondary"
-                size="lg"
-                fullWidth
-                onPress={() => router.replace('/(auth)/sign-up')}
-              >
-                Create Account Again
-              </Button>
-              <Button
-                variant="ghost"
-                size="lg"
-                fullWidth
-                onPress={() => router.replace('/(auth)/sign-in')}
-              >
-                Sign In Instead
-              </Button>
-            </Animated.View>
-          ) : null}
-        </Animated.View>
+            {status === 'invalid' ? (
+              <Animated.View entering={FadeInUp.duration(400)} style={styles.actions}>
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  fullWidth
+                  onPress={() => router.replace('/(auth)/sign-up')}
+                >
+                  Create Account Again
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="lg"
+                  fullWidth
+                  onPress={() => router.replace('/(auth)/sign-in')}
+                >
+                  Sign In Instead
+                </Button>
+              </Animated.View>
+            ) : null}
+          </Animated.View>
+        </ScrollView>
       </SafeAreaView>
     </View>
   );
@@ -134,10 +137,16 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+    width: '100%',
+    maxWidth: LAYOUT.maxContentWidth,
+    alignSelf: 'center',
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingVertical: SPACING.xl,
   },
   content: {
-    flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: LAYOUT.screenPadding,
   },

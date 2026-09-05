@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -19,9 +19,6 @@ import { useStudyStore } from '../../../src/stores/studyStore';
 import { useSubscriptionStore } from '../../../src/stores/subscriptionStore';
 import { Ionicons } from '@expo/vector-icons';
 
-const { width } = Dimensions.get('window');
-const CARD_WIDTH = width - SPACING.xl * 2;
-
 function getStudyDay(sessionDate: string): number {
   const created = new Date(sessionDate + 'T00:00:00');
   const now = new Date();
@@ -35,8 +32,11 @@ const STORAGE_KEY_PREFIX = 'flipped_cards_';
 export default function FlashcardsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors, colorScheme } = useTheme();
+  const { width, height } = useWindowDimensions();
   const { synthesizedContent, awardPoints } = useStudyStore();
   const { isPro } = useSubscriptionStore();
+  const cardWidth = Math.min(width - SPACING.xl * 2, 560);
+  const cardHeight = Math.min(cardWidth * 1.2, height * 0.56);
 
   const content = synthesizedContent.find((c) => c.id === id);
   const allFlashcards = (content?.flashcards || []) as {
@@ -155,11 +155,16 @@ export default function FlashcardsScreen() {
       <Background>
         <SafeAreaView style={styles.safeArea} edges={['top']}>
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Close flashcards"
+              onPress={() => router.back()}
+              style={styles.backButton}
+            >
               <Ionicons name="close" size={24} color={colors.text} />
             </TouchableOpacity>
             <Text style={[typography.titleMedium, { color: colors.text }]}>Flashcards</Text>
-            <View style={{ width: 40 }} />
+            <View style={{ width: LAYOUT.minTouchTarget }} />
           </View>
 
           <View style={styles.centered}>
@@ -277,7 +282,12 @@ export default function FlashcardsScreen() {
         <SafeAreaView style={styles.safeArea} edges={['top']}>
           {/* Header */}
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Close flashcards"
+              onPress={() => router.back()}
+              style={styles.backButton}
+            >
               <Ionicons name="close" size={24} color={colors.text} />
             </TouchableOpacity>
 
@@ -285,7 +295,13 @@ export default function FlashcardsScreen() {
               {currentIndex + 1} / {visibleCards.length}
             </Text>
 
-            <View style={{ flexDirection: 'row', alignItems: 'center', minWidth: 40 }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                minWidth: LAYOUT.minTouchTarget,
+              }}
+            >
               {pointsEarned > 0 && (
                 <>
                   <Ionicons name="star" size={14} color="#FFD700" />
@@ -339,7 +355,7 @@ export default function FlashcardsScreen() {
             <TouchableOpacity
               activeOpacity={0.9}
               onPress={isLocked ? undefined : handleFlip}
-              style={styles.cardWrapper}
+              style={[styles.cardWrapper, { width: cardWidth, height: cardHeight }]}
             >
               {/* Locked overlay for future-day cards in "View All" mode */}
               {isLocked ? (
@@ -519,7 +535,10 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.md,
   },
   backButton: {
-    padding: SPACING.sm,
+    minWidth: LAYOUT.minTouchTarget,
+    minHeight: LAYOUT.minTouchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   lockBadge: {
     width: 64,
@@ -532,18 +551,23 @@ const styles = StyleSheet.create({
   },
   notNow: {
     alignSelf: 'center',
+    minHeight: LAYOUT.minTouchTarget,
+    justifyContent: 'center',
     paddingVertical: SPACING.sm,
   },
   dayInfoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: SPACING.xs,
     paddingHorizontal: LAYOUT.screenPadding,
     marginBottom: SPACING.sm,
   },
   viewAllButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    minHeight: LAYOUT.minTouchTarget,
     paddingVertical: 4,
     paddingHorizontal: 8,
   },
@@ -567,8 +591,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: LAYOUT.screenPadding,
   },
   cardWrapper: {
-    width: CARD_WIDTH,
-    height: CARD_WIDTH * 1.2,
+    maxWidth: '100%',
   },
   card: {
     position: 'absolute',

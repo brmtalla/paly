@@ -262,6 +262,9 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+    width: '100%',
+    maxWidth: LAYOUT.maxContentWidth,
+    alignSelf: 'center',
   },
   keyboardView: {
     flex: 1,
@@ -273,6 +276,10 @@ const styles = StyleSheet.create({
   },
   backButton: {
     alignSelf: 'flex-start',
+    minWidth: LAYOUT.minTouchTarget,
+    minHeight: LAYOUT.minTouchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   form: {
     marginTop: SPACING['3xl'],

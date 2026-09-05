@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: LAYOUT.screenPadding,
-    paddingBottom: LAYOUT.tabBarHeight + SPACING.xl,
+    paddingBottom: LAYOUT.tabBarContentInset,
   },
   statsContainer: {
     flexDirection: 'row',
@@ -339,7 +339,10 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   menuButton: {
-    padding: SPACING.xs,
+    minWidth: LAYOUT.minTouchTarget,
+    minHeight: LAYOUT.minTouchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   daysContainer: {
     flexDirection: 'row',
@@ -372,6 +375,7 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.md,
     borderRadius: RADIUS.md,
+    minHeight: LAYOUT.minTouchTarget,
   },
   emptyState: {
     alignItems: 'center',

@@ -148,6 +148,9 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+    width: '100%',
+    maxWidth: LAYOUT.maxContentWidth,
+    alignSelf: 'center',
   },
   header: {
     flexDirection: 'row',
@@ -157,10 +160,13 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.md,
   },
   backButton: {
-    padding: SPACING.xs,
+    width: LAYOUT.minTouchTarget,
+    height: LAYOUT.minTouchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerSpacer: {
-    width: 40,
+    width: LAYOUT.minTouchTarget,
   },
   content: {
     paddingHorizontal: LAYOUT.screenPadding,

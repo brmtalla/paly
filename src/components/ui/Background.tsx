@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet, Platform, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../theme/ThemeContext';
+import { LAYOUT } from '../../theme/spacing';
 
 interface BackgroundProps {
   children?: React.ReactNode;
@@ -104,7 +105,7 @@ export function Background({ children }: BackgroundProps) {
         />
       )}
 
-      {children}
+      <View style={styles.content}>{children}</View>
     </View>
   );
 }
@@ -113,5 +114,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     overflow: 'hidden',
+  },
+  content: {
+    flex: 1,
+    width: '100%',
+    maxWidth: LAYOUT.maxAppWidth,
+    alignSelf: 'center',
   },
 });

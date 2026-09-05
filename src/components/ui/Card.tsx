@@ -110,6 +110,7 @@ export function Card({ children, variant = 'default', padding = 'md', onPress, s
   if (onPress) {
     return (
       <AnimatedPressable
+        accessibilityRole="button"
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}

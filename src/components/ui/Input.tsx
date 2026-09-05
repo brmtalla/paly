@@ -103,6 +103,7 @@ export function Input({
 
         <TextInput
           {...props}
+          accessibilityLabel={props.accessibilityLabel ?? label ?? props.placeholder}
           style={[
             styles.input,
             {
@@ -159,18 +160,16 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: LAYOUT.inputHeight,
+    minHeight: LAYOUT.inputHeight,
     borderRadius: RADIUS.lg,
     borderWidth: 1.5,
     paddingHorizontal: SPACING.lg,
   },
   input: {
     flex: 1,
-    height: '100%',
+    minHeight: LAYOUT.inputHeight,
     textAlignVertical: 'center',
-    paddingVertical: 0,
-    paddingTop: 0,
-    paddingBottom: 0,
+    paddingVertical: SPACING.sm,
     margin: 0,
     includeFontPadding: false,
   },
@@ -180,7 +179,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   rightIcon: {
-    marginLeft: SPACING.md,
+    width: LAYOUT.minTouchTarget,
+    height: LAYOUT.minTouchTarget,
+    marginLeft: SPACING.xs,
     justifyContent: 'center',
     alignItems: 'center',
   },

@@ -291,6 +291,8 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
   },
   filterChip: {
+    minHeight: LAYOUT.minTouchTarget,
+    justifyContent: 'center',
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.md,
     borderRadius: RADIUS.full,
@@ -298,7 +300,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: LAYOUT.screenPadding,
-    paddingBottom: LAYOUT.tabBarHeight + SPACING.xl,
+    paddingBottom: LAYOUT.tabBarContentInset,
   },
   dateGroup: {
     marginBottom: SPACING.xl,

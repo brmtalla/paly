@@ -111,11 +111,7 @@ export default function TodayScreen() {
                 <View
                   style={[styles.overviewIcon, { backgroundColor: colors.white, ...SHADOWS.sm }]}
                 >
-                  <Ionicons
-                    name="today"
-                    size={20}
-                    color={colors.accent}
-                  />
+                  <Ionicons name="today" size={20} color={colors.accent} />
                 </View>
                 <Text style={[typography.titleMedium, { color: colors.cardText }]}>
                   Today&apos;s Overview
@@ -267,11 +263,7 @@ export default function TodayScreen() {
             ) : (
               <Card variant="default" padding="xl">
                 <View style={styles.emptyState}>
-                  <Ionicons
-                    name="sparkles-outline"
-                    size={40}
-                    color={colors.onCard}
-                  />
+                  <Ionicons name="sparkles-outline" size={40} color={colors.onCard} />
                   <Text
                     style={[
                       typography.bodyMedium,
@@ -338,11 +330,7 @@ export default function TodayScreen() {
             ) : (
               <Card variant="default" padding="lg">
                 <View style={styles.emptyState}>
-                  <Ionicons
-                    name="calendar-outline"
-                    size={32}
-                    color={colors.onCard}
-                  />
+                  <Ionicons name="calendar-outline" size={32} color={colors.onCard} />
                   <Text
                     style={[
                       typography.bodyMedium,
@@ -385,7 +373,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: LAYOUT.screenPadding,
-    paddingBottom: LAYOUT.tabBarHeight + SPACING['3xl'],
+    paddingBottom: LAYOUT.tabBarContentInset,
   },
   header: {
     flexDirection: 'row',
@@ -433,6 +421,7 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.md,
     borderRadius: RADIUS.md,
+    minHeight: LAYOUT.minTouchTarget,
   },
   section: {
     marginTop: SPACING.xl,

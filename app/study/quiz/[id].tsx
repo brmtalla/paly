@@ -182,7 +182,12 @@ export default function QuizScreen() {
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Close quiz"
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
             <Ionicons name="close" size={24} color={colors.text} />
           </TouchableOpacity>
 
@@ -190,7 +195,7 @@ export default function QuizScreen() {
             Question {currentIndex + 1} / {questions.length}
           </Text>
 
-          <View style={{ width: 40 }} />
+          <View style={{ width: LAYOUT.minTouchTarget }} />
         </View>
 
         {/* Progress */}
@@ -345,12 +350,7 @@ export default function QuizScreen() {
               Submit Answer
             </Button>
           ) : (
-            <Button
-              variant="primary"
-              size="lg"
-              fullWidth
-              onPress={handleNext}
-            >
+            <Button variant="primary" size="lg" fullWidth onPress={handleNext}>
               {currentIndex < questions.length - 1 ? 'Next Question' : 'See Results'}
             </Button>
           )}
@@ -378,7 +378,10 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.md,
   },
   backButton: {
-    padding: SPACING.sm,
+    minWidth: LAYOUT.minTouchTarget,
+    minHeight: LAYOUT.minTouchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   progressContainer: {
     paddingHorizontal: LAYOUT.screenPadding,

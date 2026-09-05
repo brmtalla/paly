@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
@@ -35,128 +35,138 @@ export default function AssistantScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SafeAreaView style={styles.safeArea}>
-        {/* Progress indicator */}
-        <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.progress}>
-          <View style={[styles.progressBar, { backgroundColor: colors.glassBackground }]}>
-            <View style={[styles.progressFill, { backgroundColor: colors.card, width: '40%' }]} />
-          </View>
-          <Text style={[typography.labelSmall, { color: colors.textSecondary }]}>2 OF 5</Text>
-        </Animated.View>
-
-        {/* Content */}
-        <View style={styles.content}>
-          <Animated.View entering={FadeInDown.delay(200).duration(600).springify()}>
-            {/* Avatar */}
-            <View style={[styles.avatar, { backgroundColor: colors.glassBackground }]}>
-              <Ionicons name="chatbubbles" size={40} color={colors.text} />
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Progress indicator */}
+          <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.progress}>
+            <View style={[styles.progressBar, { backgroundColor: colors.glassBackground }]}>
+              <View style={[styles.progressFill, { backgroundColor: colors.card, width: '40%' }]} />
             </View>
-
-            <Text style={[typography.displaySmall, { color: colors.text, textAlign: 'center' }]}>
-              Name your{'\n'}study companion
-            </Text>
-
-            <Text
-              style={[
-                typography.bodyLarge,
-                {
-                  color: colors.textSecondary,
-                  textAlign: 'center',
-                  marginTop: SPACING.md,
-                },
-              ]}
-            >
-              Your companion will send you personalized study nuggets and help you stay consistent.
-            </Text>
+            <Text style={[typography.labelSmall, { color: colors.textSecondary }]}>2 OF 5</Text>
           </Animated.View>
 
-          {/* Name Input */}
-          <Animated.View
-            entering={FadeInUp.delay(400).duration(600).springify()}
-            style={styles.inputSection}
-          >
-            <Input
-              label="Companion Name"
-              placeholder="Enter a name"
-              value={assistantName}
-              onChangeText={setAssistantName}
-              maxLength={20}
-            />
+          {/* Content */}
+          <View style={styles.content}>
+            <Animated.View entering={FadeInDown.delay(200).duration(600).springify()}>
+              {/* Avatar */}
+              <View style={[styles.avatar, { backgroundColor: colors.glassBackground }]}>
+                <Ionicons name="chatbubbles" size={40} color={colors.text} />
+              </View>
 
-            {/* Suggested names */}
-            <Text
-              style={[
-                typography.labelSmall,
-                { color: colors.textSecondary, marginBottom: SPACING.sm },
-              ]}
+              <Text style={[typography.displaySmall, { color: colors.text, textAlign: 'center' }]}>
+                Name your{'\n'}study companion
+              </Text>
+
+              <Text
+                style={[
+                  typography.bodyLarge,
+                  {
+                    color: colors.textSecondary,
+                    textAlign: 'center',
+                    marginTop: SPACING.md,
+                  },
+                ]}
+              >
+                Your companion will send you personalized study nuggets and help you stay
+                consistent.
+              </Text>
+            </Animated.View>
+
+            {/* Name Input */}
+            <Animated.View
+              entering={FadeInUp.delay(400).duration(600).springify()}
+              style={styles.inputSection}
             >
-              SUGGESTIONS
-            </Text>
-            <View style={styles.suggestions}>
-              {SUGGESTED_NAMES.map((name) => (
-                <TouchableOpacity
-                  key={name}
-                  onPress={() => setAssistantName(name)}
-                  style={[
-                    styles.suggestionChip,
-                    {
-                      backgroundColor:
-                        assistantName === name ? colors.card : colors.glassBackground,
-                      ...SHADOWS.sm,
-                    },
-                  ]}
-                >
-                  <Text
+              <Input
+                label="Companion Name"
+                placeholder="Enter a name"
+                value={assistantName}
+                onChangeText={setAssistantName}
+                maxLength={20}
+              />
+
+              {/* Suggested names */}
+              <Text
+                style={[
+                  typography.labelSmall,
+                  { color: colors.textSecondary, marginBottom: SPACING.sm },
+                ]}
+              >
+                SUGGESTIONS
+              </Text>
+              <View style={styles.suggestions}>
+                {SUGGESTED_NAMES.map((name) => (
+                  <TouchableOpacity
+                    key={name}
+                    onPress={() => setAssistantName(name)}
                     style={[
-                      typography.labelMedium,
+                      styles.suggestionChip,
                       {
-                        color: assistantName === name ? colors.cardText : colors.text,
+                        backgroundColor:
+                          assistantName === name ? colors.card : colors.glassBackground,
+                        ...SHADOWS.sm,
                       },
                     ]}
                   >
-                    {name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </Animated.View>
-        </View>
+                    <Text
+                      style={[
+                        typography.labelMedium,
+                        {
+                          color: assistantName === name ? colors.cardText : colors.text,
+                        },
+                      ]}
+                    >
+                      {name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </Animated.View>
+          </View>
 
-        {/* Preview */}
-        <Animated.View
-          entering={FadeInUp.delay(600).duration(600).springify()}
-          style={styles.preview}
-        >
-          <GlassCard padding="md">
-            <View style={styles.previewHeader}>
-              <View style={[styles.previewAvatar, { backgroundColor: colors.card }]}>
-                <Text style={{ color: colors.onCard, fontWeight: '600' }}>
-                  {assistantName.charAt(0).toUpperCase()}
+          {/* Preview */}
+          <Animated.View
+            entering={FadeInUp.delay(600).duration(600).springify()}
+            style={styles.preview}
+          >
+            <GlassCard padding="md">
+              <View style={styles.previewHeader}>
+                <View style={[styles.previewAvatar, { backgroundColor: colors.card }]}>
+                  <Text style={{ color: colors.onCard, fontWeight: '600' }}>
+                    {assistantName.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+                <Text style={[typography.titleSmall, { color: colors.text }]}>
+                  {assistantName || 'Your companion'}
                 </Text>
               </View>
-              <Text style={[typography.titleSmall, { color: colors.text }]}>
-                {assistantName || 'Your companion'}
+              <Text style={[typography.bodyMedium, { color: colors.textSecondary }]}>
+                &quot;Hey! Time for a quick review of your Biology notes. Ready to reinforce what
+                you learned?&quot;
               </Text>
-            </View>
-            <Text style={[typography.bodyMedium, { color: colors.textSecondary }]}>
-              &quot;Hey! Time for a quick review of your Biology notes. Ready to reinforce what you
-              learned?&quot;
-            </Text>
-          </GlassCard>
-        </Animated.View>
+            </GlassCard>
+          </Animated.View>
 
-        {/* CTA */}
-        <Animated.View entering={FadeInUp.delay(800).duration(600).springify()} style={styles.cta}>
-          <Button
-            variant="primary"
-            size="lg"
-            fullWidth
-            loading={isLoading}
-            disabled={!assistantName.trim()}
-            onPress={handleContinue}
+          {/* CTA */}
+          <Animated.View
+            entering={FadeInUp.delay(800).duration(600).springify()}
+            style={styles.cta}
           >
-            Continue
-          </Button>
-        </Animated.View>
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              loading={isLoading}
+              disabled={!assistantName.trim()}
+              onPress={handleContinue}
+            >
+              Continue
+            </Button>
+          </Animated.View>
+        </ScrollView>
       </SafeAreaView>
     </View>
   );
@@ -168,7 +178,14 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+    width: '100%',
+    maxWidth: LAYOUT.maxContentWidth,
+    alignSelf: 'center',
+  },
+  scrollContent: {
+    flexGrow: 1,
     paddingHorizontal: LAYOUT.screenPadding,
+    paddingBottom: SPACING.lg,
   },
   progress: {
     flexDirection: 'row',
@@ -186,8 +203,8 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   content: {
-    flex: 1,
     justifyContent: 'center',
+    paddingVertical: SPACING['2xl'],
   },
   avatar: {
     width: 80,
@@ -207,6 +224,8 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
   },
   suggestionChip: {
+    minHeight: LAYOUT.minTouchTarget,
+    justifyContent: 'center',
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.md,
     borderRadius: RADIUS.lg,
@@ -228,6 +247,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cta: {
-    marginBottom: SPACING.lg,
+    marginTop: SPACING.xl,
   },
 });

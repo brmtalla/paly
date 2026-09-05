@@ -245,11 +245,7 @@ export default function StudyScreen() {
                           },
                         ]}
                       >
-                        <Ionicons
-                          name="sparkles-outline"
-                          size={40}
-                          color={colors.onCard}
-                        />
+                        <Ionicons name="sparkles-outline" size={40} color={colors.onCard} />
                       </View>
                       <Text
                         style={[
@@ -317,11 +313,7 @@ export default function StudyScreen() {
                             },
                           ]}
                         >
-                          <Ionicons
-                            name="card-outline"
-                            size={20}
-                            color={colors.onCard}
-                          />
+                          <Ionicons name="card-outline" size={20} color={colors.onCard} />
                         </View>
                         <View style={{ flex: 1 }}>
                           <Text style={[typography.titleSmall, { color: colors.cardText }]}>
@@ -352,11 +344,7 @@ export default function StudyScreen() {
                         },
                       ]}
                     >
-                      <Ionicons
-                        name="card-outline"
-                        size={40}
-                        color={colors.onCard}
-                      />
+                      <Ionicons name="card-outline" size={40} color={colors.onCard} />
                     </View>
                     <Text
                       style={[
@@ -411,11 +399,7 @@ export default function StudyScreen() {
                             },
                           ]}
                         >
-                          <Ionicons
-                            name="help-circle-outline"
-                            size={20}
-                            color={colors.onCard}
-                          />
+                          <Ionicons name="help-circle-outline" size={20} color={colors.onCard} />
                         </View>
                         <View style={{ flex: 1 }}>
                           <Text style={[typography.titleSmall, { color: colors.cardText }]}>
@@ -446,11 +430,7 @@ export default function StudyScreen() {
                         },
                       ]}
                     >
-                      <Ionicons
-                        name="help-circle-outline"
-                        size={40}
-                        color={colors.onCard}
-                      />
+                      <Ionicons name="help-circle-outline" size={40} color={colors.onCard} />
                     </View>
                     <Text
                       style={[
@@ -503,13 +483,14 @@ const styles = StyleSheet.create({
   },
   tab: {
     flex: 1,
+    minHeight: LAYOUT.minTouchTarget,
     paddingVertical: SPACING.md,
     borderRadius: RADIUS.md,
     alignItems: 'center',
   },
   scrollContent: {
     paddingHorizontal: LAYOUT.screenPadding,
-    paddingBottom: LAYOUT.tabBarHeight + SPACING.xl,
+    paddingBottom: LAYOUT.tabBarContentInset,
   },
   promptCard: {
     marginBottom: SPACING.md,

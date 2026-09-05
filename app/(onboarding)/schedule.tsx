@@ -301,6 +301,9 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+    width: '100%',
+    maxWidth: LAYOUT.maxContentWidth,
+    alignSelf: 'center',
     paddingHorizontal: LAYOUT.screenPadding,
   },
   progress: {
@@ -344,6 +347,7 @@ const styles = StyleSheet.create({
   },
   dayButton: {
     flex: 1,
+    minHeight: LAYOUT.minTouchTarget,
     paddingVertical: SPACING.md,
     borderRadius: RADIUS.md,
     alignItems: 'center',

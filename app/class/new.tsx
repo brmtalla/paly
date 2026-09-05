@@ -99,13 +99,18 @@ export default function NewClassScreen() {
             entering={FadeInDown.delay(100).duration(600).springify()}
             style={styles.header}
           >
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Go back"
+              onPress={() => router.back()}
+              style={styles.backButton}
+            >
               <Ionicons name="close" size={24} color={colors.text} />
             </TouchableOpacity>
 
             <Text style={[typography.titleLarge, { color: colors.text }]}>Add Class</Text>
 
-            <View style={{ width: 40 }} />
+            <View style={{ width: LAYOUT.minTouchTarget }} />
           </Animated.View>
 
           {/* Basic Info */}
@@ -316,7 +321,10 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xl,
   },
   backButton: {
-    padding: SPACING.sm,
+    minWidth: LAYOUT.minTouchTarget,
+    minHeight: LAYOUT.minTouchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   formCard: {
     marginBottom: SPACING.lg,

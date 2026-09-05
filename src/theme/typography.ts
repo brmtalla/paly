@@ -31,12 +31,12 @@ export const FONT_SIZES = {
   // Body sizes
   bodyLarge: 16,
   bodyMedium: 14,
-  bodySmall: 12,
+  bodySmall: 13,
 
   // Label sizes
   labelLarge: 14,
-  labelMedium: 12,
-  labelSmall: 10,
+  labelMedium: 13,
+  labelSmall: 11,
 } as const;
 
 export const LINE_HEIGHTS = {

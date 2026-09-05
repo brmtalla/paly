@@ -70,7 +70,12 @@ export default function PromptDetailScreen() {
             entering={FadeInDown.delay(100).duration(600).springify()}
             style={styles.header}
           >
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Go back"
+              onPress={() => router.back()}
+              style={styles.backButton}
+            >
               <Ionicons name="arrow-back" size={24} color={colors.text} />
             </TouchableOpacity>
           </Animated.View>
@@ -81,11 +86,7 @@ export default function PromptDetailScreen() {
             style={styles.content}
           >
             <View style={[styles.iconContainer, { backgroundColor: colors.card, ...SHADOWS.lg }]}>
-              <Ionicons
-                name={getPromptIcon(prompt.prompt_type)}
-                size={48}
-                color={colors.onCard}
-              />
+              <Ionicons name={getPromptIcon(prompt.prompt_type)} size={48} color={colors.onCard} />
             </View>
 
             <Text
@@ -167,7 +168,10 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xl,
   },
   backButton: {
-    padding: SPACING.sm,
+    minWidth: LAYOUT.minTouchTarget,
+    minHeight: LAYOUT.minTouchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   content: {
     flex: 1,

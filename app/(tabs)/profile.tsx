@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: LAYOUT.screenPadding,
-    paddingBottom: LAYOUT.tabBarHeight + SPACING['3xl'],
+    paddingBottom: LAYOUT.tabBarContentInset,
   },
   header: {
     alignItems: 'center',

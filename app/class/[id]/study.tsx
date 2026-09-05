@@ -152,7 +152,12 @@ export default function ClassStudyScreen() {
             entering={FadeInDown.delay(100).duration(600).springify()}
             style={styles.header}
           >
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Go back"
+              onPress={() => router.back()}
+              style={styles.backButton}
+            >
               <Ionicons name="arrow-back" size={24} color={colors.text} />
             </TouchableOpacity>
 
@@ -160,7 +165,7 @@ export default function ClassStudyScreen() {
               Study {classData?.name}
             </Text>
 
-            <View style={{ width: 40 }} />
+            <View style={{ width: LAYOUT.minTouchTarget }} />
           </Animated.View>
 
           {/* Streak Display */}
@@ -534,7 +539,10 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xl,
   },
   backButton: {
-    padding: SPACING.sm,
+    minWidth: LAYOUT.minTouchTarget,
+    minHeight: LAYOUT.minTouchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   streakCard: {
     flexDirection: 'row',

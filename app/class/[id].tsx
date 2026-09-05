@@ -269,7 +269,12 @@ export default function ClassDetailScreen() {
             entering={FadeInDown.delay(100).duration(600).springify()}
             style={styles.header}
           >
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Go back"
+              onPress={() => router.back()}
+              style={styles.backButton}
+            >
               <Ionicons name="arrow-back" size={24} color={colors.text} />
             </TouchableOpacity>
 
@@ -744,14 +749,20 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xl,
   },
   backButton: {
-    padding: SPACING.sm,
+    minWidth: LAYOUT.minTouchTarget,
+    minHeight: LAYOUT.minTouchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerActions: {
     flexDirection: 'row',
     gap: SPACING.sm,
   },
   actionButton: {
-    padding: SPACING.sm,
+    minWidth: LAYOUT.minTouchTarget,
+    minHeight: LAYOUT.minTouchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: RADIUS.lg,
   },
   infoCard: {
@@ -829,6 +840,7 @@ const styles = StyleSheet.create({
   },
   takeQuizButton: {
     marginTop: SPACING.md,
+    minHeight: LAYOUT.minTouchTarget,
     paddingVertical: SPACING.sm,
     borderRadius: RADIUS.md,
     alignItems: 'center',

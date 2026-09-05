@@ -122,11 +122,16 @@ export default function SubscriptionScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={[typography.titleLarge, { color: colors.text }]}>Subscription</Text>
-          <View style={{ width: 40 }} />
+          <View style={{ width: LAYOUT.minTouchTarget }} />
         </Animated.View>
 
         <ScrollView
@@ -315,7 +320,12 @@ export default function SubscriptionScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  safeArea: { flex: 1 },
+  safeArea: {
+    flex: 1,
+    width: '100%',
+    maxWidth: LAYOUT.maxContentWidth,
+    alignSelf: 'center',
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -323,7 +333,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: LAYOUT.screenPadding,
     paddingVertical: SPACING.md,
   },
-  backButton: { padding: SPACING.xs },
+  backButton: {
+    width: LAYOUT.minTouchTarget,
+    height: LAYOUT.minTouchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   scrollContent: { paddingHorizontal: LAYOUT.screenPadding, paddingBottom: SPACING['3xl'] },
   planCard: { marginBottom: SPACING.xl },
   planHeader: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },

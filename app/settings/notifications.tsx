@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Switch, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, Switch, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
@@ -119,17 +119,22 @@ export default function NotificationsScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
         {/* Header */}
         <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={[typography.titleLarge, { color: colors.text }]}>Notifications</Text>
-          <View style={{ width: 40 }} />
+          <View style={{ width: LAYOUT.minTouchTarget }} />
         </Animated.View>
 
-        <View style={styles.content}>
+        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           {/* Push Notifications */}
           <Animated.View entering={FadeInUp.delay(200).duration(600).springify()}>
             <Text
@@ -252,7 +257,7 @@ export default function NotificationsScreen() {
               </Text>
             </View>
           </Animated.View>
-        </View>
+        </ScrollView>
       </SafeAreaView>
     </View>
   );
@@ -317,6 +322,9 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+    width: '100%',
+    maxWidth: LAYOUT.maxContentWidth,
+    alignSelf: 'center',
   },
   header: {
     flexDirection: 'row',
@@ -326,10 +334,14 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.md,
   },
   backButton: {
-    padding: SPACING.xs,
+    width: LAYOUT.minTouchTarget,
+    height: LAYOUT.minTouchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   content: {
     paddingHorizontal: LAYOUT.screenPadding,
+    paddingBottom: SPACING['2xl'],
   },
   section: {
     marginTop: SPACING.xl,
@@ -339,6 +351,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: SPACING.lg,
     gap: SPACING.md,
+    minHeight: 76,
   },
   rowIcon: {
     width: 36,

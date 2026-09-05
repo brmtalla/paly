@@ -1,10 +1,8 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, Dimensions, Platform } from 'react-native';
+import { View, Text, StyleSheet, Animated, Platform, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { THEME_COLORS } from '../theme/colors';
-
-const { width, height } = Dimensions.get('window');
 
 interface SplashScreenProps {
   onAnimationComplete?: () => void;
@@ -12,6 +10,8 @@ interface SplashScreenProps {
 }
 
 export const SplashScreen: React.FC<SplashScreenProps> = ({ onAnimationComplete, accentColor }) => {
+  const { width, height } = useWindowDimensions();
+  const decorationSize = Math.min(Math.max(width, 320), 900);
   // Use provided accent color or default to Indigo
   const themeColor = accentColor
     ? THEME_COLORS.find((c) => c.value === accentColor) || THEME_COLORS[0]
@@ -154,21 +154,36 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onAnimationComplete,
           <View
             style={[
               styles.bgCircle,
-              styles.bgCircle1,
+              {
+                width: decorationSize * 1.5,
+                height: decorationSize * 1.5,
+                top: -decorationSize * 0.5,
+                right: -decorationSize * 0.5,
+              },
               { backgroundColor: themeColor.light + '10' },
             ]}
           />
           <View
             style={[
               styles.bgCircle,
-              styles.bgCircle2,
+              {
+                width: decorationSize * 1.2,
+                height: decorationSize * 1.2,
+                bottom: -decorationSize * 0.3,
+                left: -decorationSize * 0.4,
+              },
               { backgroundColor: themeColor.light + '08' },
             ]}
           />
           <View
             style={[
               styles.bgCircle,
-              styles.bgCircle3,
+              {
+                width: decorationSize * 0.8,
+                height: decorationSize * 0.8,
+                top: height * 0.4,
+                right: -decorationSize * 0.2,
+              },
               { backgroundColor: themeColor.light + '05' },
             ]}
           />
@@ -270,24 +285,6 @@ const styles = StyleSheet.create({
   bgCircle: {
     position: 'absolute',
     borderRadius: 9999,
-  },
-  bgCircle1: {
-    width: width * 1.5,
-    height: width * 1.5,
-    top: -width * 0.5,
-    right: -width * 0.5,
-  },
-  bgCircle2: {
-    width: width * 1.2,
-    height: width * 1.2,
-    bottom: -width * 0.3,
-    left: -width * 0.4,
-  },
-  bgCircle3: {
-    width: width * 0.8,
-    height: width * 0.8,
-    top: height * 0.4,
-    right: -width * 0.2,
   },
   content: {
     alignItems: 'center',

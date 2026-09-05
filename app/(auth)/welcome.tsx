@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
@@ -16,81 +16,87 @@ export default function WelcomeScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SafeAreaView style={styles.safeArea}>
-        {/* Hero Section */}
-        <Animated.View
-          entering={FadeInDown.delay(200).duration(800).springify()}
-          style={styles.heroSection}
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
-          {/* App icon/logo */}
-          <View style={[styles.logoContainer, { backgroundColor: colors.card, ...SHADOWS.lg }]}>
-            <Ionicons name="book" size={48} color={colors.onCard} />
-          </View>
-
-          <Animated.Text
-            entering={FadeIn.delay(400).duration(600)}
-            style={[styles.title, typography.displayMedium, { color: colors.text }]}
+          {/* Hero Section */}
+          <Animated.View
+            entering={FadeInDown.delay(200).duration(800).springify()}
+            style={styles.heroSection}
           >
-            Study without{'\n'}cramming
-          </Animated.Text>
+            {/* App icon/logo */}
+            <View style={[styles.logoContainer, { backgroundColor: colors.card, ...SHADOWS.lg }]}>
+              <Ionicons name="book" size={48} color={colors.onCard} />
+            </View>
 
-          <Animated.Text
-            entering={FadeIn.delay(600).duration(600)}
-            style={[styles.subtitle, typography.bodyLarge, { color: colors.textSecondary }]}
+            <Animated.Text
+              entering={FadeIn.delay(400).duration(600)}
+              style={[styles.title, typography.displayMedium, { color: colors.text }]}
+            >
+              Study without{'\n'}cramming
+            </Animated.Text>
+
+            <Animated.Text
+              entering={FadeIn.delay(600).duration(600)}
+              style={[styles.subtitle, typography.bodyLarge, { color: colors.textSecondary }]}
+            >
+              Your personal study companion that helps you learn{' '}
+              <Text style={{ color: colors.text, fontWeight: '600' }}>consistently</Text>, not just
+              before exams.
+            </Animated.Text>
+          </Animated.View>
+
+          {/* Features */}
+          <Animated.View
+            entering={FadeInUp.delay(800).duration(600)}
+            style={styles.featuresContainer}
           >
-            Your personal study companion that helps you learn{' '}
-            <Text style={{ color: colors.text, fontWeight: '600' }}>consistently</Text>, not just
-            before exams.
-          </Animated.Text>
-        </Animated.View>
+            <FeatureItem
+              icon="notifications-outline"
+              title="Smart Reminders"
+              description="Get personalized study nuggets at the right time"
+              colors={colors}
+            />
+            <FeatureItem
+              icon="sparkles-outline"
+              title="AI Synthesis"
+              description="Turn your notes into bite-sized study content"
+              colors={colors}
+            />
+            <FeatureItem
+              icon="trophy-outline"
+              title="Better Retention"
+              description="Learn gradually, remember longer"
+              colors={colors}
+            />
+          </Animated.View>
 
-        {/* Features */}
-        <Animated.View
-          entering={FadeInUp.delay(800).duration(600)}
-          style={styles.featuresContainer}
-        >
-          <FeatureItem
-            icon="notifications-outline"
-            title="Smart Reminders"
-            description="Get personalized study nuggets at the right time"
-            colors={colors}
-          />
-          <FeatureItem
-            icon="sparkles-outline"
-            title="AI Synthesis"
-            description="Turn your notes into bite-sized study content"
-            colors={colors}
-          />
-          <FeatureItem
-            icon="trophy-outline"
-            title="Better Retention"
-            description="Learn gradually, remember longer"
-            colors={colors}
-          />
-        </Animated.View>
+          {/* CTA Buttons */}
+          <Animated.View entering={FadeInUp.delay(1000).duration(600)} style={styles.ctaContainer}>
+            <SocialAuthButtons />
 
-        {/* CTA Buttons */}
-        <Animated.View entering={FadeInUp.delay(1000).duration(600)} style={styles.ctaContainer}>
-          <SocialAuthButtons />
+            <Button
+              variant="secondary"
+              size="lg"
+              fullWidth
+              onPress={() => router.push('/(auth)/sign-up')}
+            >
+              Get Started
+            </Button>
 
-          <Button
-            variant="secondary"
-            size="lg"
-            fullWidth
-            onPress={() => router.push('/(auth)/sign-up')}
-          >
-            Get Started
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="lg"
-            fullWidth
-            style={styles.signInButton}
-            onPress={() => router.push('/(auth)/sign-in')}
-          >
-            I already have an account
-          </Button>
-        </Animated.View>
+            <Button
+              variant="ghost"
+              size="lg"
+              fullWidth
+              style={styles.signInButton}
+              onPress={() => router.push('/(auth)/sign-in')}
+            >
+              I already have an account
+            </Button>
+          </Animated.View>
+        </ScrollView>
       </SafeAreaView>
     </View>
   );
@@ -125,13 +131,19 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+    width: '100%',
+    maxWidth: LAYOUT.maxContentWidth,
+    alignSelf: 'center',
+  },
+  scrollContent: {
+    flexGrow: 1,
     paddingHorizontal: LAYOUT.screenPadding,
   },
   heroSection: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: SPACING['3xl'],
+    paddingVertical: SPACING['3xl'],
   },
   logoContainer: {
     width: 88,

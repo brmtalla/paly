@@ -172,11 +172,16 @@ export default function AccountScreen() {
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         {/* Header */}
         <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={[typography.titleLarge, { color: colors.text }]}>Account</Text>
-          <View style={{ width: 40 }} />
+          <View style={{ width: LAYOUT.minTouchTarget }} />
         </Animated.View>
 
         <ScrollView
@@ -336,6 +341,9 @@ export default function AccountScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+    width: '100%',
+    maxWidth: LAYOUT.maxContentWidth,
+    alignSelf: 'center',
   },
   header: {
     flexDirection: 'row',
@@ -345,7 +353,10 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.md,
   },
   backButton: {
-    padding: SPACING.xs,
+    width: LAYOUT.minTouchTarget,
+    height: LAYOUT.minTouchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   scrollView: {
     flex: 1,

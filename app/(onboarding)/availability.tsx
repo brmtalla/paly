@@ -203,6 +203,9 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+    width: '100%',
+    maxWidth: LAYOUT.maxContentWidth,
+    alignSelf: 'center',
     paddingHorizontal: LAYOUT.screenPadding,
   },
   progress: {

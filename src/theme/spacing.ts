@@ -89,5 +89,9 @@ export const LAYOUT = {
   buttonHeight: 52,
   headerHeight: 56,
   tabBarHeight: 80,
+  tabBarContentInset: 120,
   maxContentWidth: 600,
+  maxAppWidth: 720,
+  tabBarMaxWidth: 688,
+  minTouchTarget: 44,
 } as const;

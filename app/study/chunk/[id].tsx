@@ -67,11 +67,16 @@ export default function ChunkViewerScreen() {
       <Background>
         <SafeAreaView style={styles.safeArea} edges={['top']}>
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Go back"
+              onPress={() => router.back()}
+              style={styles.backButton}
+            >
               <Ionicons name="arrow-back" size={24} color={colors.text} />
             </TouchableOpacity>
             <Text style={[typography.titleLarge, { color: colors.text }]}>Study Chunk</Text>
-            <View style={{ width: 40 }} />
+            <View style={{ width: LAYOUT.minTouchTarget }} />
           </View>
           <View style={styles.emptyContainer}>
             <Text style={[typography.bodyMedium, { color: colors.cardTextSecondary }]}>
@@ -100,7 +105,12 @@ export default function ChunkViewerScreen() {
     <Background>
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <Animated.View entering={FadeIn.duration(300)} style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
           <View style={styles.headerCenter}>
@@ -112,7 +122,7 @@ export default function ChunkViewerScreen() {
             />
             <Text style={[typography.titleMedium, { color: colors.text }]}>{typeLabel}</Text>
           </View>
-          <View style={{ width: 40 }}>
+          <View style={{ width: LAYOUT.minTouchTarget }}>
             {reachedBottom && (
               <Animated.View entering={SlideInUp.springify()}>
                 <Ionicons name="checkmark-circle" size={24} color="#34C759" />
@@ -175,7 +185,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  backButton: { padding: SPACING.sm },
+  backButton: {
+    minWidth: LAYOUT.minTouchTarget,
+    minHeight: LAYOUT.minTouchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   scrollContent: {
     padding: LAYOUT.screenPadding,
     paddingBottom: SPACING['3xl'],

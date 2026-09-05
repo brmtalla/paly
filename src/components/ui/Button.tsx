@@ -111,10 +111,10 @@ export function Button({
     return 'transparent';
   };
 
-  const getHeight = () => {
+  const getMinHeight = () => {
     switch (size) {
       case 'sm':
-        return 40;
+        return LAYOUT.minTouchTarget;
       case 'md':
         return LAYOUT.buttonHeight;
       case 'lg':
@@ -139,6 +139,8 @@ export function Button({
 
   return (
     <AnimatedTouchable
+      accessibilityRole="button"
+      accessibilityState={{ disabled: disabled || loading, busy: loading }}
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
@@ -150,7 +152,7 @@ export function Button({
         {
           backgroundColor: getBackgroundColor(),
           borderColor: getBorderColor(),
-          height: getHeight(),
+          minHeight: getMinHeight(),
           paddingHorizontal: getPadding(),
           width: fullWidth ? '100%' : undefined,
         },
@@ -189,8 +191,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: RADIUS.xl,
     borderWidth: 1.5,
+    paddingVertical: SPACING.sm,
   },
   text: {
+    flexShrink: 1,
     textAlign: 'center',
     fontWeight: '600',
   },

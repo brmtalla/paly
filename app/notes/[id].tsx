@@ -116,7 +116,12 @@ export default function NoteDetailScreen() {
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         {/* Header */}
         <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
 
@@ -285,6 +290,9 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+    width: '100%',
+    maxWidth: LAYOUT.maxAppWidth,
+    alignSelf: 'center',
   },
   header: {
     flexDirection: 'row',
@@ -294,10 +302,16 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
   },
   backButton: {
-    padding: SPACING.xs,
+    width: LAYOUT.minTouchTarget,
+    height: LAYOUT.minTouchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   iconButton: {
-    padding: SPACING.sm,
+    minWidth: LAYOUT.minTouchTarget,
+    minHeight: LAYOUT.minTouchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   scrollContent: {
     paddingHorizontal: LAYOUT.screenPadding,

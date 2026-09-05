@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -57,53 +57,62 @@ export default function CompleteScreen() {
       />
 
       <SafeAreaView style={styles.safeArea}>
-        <View style={styles.content}>
-          {/* Celebration icon */}
-          <Animated.View style={[styles.iconContainer, celebrationStyle]}>
-            <View style={[styles.iconBg, { backgroundColor: colors.accent }]}>
-              <Ionicons name="checkmark" size={56} color="#FFFFFF" />
-            </View>
-          </Animated.View>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.content}>
+            {/* Celebration icon */}
+            <Animated.View style={[styles.iconContainer, celebrationStyle]}>
+              <View style={[styles.iconBg, { backgroundColor: colors.accent }]}>
+                <Ionicons name="checkmark" size={56} color="#FFFFFF" />
+              </View>
+            </Animated.View>
 
-          {/* Title */}
-          <Animated.View entering={FadeInUp.delay(400).duration(600).springify()}>
-            <Text style={[typography.displayMedium, { color: colors.text, textAlign: 'center' }]}>
-              You&apos;re all set!
-            </Text>
+            {/* Title */}
+            <Animated.View entering={FadeInUp.delay(400).duration(600).springify()}>
+              <Text style={[typography.displayMedium, { color: colors.text, textAlign: 'center' }]}>
+                You&apos;re all set!
+              </Text>
 
-            <Text
-              style={[
-                typography.bodyLarge,
-                {
-                  color: colors.textSecondary,
-                  textAlign: 'center',
-                  marginTop: SPACING.lg,
-                  paddingHorizontal: SPACING.lg,
-                },
-              ]}
+              <Text
+                style={[
+                  typography.bodyLarge,
+                  {
+                    color: colors.textSecondary,
+                    textAlign: 'center',
+                    marginTop: SPACING.lg,
+                    paddingHorizontal: SPACING.lg,
+                  },
+                ]}
+              >
+                {profile?.assistant_name || 'Paly'} is ready. Unlock texts to your phone — or start
+                with study nuggets in the app.
+              </Text>
+            </Animated.View>
+
+            {/* Features summary */}
+            <Animated.View
+              entering={FadeInUp.delay(600).duration(600).springify()}
+              style={styles.featuresContainer}
             >
-              {profile?.assistant_name || 'Paly'} is ready. Unlock texts to your phone — or start
-              with study nuggets in the app.
-            </Text>
-          </Animated.View>
+              <FeatureCheck
+                icon="notifications"
+                text="Class reminders are enabled"
+                colors={colors}
+              />
+              <FeatureCheck icon="sparkles" text="AI synthesis ready to go" colors={colors} />
+              <FeatureCheck icon="book" text="Daily study nuggets scheduled" colors={colors} />
+            </Animated.View>
+          </View>
 
-          {/* Features summary */}
-          <Animated.View
-            entering={FadeInUp.delay(600).duration(600).springify()}
-            style={styles.featuresContainer}
-          >
-            <FeatureCheck icon="notifications" text="Class reminders are enabled" colors={colors} />
-            <FeatureCheck icon="sparkles" text="AI synthesis ready to go" colors={colors} />
-            <FeatureCheck icon="book" text="Daily study nuggets scheduled" colors={colors} />
-          </Animated.View>
-        </View>
-
-        {/* CTA */}
-        <Animated.View entering={FadeIn.delay(800).duration(600)} style={styles.cta}>
+          {/* CTA */}
+          <Animated.View entering={FadeIn.delay(800).duration(600)} style={styles.cta}>
             <Button variant="primary" size="lg" fullWidth onPress={handleStart}>
               Continue
             </Button>
-        </Animated.View>
+          </Animated.View>
+        </ScrollView>
       </SafeAreaView>
     </View>
   );
@@ -139,10 +148,17 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+    width: '100%',
+    maxWidth: LAYOUT.maxContentWidth,
+    alignSelf: 'center',
+  },
+  scrollContent: {
+    flexGrow: 1,
     paddingHorizontal: LAYOUT.screenPadding,
+    paddingVertical: SPACING.xl,
   },
   content: {
-    flex: 1,
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -174,6 +190,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cta: {
-    marginBottom: SPACING.xl,
+    marginTop: SPACING['2xl'],
   },
 });
