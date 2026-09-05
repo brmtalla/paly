@@ -13,7 +13,7 @@ import {
   View,
 } from 'react-native';
 import Purchases, { INTRO_ELIGIBILITY_STATUS, PurchasesPackage } from 'react-native-purchases';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PRIVACY_URL, TERMS_URL } from '../lib/constants';
 import { useSubscriptionStore } from '../stores/subscriptionStore';
@@ -48,6 +48,7 @@ function trialPeriod(pkg: PurchasesPackage | null) {
 
 export function ProPaywall({ onClose, onPurchaseCompleted }: ProPaywallProps) {
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const {
     annualPackage,
     monthlyPackage,
@@ -184,14 +185,14 @@ export function ProPaywall({ onClose, onPurchaseCompleted }: ProPaywallProps) {
   const storeAccount = Platform.OS === 'ios' ? 'App Store account' : 'Google Play account';
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.topBar}>
+    <SafeAreaView style={styles.safeArea} edges={['left', 'right', 'bottom']}>
+      <View style={[styles.topBar, { paddingTop: Math.max(insets.top, SPACING.xl) }]}>
         <View style={styles.topBarSpacer} />
         <Text style={styles.topBarTitle}>Paly Pro</Text>
         <TouchableOpacity
           accessibilityRole="button"
           accessibilityLabel="Close subscription options"
-          hitSlop={8}
+          hitSlop={12}
           onPress={() => void onClose()}
           style={styles.closeButton}
         >
@@ -323,17 +324,18 @@ const BRAND_BLUE = '#2050B0';
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#F7F8FC' },
   topBar: {
-    minHeight: 52,
+    minHeight: 76,
     paddingHorizontal: SPACING.lg,
+    paddingBottom: SPACING.sm,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  topBarSpacer: { width: 44, height: 44 },
+  topBarSpacer: { width: 48, height: 48 },
   topBarTitle: { fontSize: 17, lineHeight: 22, fontWeight: '600', color: '#17223B' },
   closeButton: {
-    width: 44,
-    height: 44,
+    width: 48,
+    height: 48,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: RADIUS.full,
