@@ -40,7 +40,7 @@ export default function NewNoteScreen() {
     if (profile?.id && classes.length === 0) {
       fetchClasses(profile.id);
     }
-  }, [profile?.id]);
+  }, [classes.length, fetchClasses, profile?.id]);
 
   const handlePickDocument = async () => {
     try {
@@ -164,6 +164,9 @@ export default function NewNoteScreen() {
                 {classes.map((classData) => (
                   <TouchableOpacity
                     key={classData.id}
+                    accessibilityRole="radio"
+                    accessibilityLabel={classData.name}
+                    accessibilityState={{ selected: selectedClassId === classData.id }}
                     onPress={() => setSelectedClassId(classData.id)}
                     style={[
                       styles.classChip,
@@ -237,12 +240,17 @@ export default function NewNoteScreen() {
                   <View style={styles.attachmentContent}>
                     <Ionicons name="document-outline" size={20} color={colors.accent} />
                     <Text
-                      style={[typography.bodyMedium, { color: colors.text, flex: 1 }]}
+                      style={[typography.bodyMedium, { color: colors.cardText, flex: 1 }]}
                       numberOfLines={1}
                     >
                       {attachment.name}
                     </Text>
-                    <TouchableOpacity onPress={() => handleRemoveAttachment(index)}>
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      accessibilityLabel={`Remove ${attachment.name}`}
+                      onPress={() => handleRemoveAttachment(index)}
+                      style={styles.removeAttachmentButton}
+                    >
                       <Ionicons name="close-circle" size={20} color={colors.error} />
                     </TouchableOpacity>
                   </View>
@@ -250,6 +258,8 @@ export default function NewNoteScreen() {
               ))}
 
               <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel="Add an attachment"
                 onPress={handlePickDocument}
                 style={[styles.addAttachment, { borderColor: colors.accent }]}
               >
@@ -298,6 +308,8 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
   },
   classChip: {
+    minHeight: LAYOUT.minTouchTarget,
+    justifyContent: 'center',
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.md,
     borderRadius: RADIUS.full,
@@ -330,6 +342,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.md,
+  },
+  removeAttachmentButton: {
+    minWidth: LAYOUT.minTouchTarget,
+    minHeight: LAYOUT.minTouchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   addAttachment: {
     flexDirection: 'row',

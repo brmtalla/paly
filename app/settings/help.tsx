@@ -67,7 +67,11 @@ export default function HelpScreen() {
           >
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[typography.titleLarge, { color: colors.text }]}>Help & FAQ</Text>
+          <Text
+            style={[typography.titleLarge, { color: colors.text, flex: 1, textAlign: 'center' }]}
+          >
+            Help & FAQ
+          </Text>
           <View style={styles.headerSpacer} />
         </Animated.View>
 

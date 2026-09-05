@@ -154,6 +154,8 @@ export default function ScheduleScreen() {
           {/* Add class button */}
           <Animated.View entering={FadeInUp.delay(500).duration(400)}>
             <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Add another class"
               onPress={addNewClass}
               style={[styles.addButton, { borderColor: colors.white }]}
             >
@@ -209,7 +211,12 @@ function ClassForm({
           containerStyle={{ flex: 1, marginBottom: 0 }}
         />
         {showRemove && (
-          <TouchableOpacity onPress={onRemove} style={styles.removeButton}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={`Remove ${classData.name || 'class'}`}
+            onPress={onRemove}
+            style={styles.removeButton}
+          >
             <Ionicons name="trash-outline" size={20} color={colors.error} />
           </TouchableOpacity>
         )}
@@ -219,7 +226,7 @@ function ClassForm({
       <Text
         style={[
           typography.labelSmall,
-          { color: colors.textMuted, marginTop: SPACING.lg, marginBottom: SPACING.sm },
+          { color: colors.cardTextMuted, marginTop: SPACING.lg, marginBottom: SPACING.sm },
         ]}
       >
         CLASS DAYS
@@ -228,13 +235,16 @@ function ClassForm({
         {DAYS.map((day, index) => (
           <TouchableOpacity
             key={day}
+            accessibilityRole="checkbox"
+            accessibilityLabel={day}
+            accessibilityState={{ checked: classData.days.includes(index) }}
             onPress={() => onToggleDay(index)}
             style={[
               styles.dayButton,
               {
                 backgroundColor: classData.days.includes(index)
                   ? colors.accent
-                  : colors.backgroundTertiary,
+                  : colors.cardSecondary,
               },
             ]}
           >
@@ -242,7 +252,7 @@ function ClassForm({
               style={[
                 typography.labelMedium,
                 {
-                  color: classData.days.includes(index) ? '#FFFFFF' : colors.textSecondary,
+                  color: classData.days.includes(index) ? '#FFFFFF' : colors.cardTextSecondary,
                 },
               ]}
             >
@@ -256,7 +266,10 @@ function ClassForm({
       <View style={styles.timeContainer}>
         <View style={styles.timeInput}>
           <Text
-            style={[typography.labelSmall, { color: colors.textMuted, marginBottom: SPACING.sm }]}
+            style={[
+              typography.labelSmall,
+              { color: colors.cardTextMuted, marginBottom: SPACING.sm },
+            ]}
           >
             START TIME
           </Text>
@@ -269,7 +282,10 @@ function ClassForm({
         </View>
         <View style={styles.timeInput}>
           <Text
-            style={[typography.labelSmall, { color: colors.textMuted, marginBottom: SPACING.sm }]}
+            style={[
+              typography.labelSmall,
+              { color: colors.cardTextMuted, marginBottom: SPACING.sm },
+            ]}
           >
             END TIME
           </Text>

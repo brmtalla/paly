@@ -75,7 +75,11 @@ export default function ChunkViewerScreen() {
             >
               <Ionicons name="arrow-back" size={24} color={colors.text} />
             </TouchableOpacity>
-            <Text style={[typography.titleLarge, { color: colors.text }]}>Study Chunk</Text>
+            <Text
+              style={[typography.titleLarge, { color: colors.text, flex: 1, textAlign: 'center' }]}
+            >
+              Study Chunk
+            </Text>
             <View style={{ width: LAYOUT.minTouchTarget }} />
           </View>
           <View style={styles.emptyContainer}>
@@ -120,7 +124,14 @@ export default function ChunkViewerScreen() {
               color={colors.text}
               style={{ marginRight: 6 }}
             />
-            <Text style={[typography.titleMedium, { color: colors.text }]}>{typeLabel}</Text>
+            <Text
+              style={[
+                typography.titleMedium,
+                { color: colors.text, flexShrink: 1, textAlign: 'center' },
+              ]}
+            >
+              {typeLabel}
+            </Text>
           </View>
           <View style={{ width: LAYOUT.minTouchTarget }}>
             {reachedBottom && (

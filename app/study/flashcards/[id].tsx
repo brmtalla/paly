@@ -1,5 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  useWindowDimensions,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -32,11 +39,11 @@ const STORAGE_KEY_PREFIX = 'flipped_cards_';
 export default function FlashcardsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors, colorScheme } = useTheme();
-  const { width, height } = useWindowDimensions();
+  const { width, height, fontScale } = useWindowDimensions();
   const { synthesizedContent, awardPoints } = useStudyStore();
   const { isPro } = useSubscriptionStore();
   const cardWidth = Math.min(width - SPACING.xl * 2, 560);
-  const cardHeight = Math.min(cardWidth * 1.2, height * 0.56);
+  const cardHeight = Math.min(cardWidth * 1.2, height * (fontScale > 1.3 ? 0.46 : 0.56));
 
   const content = synthesizedContent.find((c) => c.id === id);
   const allFlashcards = (content?.flashcards || []) as {
@@ -163,7 +170,11 @@ export default function FlashcardsScreen() {
             >
               <Ionicons name="close" size={24} color={colors.text} />
             </TouchableOpacity>
-            <Text style={[typography.titleMedium, { color: colors.text }]}>Flashcards</Text>
+            <Text
+              style={[typography.titleMedium, { color: colors.text, flex: 1, textAlign: 'center' }]}
+            >
+              Flashcards
+            </Text>
             <View style={{ width: LAYOUT.minTouchTarget }} />
           </View>
 
@@ -208,7 +219,11 @@ export default function FlashcardsScreen() {
                   View Pro Plans
                 </Button>
 
-                <TouchableOpacity onPress={() => router.back()} style={styles.notNow}>
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  onPress={() => router.back()}
+                  style={styles.notNow}
+                >
                   <Text style={[typography.labelLarge, { color: colors.white }]}>Not now</Text>
                 </TouchableOpacity>
               </GlassCard>
@@ -274,7 +289,7 @@ export default function FlashcardsScreen() {
   const currentCard = visibleCards[currentIndex];
   const globalIdx = allFlashcards.indexOf(currentCard);
   const isCurrentFlipped = flippedCards.has(globalIdx);
-  const isLocked = showAll && currentCard.day && currentCard.day > currentStudyDay;
+  const isLocked = Boolean(showAll && currentCard.day && currentCard.day > currentStudyDay);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -291,7 +306,9 @@ export default function FlashcardsScreen() {
               <Ionicons name="close" size={24} color={colors.text} />
             </TouchableOpacity>
 
-            <Text style={[typography.titleMedium, { color: colors.text }]}>
+            <Text
+              style={[typography.titleMedium, { color: colors.text, flex: 1, textAlign: 'center' }]}
+            >
               {currentIndex + 1} / {visibleCards.length}
             </Text>
 
@@ -323,7 +340,12 @@ export default function FlashcardsScreen() {
                 {lockedCount > 0 && !showAll ? ` · ${lockedCount} locked` : ''}
               </Text>
             </View>
-            <TouchableOpacity onPress={toggleShowAll} style={styles.viewAllButton}>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityState={{ selected: showAll }}
+              onPress={toggleShowAll}
+              style={styles.viewAllButton}
+            >
               <Ionicons
                 name={showAll ? 'lock-open-outline' : 'grid-outline'}
                 size={14}
@@ -353,6 +375,15 @@ export default function FlashcardsScreen() {
           {/* Flashcard */}
           <View style={styles.cardContainer}>
             <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel={
+                isLocked
+                  ? `Flashcard ${currentIndex + 1} is locked. Question: ${currentCard.front}`
+                  : `${isFlipped ? 'Answer' : 'Question'}: ${
+                      isFlipped ? currentCard.back : currentCard.front
+                    }. Double tap to ${isFlipped ? 'show the question' : 'reveal the answer'}.`
+              }
+              accessibilityState={{ disabled: isLocked, expanded: isFlipped }}
               activeOpacity={0.9}
               onPress={isLocked ? undefined : handleFlip}
               style={[styles.cardWrapper, { width: cardWidth, height: cardHeight }]}
@@ -370,28 +401,34 @@ export default function FlashcardsScreen() {
                     },
                   ]}
                 >
-                  <Ionicons name="lock-closed" size={32} color={colors.cardTextMuted} />
-                  <Text
-                    style={[
-                      typography.labelMedium,
-                      { color: colors.cardTextMuted, marginTop: SPACING.md },
-                    ]}
+                  <ScrollView
+                    style={styles.cardScroll}
+                    contentContainerStyle={styles.cardScrollContent}
+                    showsVerticalScrollIndicator
                   >
-                    Unlocks Day {currentCard.day}
-                  </Text>
-                  <Text
-                    style={[
-                      typography.bodySmall,
-                      {
-                        color: colors.cardTextMuted,
-                        textAlign: 'center',
-                        marginTop: SPACING.sm,
-                        paddingHorizontal: SPACING.lg,
-                      },
-                    ]}
-                  >
-                    {currentCard.front}
-                  </Text>
+                    <Ionicons name="lock-closed" size={32} color={colors.cardTextMuted} />
+                    <Text
+                      style={[
+                        typography.labelMedium,
+                        { color: colors.cardTextMuted, marginTop: SPACING.md },
+                      ]}
+                    >
+                      Unlocks Day {currentCard.day}
+                    </Text>
+                    <Text
+                      style={[
+                        typography.bodySmall,
+                        {
+                          color: colors.cardTextMuted,
+                          textAlign: 'center',
+                          marginTop: SPACING.sm,
+                          paddingHorizontal: SPACING.lg,
+                        },
+                      ]}
+                    >
+                      {currentCard.front}
+                    </Text>
+                  </ScrollView>
                 </Animated.View>
               ) : (
                 <>
@@ -403,33 +440,39 @@ export default function FlashcardsScreen() {
                       frontAnimatedStyle,
                     ]}
                   >
-                    {isCurrentFlipped && (
-                      <View style={[styles.completedDot, { backgroundColor: '#22C55E' }]} />
-                    )}
-                    <Text
-                      style={[
-                        typography.labelSmall,
-                        { color: colors.cardTextMuted, marginBottom: SPACING.md },
-                      ]}
+                    <ScrollView
+                      style={styles.cardScroll}
+                      contentContainerStyle={styles.cardScrollContent}
+                      showsVerticalScrollIndicator
                     >
-                      QUESTION
-                    </Text>
-                    <Text
-                      style={[
-                        typography.headlineSmall,
-                        { color: colors.cardText, textAlign: 'center' },
-                      ]}
-                    >
-                      {currentCard.front}
-                    </Text>
-                    <Text
-                      style={[
-                        typography.bodySmall,
-                        { color: colors.cardTextMuted, marginTop: SPACING.xl },
-                      ]}
-                    >
-                      Tap to reveal answer
-                    </Text>
+                      {isCurrentFlipped && (
+                        <View style={[styles.completedDot, { backgroundColor: '#22C55E' }]} />
+                      )}
+                      <Text
+                        style={[
+                          typography.labelSmall,
+                          { color: colors.cardTextMuted, marginBottom: SPACING.md },
+                        ]}
+                      >
+                        QUESTION
+                      </Text>
+                      <Text
+                        style={[
+                          typography.headlineSmall,
+                          { color: colors.cardText, textAlign: 'center' },
+                        ]}
+                      >
+                        {currentCard.front}
+                      </Text>
+                      <Text
+                        style={[
+                          typography.bodySmall,
+                          { color: colors.cardTextMuted, marginTop: SPACING.xl },
+                        ]}
+                      >
+                        Tap to reveal answer
+                      </Text>
+                    </ScrollView>
                   </Animated.View>
 
                   {/* Back */}
@@ -441,22 +484,28 @@ export default function FlashcardsScreen() {
                       backAnimatedStyle,
                     ]}
                   >
-                    <Text
-                      style={[
-                        typography.labelSmall,
-                        { color: colors.textSecondary, marginBottom: SPACING.md },
-                      ]}
+                    <ScrollView
+                      style={styles.cardScroll}
+                      contentContainerStyle={styles.cardScrollContent}
+                      showsVerticalScrollIndicator
                     >
-                      ANSWER
-                    </Text>
-                    <Text
-                      style={[
-                        typography.headlineSmall,
-                        { color: colors.text, textAlign: 'center' },
-                      ]}
-                    >
-                      {currentCard.back}
-                    </Text>
+                      <Text
+                        style={[
+                          typography.labelSmall,
+                          { color: colors.textSecondary, marginBottom: SPACING.md },
+                        ]}
+                      >
+                        ANSWER
+                      </Text>
+                      <Text
+                        style={[
+                          typography.headlineSmall,
+                          { color: colors.text, textAlign: 'center' },
+                        ]}
+                      >
+                        {currentCard.back}
+                      </Text>
+                    </ScrollView>
                   </Animated.View>
                 </>
               )}
@@ -466,6 +515,9 @@ export default function FlashcardsScreen() {
           {/* Navigation */}
           <View style={styles.navigation}>
             <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Previous flashcard"
+              accessibilityState={{ disabled: currentIndex === 0 }}
               onPress={handlePrevious}
               disabled={currentIndex === 0}
               style={[
@@ -481,6 +533,8 @@ export default function FlashcardsScreen() {
 
             {!isLocked && (
               <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel="Flip flashcard"
                 onPress={handleFlip}
                 style={[styles.flipButton, { backgroundColor: colors.card, ...SHADOWS.md }]}
               >
@@ -489,6 +543,9 @@ export default function FlashcardsScreen() {
             )}
 
             <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Next flashcard"
+              accessibilityState={{ disabled: currentIndex === visibleCards.length - 1 }}
               onPress={handleNext}
               disabled={currentIndex === visibleCards.length - 1}
               style={[
@@ -598,6 +655,13 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     borderRadius: RADIUS['2xl'],
+    overflow: 'hidden',
+  },
+  cardScroll: {
+    width: '100%',
+  },
+  cardScrollContent: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: SPACING.xl,

@@ -40,7 +40,7 @@ export default function TodayScreen() {
       fetchTodaysPrompts(profile.id);
       fetchSynthesizedContent(profile.id);
     }
-  }, [profile?.id]);
+  }, [fetchClasses, fetchSynthesizedContent, fetchTodaysPrompts, profile?.id]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -91,6 +91,8 @@ export default function TodayScreen() {
             </View>
 
             <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Open profile"
               style={styles.avatarButton}
               onPress={() => router.push('/(tabs)/profile')}
             >
@@ -154,6 +156,8 @@ export default function TodayScreen() {
                   </View>
                 </View>
                 <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityLabel="Take the first overdue quiz"
                   style={styles.overdueButton}
                   onPress={() => {
                     const first = overdueQuizzes[0];
@@ -183,7 +187,7 @@ export default function TodayScreen() {
                 onPress={() => router.push(`/class/${upcomingClass.classData.id}` as any)}
               >
                 <View style={styles.classCardContent}>
-                  <View>
+                  <View style={styles.classSummary}>
                     <Text style={[typography.titleLarge, { color: colors.cardText }]}>
                       {upcomingClass.classData.name}
                     </Text>
@@ -198,6 +202,8 @@ export default function TodayScreen() {
                     </Text>
                   </View>
                   <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityLabel={`Take notes for ${upcomingClass.classData.name}`}
                     style={[styles.takeNotesButton, { backgroundColor: colors.accent }]}
                     onPress={() => router.push(`/notes/new?classId=${upcomingClass.classData.id}`)}
                   >
@@ -218,8 +224,12 @@ export default function TodayScreen() {
           >
             <View style={styles.sectionHeader}>
               <Text style={[typography.headlineSmall, { color: colors.text }]}>Study Nuggets</Text>
-              <TouchableOpacity onPress={() => router.push('/(tabs)/study')}>
-                <Text style={[typography.labelMedium, { color: colors.white }]}>See All</Text>
+              <TouchableOpacity
+                accessibilityRole="link"
+                onPress={() => router.push('/(tabs)/study')}
+                style={styles.seeAllButton}
+              >
+                <Text style={[typography.labelMedium, { color: colors.text }]}>See All</Text>
               </TouchableOpacity>
             </View>
 
@@ -386,6 +396,11 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
   },
+  seeAllButton: {
+    minHeight: LAYOUT.minTouchTarget,
+    justifyContent: 'center',
+    paddingHorizontal: SPACING.sm,
+  },
   overviewCard: {
     marginBottom: SPACING.xl,
   },
@@ -411,8 +426,15 @@ const styles = StyleSheet.create({
   },
   classCardContent: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: SPACING.md,
+  },
+  classSummary: {
+    flexGrow: 1,
+    flexShrink: 1,
+    minWidth: 150,
   },
   takeNotesButton: {
     flexDirection: 'row',
@@ -479,6 +501,8 @@ const styles = StyleSheet.create({
     marginTop: SPACING.md,
     backgroundColor: '#FF3B30',
     paddingVertical: SPACING.sm,
+    minHeight: LAYOUT.minTouchTarget,
+    justifyContent: 'center',
     borderRadius: RADIUS.md,
     alignItems: 'center',
   },

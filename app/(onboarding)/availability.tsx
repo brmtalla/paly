@@ -111,19 +111,21 @@ export default function AvailabilityScreen() {
                 key={block.id}
                 entering={FadeInUp.delay(index * 100 + 500).duration(400)}
               >
-                <TouchableOpacity onPress={() => toggleBlock(block.id)} activeOpacity={0.7}>
-                  <Card
-                    variant={block.isBlocked ? 'solid' : 'default'}
-                    padding="lg"
-                    style={[styles.blockCard, block.isBlocked && { opacity: 0.7 }]}
-                  >
+                <TouchableOpacity
+                  accessibilityRole="checkbox"
+                  accessibilityLabel={`${block.label}, ${block.start} to ${block.end}`}
+                  accessibilityState={{ checked: !block.isBlocked }}
+                  onPress={() => toggleBlock(block.id)}
+                  activeOpacity={0.7}
+                >
+                  <Card variant="default" padding="lg" style={styles.blockCard}>
                     <View style={styles.blockContent}>
-                      <View>
+                      <View style={styles.blockText}>
                         <Text
                           style={[
                             typography.titleMedium,
                             {
-                              color: block.isBlocked ? colors.textTertiary : colors.cardText,
+                              color: block.isBlocked ? colors.cardTextTertiary : colors.cardText,
                             },
                           ]}
                         >
@@ -133,7 +135,9 @@ export default function AvailabilityScreen() {
                           style={[
                             typography.bodySmall,
                             {
-                              color: block.isBlocked ? colors.textMuted : colors.cardTextSecondary,
+                              color: block.isBlocked
+                                ? colors.cardTextMuted
+                                : colors.cardTextSecondary,
                               marginTop: 2,
                             },
                           ]}
@@ -146,16 +150,14 @@ export default function AvailabilityScreen() {
                         style={[
                           styles.toggleIndicator,
                           {
-                            backgroundColor: block.isBlocked
-                              ? colors.glassBackground
-                              : colors.background,
+                            backgroundColor: block.isBlocked ? colors.cardTertiary : colors.accent,
                           },
                         ]}
                       >
                         <Ionicons
                           name={block.isBlocked ? 'close' : 'checkmark'}
                           size={18}
-                          color={block.isBlocked ? colors.textMuted : colors.text}
+                          color={block.isBlocked ? colors.cardTextMuted : '#FFFFFF'}
                         />
                       </View>
                     </View>
@@ -249,6 +251,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  blockText: {
+    flex: 1,
+    marginRight: SPACING.md,
   },
   toggleIndicator: {
     width: 32,

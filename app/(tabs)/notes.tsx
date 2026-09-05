@@ -27,7 +27,7 @@ export default function NotesScreen() {
       fetchNotes(profile.id);
       fetchClasses(profile.id);
     }
-  }, [profile?.id]);
+  }, [fetchClasses, fetchNotes, profile?.id]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -69,6 +69,8 @@ export default function NotesScreen() {
         >
           <Text style={[typography.displaySmall, { color: colors.text }]}>Notes</Text>
           <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Create note"
             style={[styles.addButton, { backgroundColor: colors.white, ...SHADOWS.md }]}
             onPress={() => router.push('/notes/new')}
           >
@@ -84,6 +86,9 @@ export default function NotesScreen() {
             contentContainerStyle={styles.filterContainer}
           >
             <TouchableOpacity
+              accessibilityRole="radio"
+              accessibilityLabel="All classes"
+              accessibilityState={{ selected: !selectedClassId }}
               onPress={() => setSelectedClassId(null)}
               style={[
                 styles.filterChip,
@@ -104,6 +109,9 @@ export default function NotesScreen() {
             {classes.map((classData) => (
               <TouchableOpacity
                 key={classData.id}
+                accessibilityRole="radio"
+                accessibilityLabel={classData.name}
+                accessibilityState={{ selected: selectedClassId === classData.id }}
                 onPress={() => setSelectedClassId(classData.id)}
                 style={[
                   styles.filterChip,
@@ -222,8 +230,8 @@ export default function NotesScreen() {
             <Animated.View entering={FadeInUp.delay(300).duration(600).springify()}>
               <Card variant="default" padding="xl">
                 <View style={styles.emptyState}>
-                  <View style={[styles.emptyIcon, { backgroundColor: colors.whiteAlpha }]}>
-                    <Ionicons name="document-text-outline" size={40} color={colors.white} />
+                  <View style={[styles.emptyIcon, { backgroundColor: colors.cardTertiary }]}>
+                    <Ionicons name="document-text-outline" size={40} color={colors.onCard} />
                   </View>
                   <Text
                     style={[

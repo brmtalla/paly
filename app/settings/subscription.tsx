@@ -79,7 +79,7 @@ export default function SubscriptionScreen() {
 
   useEffect(() => {
     refreshCustomerInfo();
-  }, []);
+  }, [refreshCustomerInfo]);
 
   const handleSubscribe = () => {
     router.push('/paywall');
@@ -130,7 +130,11 @@ export default function SubscriptionScreen() {
           >
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[typography.titleLarge, { color: colors.text }]}>Subscription</Text>
+          <Text
+            style={[typography.titleLarge, { color: colors.text, flex: 1, textAlign: 'center' }]}
+          >
+            Subscription
+          </Text>
           <View style={{ width: LAYOUT.minTouchTarget }} />
         </Animated.View>
 
@@ -146,20 +150,20 @@ export default function SubscriptionScreen() {
                 <View
                   style={[
                     styles.planIcon,
-                    { backgroundColor: isPro ? '#6366F1' : colors.backgroundSecondary },
+                    { backgroundColor: isPro ? '#6366F1' : colors.cardTertiary },
                   ]}
                 >
                   <Ionicons
                     name={isPro ? 'diamond' : 'gift'}
                     size={28}
-                    color={isPro ? '#FFFFFF' : colors.text}
+                    color={isPro ? '#FFFFFF' : colors.accent}
                   />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={[typography.titleLarge, { color: colors.text }]}>
+                  <Text style={[typography.titleLarge, { color: colors.cardText }]}>
                     {trial.isTrialing ? 'Paly Pro — Free Trial' : isPro ? 'Paly Pro' : 'Free Plan'}
                   </Text>
-                  <Text style={[typography.bodySmall, { color: colors.textSecondary }]}>
+                  <Text style={[typography.bodySmall, { color: colors.cardTextSecondary }]}>
                     {trial.isTrialing
                       ? `${trialLabel(trial)}${renewsAt ? ` · Becomes paid ${renewsAt}` : ''}`
                       : isPro
@@ -178,7 +182,8 @@ export default function SubscriptionScreen() {
                   fullWidth
                   onPress={handleManage}
                   loading={managingLoading}
-                  style={{ marginTop: SPACING.lg }}
+                  style={{ marginTop: SPACING.lg, borderColor: colors.cardTextMuted }}
+                  textStyle={{ color: colors.cardText }}
                 >
                   Manage Subscription
                 </Button>
@@ -201,7 +206,7 @@ export default function SubscriptionScreen() {
                       style={[
                         typography.bodySmall,
                         {
-                          color: colors.textSecondary,
+                          color: colors.cardTextSecondary,
                           textAlign: 'center',
                           marginTop: SPACING.md,
                         },
@@ -225,14 +230,16 @@ export default function SubscriptionScreen() {
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.md }}>
                   <Ionicons name="star" size={24} color="#F59E0B" />
                   <View style={{ flex: 1 }}>
-                    <Text style={[typography.titleSmall, { color: colors.text }]}>Paly Points</Text>
-                    <Text style={[typography.bodySmall, { color: colors.textSecondary }]}>
+                    <Text style={[typography.titleSmall, { color: colors.cardText }]}>
+                      Paly Points
+                    </Text>
+                    <Text style={[typography.bodySmall, { color: colors.cardTextSecondary }]}>
                       {profile?.paly_points || 0} / {PALY_POINTS_FREE_MONTH_THRESHOLD} pts toward a
                       free month
                     </Text>
                   </View>
                 </View>
-                <View style={[styles.progressBar, { backgroundColor: colors.backgroundSecondary }]}>
+                <View style={[styles.progressBar, { backgroundColor: colors.cardTertiary }]}>
                   <View
                     style={[
                       styles.progressFill,
@@ -298,9 +305,12 @@ export default function SubscriptionScreen() {
               </Text>
 
               <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel="Restore purchases"
+                accessibilityState={{ disabled: isRestoring, busy: isRestoring }}
                 onPress={handleRestore}
                 disabled={isRestoring}
-                style={{ alignItems: 'center' }}
+                style={styles.restoreButton}
               >
                 {isRestoring ? (
                   <ActivityIndicator size="small" color={colors.textMuted} />
@@ -382,4 +392,9 @@ const styles = StyleSheet.create({
   progressFill: { height: '100%', borderRadius: 3 },
   ctaSection: { marginTop: SPACING['2xl'], gap: SPACING.md },
   subscribeButton: { borderRadius: RADIUS.xl, paddingVertical: SPACING.lg, alignItems: 'center' },
+  restoreButton: {
+    minHeight: LAYOUT.minTouchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });

@@ -148,6 +148,7 @@ export default function SignInScreen() {
               />
 
               <TouchableOpacity
+                accessibilityRole="link"
                 onPress={() => router.push('/(auth)/forgot-password')}
                 style={styles.forgotLink}
               >
@@ -171,7 +172,11 @@ export default function SignInScreen() {
                 <Text style={[typography.bodyMedium, { color: colors.textSecondary }]}>
                   Don&apos;t have an account?{' '}
                 </Text>
-                <TouchableOpacity onPress={() => router.push('/(auth)/sign-up')}>
+                <TouchableOpacity
+                  accessibilityRole="link"
+                  onPress={() => router.push('/(auth)/sign-up')}
+                  style={styles.inlineLink}
+                >
                   <Text style={[typography.bodyMedium, { color: colors.text, fontWeight: '600' }]}>
                     Sign Up
                   </Text>
@@ -216,11 +221,18 @@ const styles = StyleSheet.create({
   forgotLink: {
     alignSelf: 'flex-end',
     marginTop: SPACING.sm,
+    minHeight: LAYOUT.minTouchTarget,
+    justifyContent: 'center',
   },
   signUpPrompt: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'center',
-    alignItems: 'baseline',
+    alignItems: 'center',
     marginTop: SPACING.xl,
+  },
+  inlineLink: {
+    minHeight: LAYOUT.minTouchTarget,
+    justifyContent: 'center',
   },
 });

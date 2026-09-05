@@ -242,7 +242,11 @@ export default function SignUpScreen() {
                 <Text style={[typography.bodyMedium, { color: colors.textSecondary }]}>
                   Already have an account?{' '}
                 </Text>
-                <TouchableOpacity onPress={() => router.push('/(auth)/sign-in')}>
+                <TouchableOpacity
+                  accessibilityRole="link"
+                  onPress={() => router.push('/(auth)/sign-in')}
+                  style={styles.inlineLink}
+                >
                   <Text style={[typography.bodyMedium, { color: colors.text, fontWeight: '600' }]}>
                     Sign In
                   </Text>
@@ -286,9 +290,14 @@ const styles = StyleSheet.create({
   },
   signInPrompt: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'center',
-    alignItems: 'baseline',
+    alignItems: 'center',
     marginTop: SPACING.xl,
+  },
+  inlineLink: {
+    minHeight: LAYOUT.minTouchTarget,
+    justifyContent: 'center',
   },
   successContainer: {
     flex: 1,

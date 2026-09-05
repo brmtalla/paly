@@ -51,7 +51,7 @@ export default function ClassStudyScreen() {
       fetchSynthesizedContent(profile.id, id);
       fetchClassPrompts(profile.id, id).then(setClassPrompts);
     }
-  }, [profile?.id, id]);
+  }, [fetchClassPrompts, fetchSynthesizedContent, id, profile?.id]);
 
   const todaysChunks = classPrompts.filter(
     (p) =>
@@ -161,7 +161,9 @@ export default function ClassStudyScreen() {
               <Ionicons name="arrow-back" size={24} color={colors.text} />
             </TouchableOpacity>
 
-            <Text style={[typography.titleLarge, { color: colors.text }]}>
+            <Text
+              style={[typography.titleLarge, { color: colors.text, flex: 1, textAlign: 'center' }]}
+            >
               Study {classData?.name}
             </Text>
 
@@ -189,7 +191,7 @@ export default function ClassStudyScreen() {
               {(profile?.streak_count ?? 0) > 0 && (
                 <View style={{ alignItems: 'center' }}>
                   <Ionicons name="checkbox-outline" size={18} color="#34C759" />
-                  <Text style={[typography.labelSmall, { color: '#34C759', fontSize: 9 }]}>
+                  <Text style={[typography.labelSmall, { color: '#34C759' }]}>
                     {profile?.streak_count} quiz
                   </Text>
                 </View>
@@ -226,7 +228,7 @@ export default function ClassStudyScreen() {
                 <Text style={[typography.titleMedium, { color: colors.text }]}>Daily Chunks</Text>
                 {unreadChunks.length > 0 && (
                   <View style={[styles.unreadBadge, { backgroundColor: colors.error }]}>
-                    <Text style={[typography.labelSmall, { color: '#fff', fontSize: 10 }]}>
+                    <Text style={[typography.labelSmall, { color: '#fff' }]}>
                       {unreadChunks.length}
                     </Text>
                   </View>
@@ -237,6 +239,8 @@ export default function ClassStudyScreen() {
                 return (
                   <TouchableOpacity
                     key={prompt.id}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Open ${prompt.prompt_type === 'takeaway' ? 'takeaway' : 'recall'} study chunk${isRead ? ', read' : ', unread'}`}
                     onPress={() => router.push(`/study/chunk/${prompt.id}`)}
                   >
                     <Card style={[styles.studyCard, { position: 'relative' as const }]}>
@@ -325,6 +329,8 @@ export default function ClassStudyScreen() {
                   return (
                     <TouchableOpacity
                       key={`quiz-${content.id}`}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Open ${content.session_date} quiz${isOverdue ? ', overdue' : isDueSoon ? ', due today' : ''}`}
                       onPress={() => router.push(`/study/quiz/${content.id}`)}
                     >
                       <Card
@@ -406,6 +412,11 @@ export default function ClassStudyScreen() {
                 style={{ marginTop: SPACING.xl }}
               >
                 <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    requestingChunk ? 'Requesting next study chunk' : 'Request next study chunk'
+                  }
+                  accessibilityState={{ disabled: requestingChunk, busy: requestingChunk }}
                   onPress={() => handleRequestChunk(false)}
                   disabled={requestingChunk}
                   style={[
@@ -463,6 +474,12 @@ export default function ClassStudyScreen() {
                       </Text>
                     </View>
                     <TouchableOpacity
+                      accessibilityRole="button"
+                      accessibilityLabel={`Text me the ${content.session_date} study session`}
+                      accessibilityState={{
+                        disabled: sendingId === content.id,
+                        busy: sendingId === content.id,
+                      }}
                       onPress={() => handleSendNow(content.id)}
                       disabled={sendingId === content.id}
                       style={[styles.textMeButton, { backgroundColor: colors.accent }]}
@@ -497,6 +514,8 @@ export default function ClassStudyScreen() {
                 {classContent.map((content) => (
                   <TouchableOpacity
                     key={`flash-${content.id}`}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Open ${content.session_date} flashcards`}
                     onPress={() => router.push(`/study/flashcards/${content.id}`)}
                   >
                     <Card style={styles.studyCard}>
@@ -583,6 +602,7 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.sm,
     borderRadius: RADIUS.md,
     minWidth: 80,
+    minHeight: LAYOUT.minTouchTarget,
     justifyContent: 'center',
   },
   redDot: {
@@ -606,6 +626,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: SPACING.md,
+    minHeight: LAYOUT.minTouchTarget,
     borderRadius: RADIUS.lg,
   },
 });

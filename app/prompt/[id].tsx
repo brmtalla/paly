@@ -26,7 +26,7 @@ export default function PromptDetailScreen() {
     if (id && prompt && !prompt.read_at) {
       markPromptAsRead(id);
     }
-  }, [id, prompt?.read_at]);
+  }, [id, markPromptAsRead, prompt]);
 
   const getPromptIcon = (type: string) => {
     switch (type) {

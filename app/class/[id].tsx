@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -51,7 +51,7 @@ export default function ClassDetailScreen() {
   const classData = classes.find((c) => c.id === id);
   const classNotes = notes.filter((n) => n.class_id === id);
 
-  const fetchUploads = async () => {
+  const fetchUploads = useCallback(async () => {
     if (!profile?.id || !id) return;
     const { data } = await supabase
       .from('uploads')
@@ -60,7 +60,7 @@ export default function ClassDetailScreen() {
       .eq('user_id', profile.id)
       .order('created_at', { ascending: false });
     setClassUploadsData(data || []);
-  };
+  }, [id, profile?.id]);
 
   useEffect(() => {
     if (profile?.id && id) {
@@ -68,7 +68,7 @@ export default function ClassDetailScreen() {
       fetchSynthesizedContent(profile.id, id);
       fetchUploads();
     }
-  }, [profile?.id, id]);
+  }, [fetchNotes, fetchSynthesizedContent, fetchUploads, id, profile?.id]);
 
   const handleUploadSlides = async () => {
     try {
@@ -280,12 +280,16 @@ export default function ClassDetailScreen() {
 
             <View style={styles.headerActions}>
               <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel="Edit class"
                 onPress={() => router.push(`/class/${id}/edit` as any)}
                 style={[styles.actionButton, { backgroundColor: colors.glassBackground }]}
               >
                 <Ionicons name="pencil-outline" size={20} color={colors.text} />
               </TouchableOpacity>
               <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel="Delete class"
                 onPress={handleDelete}
                 style={[styles.actionButton, { backgroundColor: colors.error + '20' }]}
               >
@@ -383,11 +387,12 @@ export default function ClassDetailScreen() {
 
                 {classData.instructor_email && (
                   <Button
-                    variant="secondary"
+                    variant="outline"
                     size="sm"
-                    icon={<Ionicons name="mail-outline" size={16} color={colors.text} />}
+                    icon={<Ionicons name="mail-outline" size={16} color={colors.cardText} />}
                     onPress={handleEmailInstructor}
-                    style={{ marginTop: SPACING.md }}
+                    style={{ marginTop: SPACING.md, borderColor: colors.cardTextMuted }}
+                    textStyle={{ color: colors.cardText }}
                   >
                     Email Instructor
                   </Button>
@@ -402,6 +407,8 @@ export default function ClassDetailScreen() {
             style={styles.actionsGrid}
           >
             <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Take notes for this class"
               style={[styles.quickAction, { backgroundColor: colors.card, ...SHADOWS.md }]}
               onPress={() => router.push(`/notes/new?classId=${id}`)}
             >
@@ -412,6 +419,9 @@ export default function ClassDetailScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel={isUploading ? 'Uploading slides' : 'Upload slides'}
+              accessibilityState={{ disabled: isUploading, busy: isUploading }}
               style={[styles.quickAction, { backgroundColor: colors.card, ...SHADOWS.md }]}
               onPress={handleUploadSlides}
               disabled={isUploading}
@@ -429,6 +439,11 @@ export default function ClassDetailScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel={
+                requestingChunk ? 'Requesting next study chunk' : 'Request next study chunk'
+              }
+              accessibilityState={{ disabled: requestingChunk, busy: requestingChunk }}
               style={[styles.quickAction, { backgroundColor: colors.card, ...SHADOWS.md }]}
               onPress={() => handleRequestChunk(false)}
               disabled={requestingChunk}
@@ -446,6 +461,8 @@ export default function ClassDetailScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Open study materials for this class"
               style={[styles.quickAction, { backgroundColor: colors.card, ...SHADOWS.md }]}
               onPress={() => router.push(`/class/${id}/study`)}
             >
@@ -480,6 +497,8 @@ export default function ClassDetailScreen() {
                   </View>
                 </View>
                 <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityLabel="Take the overdue quiz"
                   style={[styles.takeQuizButton, { backgroundColor: colors.error }]}
                   onPress={() => router.push(`/class/${id}/study`)}
                 >
@@ -617,16 +636,15 @@ export default function ClassDetailScreen() {
                         </View>
                       ) : hasText ? (
                         <TouchableOpacity
+                          accessibilityRole="button"
+                          accessibilityLabel={`Synthesize ${upload.file_name}`}
+                          accessibilityState={{
+                            disabled: isSynthesizingThis,
+                            busy: isSynthesizingThis,
+                          }}
                           onPress={() => handleSynthesizeUpload(upload)}
                           disabled={isSynthesizingThis}
-                          style={{
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            backgroundColor: '#8B5CF6',
-                            paddingHorizontal: SPACING.sm,
-                            paddingVertical: 4,
-                            borderRadius: RADIUS.md,
-                          }}
+                          style={styles.synthesizeUploadButton}
                         >
                           {isSynthesizingThis ? (
                             <ActivityIndicator size="small" color="#fff" />
@@ -643,8 +661,11 @@ export default function ClassDetailScreen() {
                         </TouchableOpacity>
                       ) : null}
                       <TouchableOpacity
+                        accessibilityRole="button"
+                        accessibilityLabel={`Delete ${upload.file_name}`}
                         onPress={() => handleDeleteUpload(upload)}
                         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        style={styles.uploadDeleteButton}
                       >
                         <Ionicons name="trash-outline" size={18} color={colors.cardTextMuted} />
                       </TouchableOpacity>
@@ -686,7 +707,12 @@ export default function ClassDetailScreen() {
               </Card>
             ) : (
               classNotes.map((note, _index) => (
-                <TouchableOpacity key={note.id} onPress={() => router.push(`/notes/${note.id}`)}>
+                <TouchableOpacity
+                  key={note.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Open note from ${format(new Date(note.session_date), 'EEEE, MMMM d')}`}
+                  onPress={() => router.push(`/notes/${note.id}`)}
+                >
                   <Card style={styles.noteCard}>
                     <View style={styles.noteHeader}>
                       <Text style={[typography.titleSmall, { color: colors.cardText }]}>
@@ -764,6 +790,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: RADIUS.lg,
+  },
+  uploadDeleteButton: {
+    minWidth: LAYOUT.minTouchTarget,
+    minHeight: LAYOUT.minTouchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  synthesizeUploadButton: {
+    minHeight: LAYOUT.minTouchTarget,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#6D28D9',
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    borderRadius: RADIUS.md,
   },
   infoCard: {
     marginBottom: SPACING.md,

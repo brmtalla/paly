@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -34,11 +34,7 @@ export default function AvailabilityScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
 
-  useEffect(() => {
-    fetchAvailability();
-  }, []);
-
-  const fetchAvailability = async () => {
+  const fetchAvailability = useCallback(async () => {
     if (!profile?.id) return;
 
     try {
@@ -63,7 +59,11 @@ export default function AvailabilityScreen() {
     } catch (error) {
       console.error('Error fetching availability:', error);
     }
-  };
+  }, [profile?.id]);
+
+  useEffect(() => {
+    fetchAvailability();
+  }, [fetchAvailability]);
 
   const toggleBlock = (id: string) => {
     setBlocks(blocks.map((b) => (b.id === id ? { ...b, isBlocked: !b.isBlocked } : b)));
@@ -122,7 +122,11 @@ export default function AvailabilityScreen() {
           >
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[typography.titleLarge, { color: colors.text }]}>Availability</Text>
+          <Text
+            style={[typography.titleLarge, { color: colors.text, flex: 1, textAlign: 'center' }]}
+          >
+            Availability
+          </Text>
           <View style={{ width: LAYOUT.minTouchTarget }} />
         </Animated.View>
 
@@ -132,9 +136,9 @@ export default function AvailabilityScreen() {
         >
           {/* Info */}
           <Animated.View entering={FadeInUp.delay(200).duration(600).springify()}>
-            <View style={[styles.infoCard, { backgroundColor: colors.accentLight }]}>
+            <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
               <Ionicons name="time-outline" size={20} color={colors.accent} />
-              <Text style={[typography.bodyMedium, { color: colors.accent, flex: 1 }]}>
+              <Text style={[typography.bodyMedium, { color: colors.cardTextSecondary, flex: 1 }]}>
                 Block off times when you&apos;re too busy for study reminders
               </Text>
             </View>
@@ -156,18 +160,24 @@ export default function AvailabilityScreen() {
                 key={block.id}
                 entering={FadeInUp.delay(index * 100 + 400).duration(400)}
               >
-                <TouchableOpacity onPress={() => toggleBlock(block.id)} activeOpacity={0.7}>
+                <TouchableOpacity
+                  accessibilityRole="checkbox"
+                  accessibilityLabel={`${block.label}, ${block.start} to ${block.end}`}
+                  accessibilityState={{ checked: !block.isBlocked }}
+                  onPress={() => toggleBlock(block.id)}
+                  activeOpacity={0.7}
+                >
                   <Card
                     variant={block.isBlocked ? 'default' : 'accent'}
                     padding="lg"
-                    style={[styles.blockCard, block.isBlocked && { opacity: 0.6 }]}
+                    style={styles.blockCard}
                   >
                     <View style={styles.blockContent}>
-                      <View>
+                      <View style={styles.blockText}>
                         <Text
                           style={[
                             typography.titleMedium,
-                            { color: block.isBlocked ? colors.textTertiary : colors.text },
+                            { color: block.isBlocked ? colors.cardTextTertiary : colors.cardText },
                           ]}
                         >
                           {block.label}
@@ -175,7 +185,11 @@ export default function AvailabilityScreen() {
                         <Text
                           style={[
                             typography.bodySmall,
-                            { color: block.isBlocked ? colors.textMuted : colors.textSecondary },
+                            {
+                              color: block.isBlocked
+                                ? colors.cardTextMuted
+                                : colors.cardTextSecondary,
+                            },
                           ]}
                         >
                           {block.start} - {block.end}
@@ -186,16 +200,14 @@ export default function AvailabilityScreen() {
                         style={[
                           styles.statusBadge,
                           {
-                            backgroundColor: block.isBlocked
-                              ? colors.backgroundTertiary
-                              : colors.accent,
+                            backgroundColor: block.isBlocked ? colors.cardTertiary : colors.accent,
                           },
                         ]}
                       >
                         <Ionicons
                           name={block.isBlocked ? 'close' : 'checkmark'}
                           size={18}
-                          color={block.isBlocked ? colors.textMuted : '#FFFFFF'}
+                          color={block.isBlocked ? colors.cardTextMuted : '#FFFFFF'}
                         />
                       </View>
                     </View>
@@ -208,10 +220,10 @@ export default function AvailabilityScreen() {
           {/* Summary */}
           <Animated.View
             entering={FadeInUp.delay(700).duration(400)}
-            style={[styles.summary, { backgroundColor: colors.backgroundSecondary }]}
+            style={[styles.summary, { backgroundColor: colors.card }]}
           >
             <Ionicons name="notifications-outline" size={20} color={colors.accent} />
-            <Text style={[typography.bodyMedium, { color: colors.textSecondary, flex: 1 }]}>
+            <Text style={[typography.bodyMedium, { color: colors.cardTextSecondary, flex: 1 }]}>
               Study nuggets will be sent during{' '}
               <Text style={{ color: colors.accent, fontWeight: '600' }}>
                 {availableCount} time {availableCount === 1 ? 'window' : 'windows'}
@@ -278,6 +290,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  blockText: {
+    flex: 1,
+    marginRight: SPACING.md,
   },
   statusBadge: {
     width: 32,

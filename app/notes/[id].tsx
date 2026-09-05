@@ -138,10 +138,20 @@ export default function NoteDetailScreen() {
             </>
           ) : (
             <>
-              <TouchableOpacity onPress={() => setIsEditing(true)} style={styles.iconButton}>
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel="Edit note"
+                onPress={() => setIsEditing(true)}
+                style={styles.iconButton}
+              >
                 <Ionicons name="create-outline" size={22} color={colors.text} />
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleDelete} style={styles.iconButton}>
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel="Delete note"
+                onPress={handleDelete}
+                style={styles.iconButton}
+              >
                 <Ionicons name="trash-outline" size={22} color={colors.error} />
               </TouchableOpacity>
             </>
@@ -221,7 +231,7 @@ export default function NoteDetailScreen() {
                   <View style={styles.attachmentContent}>
                     <Ionicons name="document-outline" size={20} color={colors.accent} />
                     <Text
-                      style={[typography.bodyMedium, { color: colors.text, flex: 1 }]}
+                      style={[typography.bodyMedium, { color: colors.cardText, flex: 1 }]}
                       numberOfLines={1}
                     >
                       {upload.file_name}
@@ -244,11 +254,14 @@ export default function NoteDetailScreen() {
                     <Ionicons name="sparkles" size={24} color="#FFFFFF" />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={[typography.titleMedium, { color: colors.text }]}>
+                    <Text style={[typography.titleMedium, { color: colors.cardText }]}>
                       Ready to study?
                     </Text>
                     <Text
-                      style={[typography.bodySmall, { color: colors.textSecondary, marginTop: 4 }]}
+                      style={[
+                        typography.bodySmall,
+                        { color: colors.cardTextSecondary, marginTop: 4 },
+                      ]}
                     >
                       Generate flashcards, quizzes, and study nuggets from your notes
                     </Text>
@@ -260,7 +273,7 @@ export default function NoteDetailScreen() {
                   onPress={handleSynthesize}
                   loading={isSynthesizing}
                   style={{ marginTop: SPACING.lg }}
-                  icon={<Ionicons name="sparkles" size={18} color="#FFFFFF" />}
+                  icon={<Ionicons name="sparkles" size={18} color={colors.accent} />}
                 >
                   Synthesize Notes
                 </Button>

@@ -33,7 +33,7 @@ export default function ThemeScreen() {
       setSelectedColor(randomColor.value);
       setAccentColor(randomColor.value);
     }
-  }, []);
+  }, [profile?.theme_color, setAccentColor]);
 
   const handleColorSelect = (colorValue: string) => {
     setSelectedColor(colorValue);
@@ -211,6 +211,9 @@ function ColorOption({ color, isSelected, onSelect, delay }: ColorOptionProps) {
   return (
     <Animated.View entering={FadeInUp.delay(delay).duration(400)} style={animatedStyle}>
       <TouchableOpacity
+        accessibilityRole="radio"
+        accessibilityLabel={`${color.name} theme`}
+        accessibilityState={{ selected: isSelected }}
         onPress={onSelect}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}

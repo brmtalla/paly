@@ -42,7 +42,7 @@ export default function ClassesScreen() {
     if (profile?.id) {
       fetchClasses(profile.id);
     }
-  }, [profile?.id]);
+  }, [fetchClasses, profile?.id]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -101,6 +101,8 @@ export default function ClassesScreen() {
         >
           <Text style={[typography.displaySmall, { color: colors.text }]}>Classes</Text>
           <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Add class"
             style={[styles.addButton, { backgroundColor: colors.white, ...SHADOWS.md }]}
             onPress={handleAddClass}
           >
@@ -179,6 +181,8 @@ export default function ClassesScreen() {
                       </Text>
                     </View>
                     <TouchableOpacity
+                      accessibilityRole="button"
+                      accessibilityLabel={`More options for ${classData.name}`}
                       onPress={() => handleClassMenu(classData)}
                       style={styles.menuButton}
                     >
@@ -226,6 +230,8 @@ export default function ClassesScreen() {
                   {/* Quick actions */}
                   <View style={styles.actionsContainer}>
                     <TouchableOpacity
+                      accessibilityRole="button"
+                      accessibilityLabel={`Create a note for ${classData.name}`}
                       style={[styles.actionButton, { backgroundColor: colors.accent }]}
                       onPress={() => router.push(`/notes/new?classId=${classData.id}`)}
                     >
@@ -233,6 +239,8 @@ export default function ClassesScreen() {
                       <Text style={[typography.labelSmall, { color: colors.white }]}>New Note</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
+                      accessibilityRole="button"
+                      accessibilityLabel={`Study ${classData.name}`}
                       style={[styles.actionButton, { backgroundColor: colors.cardSecondary }]}
                       onPress={() => router.push(`/class/${classData.id}/study`)}
                     >
@@ -247,8 +255,8 @@ export default function ClassesScreen() {
             <Animated.View entering={FadeInUp.delay(300).duration(600).springify()}>
               <Card variant="default" padding="xl">
                 <View style={styles.emptyState}>
-                  <View style={[styles.emptyIcon, { backgroundColor: colors.whiteAlpha }]}>
-                    <Ionicons name="school-outline" size={40} color={colors.white} />
+                  <View style={[styles.emptyIcon, { backgroundColor: colors.cardTertiary }]}>
+                    <Ionicons name="school-outline" size={40} color={colors.onCard} />
                   </View>
                   <Text
                     style={[
@@ -369,8 +377,10 @@ const styles = StyleSheet.create({
     marginTop: SPACING.lg,
   },
   actionButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: SPACING.xs,
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.md,

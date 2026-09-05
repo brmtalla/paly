@@ -180,7 +180,11 @@ export default function AccountScreen() {
           >
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[typography.titleLarge, { color: colors.text }]}>Account</Text>
+          <Text
+            style={[typography.titleLarge, { color: colors.text, flex: 1, textAlign: 'center' }]}
+          >
+            Account
+          </Text>
           <View style={{ width: LAYOUT.minTouchTarget }} />
         </Animated.View>
 

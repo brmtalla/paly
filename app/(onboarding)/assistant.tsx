@@ -101,6 +101,9 @@ export default function AssistantScreen() {
                 {SUGGESTED_NAMES.map((name) => (
                   <TouchableOpacity
                     key={name}
+                    accessibilityRole="radio"
+                    accessibilityLabel={`${name} companion name`}
+                    accessibilityState={{ selected: assistantName === name }}
                     onPress={() => setAssistantName(name)}
                     style={[
                       styles.suggestionChip,

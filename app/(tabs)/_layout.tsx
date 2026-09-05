@@ -7,10 +7,11 @@ import { Ionicons } from '@expo/vector-icons';
 
 export default function TabsLayout() {
   const { colors } = useTheme();
-  const { width } = useWindowDimensions();
+  const { width, fontScale } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const tabBarWidth = Math.min(width - SPACING.xl, LAYOUT.tabBarMaxWidth);
   const tabBarBottom = Math.max(insets.bottom, SPACING.md);
+  const tabBarHeight = Math.min(88, Math.max(68, 52 + fontScale * 16));
 
   return (
     <Tabs
@@ -24,7 +25,7 @@ export default function TabsLayout() {
           backgroundColor: colors.card,
           borderTopWidth: 0,
           width: tabBarWidth,
-          height: 68,
+          height: tabBarHeight,
           left: (width - tabBarWidth) / 2,
           bottom: tabBarBottom,
           paddingTop: SPACING.sm,

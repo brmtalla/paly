@@ -47,7 +47,7 @@ function trialPeriod(pkg: PurchasesPackage | null) {
 }
 
 export function ProPaywall({ onClose, onPurchaseCompleted }: ProPaywallProps) {
-  const { width } = useWindowDimensions();
+  const { width, fontScale } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const {
     annualPackage,
@@ -63,7 +63,7 @@ export function ProPaywall({ onClose, onPurchaseCompleted }: ProPaywallProps) {
   const [selectedPlan, setSelectedPlan] = useState<Plan>('annual');
   const [eligibility, setEligibility] = useState<Record<string, INTRO_ELIGIBILITY_STATUS>>({});
 
-  const isWide = width >= 700;
+  const isWide = width >= 700 && fontScale <= 1.2;
   const selectedPackage =
     selectedPlan === 'annual'
       ? (annualPackage ?? monthlyPackage)
@@ -243,6 +243,8 @@ export function ProPaywall({ onClose, onPurchaseCompleted }: ProPaywallProps) {
                     Subscription options are unavailable right now.
                   </Text>
                   <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityLabel="Try loading subscription options again"
                     onPress={() => void fetchOfferings()}
                     style={styles.retryButton}
                   >
@@ -332,7 +334,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   topBarSpacer: { width: 48, height: 48 },
-  topBarTitle: { fontSize: 17, lineHeight: 22, fontWeight: '600', color: '#17223B' },
+  topBarTitle: {
+    flex: 1,
+    fontSize: 17,
+    lineHeight: 22,
+    fontWeight: '600',
+    textAlign: 'center',
+    color: '#17223B',
+  },
   closeButton: {
     width: 48,
     height: 48,
@@ -412,8 +421,8 @@ const styles = StyleSheet.create({
   },
   planName: { fontSize: 17, lineHeight: 22, fontWeight: '600', color: '#17223B' },
   billedLabel: {
-    fontSize: 10,
-    lineHeight: 13,
+    fontSize: 11,
+    lineHeight: 15,
     letterSpacing: 0.8,
     fontWeight: '700',
     color: '#69738A',
@@ -470,7 +479,7 @@ const styles = StyleSheet.create({
     borderTopColor: '#D8DCE6',
     paddingTop: SPACING.md,
   },
-  legalText: { fontSize: 10, lineHeight: 15, textAlign: 'center', color: '#69738A' },
+  legalText: { fontSize: 11, lineHeight: 16, textAlign: 'center', color: '#69738A' },
   legalLinks: {
     minHeight: 36,
     flexDirection: 'row',

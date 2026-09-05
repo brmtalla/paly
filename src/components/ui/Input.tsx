@@ -18,6 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 interface InputProps extends TextInputProps {
   label?: string;
+  labelColor?: string;
   error?: string;
   hint?: string;
   leftIcon?: React.ReactNode;
@@ -29,6 +30,7 @@ interface InputProps extends TextInputProps {
 
 export function Input({
   label,
+  labelColor,
   error,
   hint,
   leftIcon,
@@ -38,11 +40,16 @@ export function Input({
   variant = 'card',
   ...props
 }: InputProps) {
-  const { colors } = useTheme();
+  const { colors, colorScheme } = useTheme();
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const borderColor = useSharedValue(colors.border);
   const isGlass = variant === 'glass';
+  const restingBorderColor = isGlass
+    ? colors.border
+    : colorScheme === 'dark'
+      ? 'rgba(255,255,255,0.28)'
+      : '#D1D5DB';
+  const borderColor = useSharedValue(restingBorderColor);
   const inputTextColor = isGlass ? colors.text : colors.cardText;
   const placeholderColor = isGlass ? colors.textMuted : colors.cardTextMuted;
 
@@ -59,7 +66,7 @@ export function Input({
   const handleFocus = () => {
     setIsFocused(true);
     if (Platform.OS !== 'web') {
-      borderColor.value = withTiming(colors.white, { duration: 150 });
+      borderColor.value = withTiming(isGlass ? colors.white : colors.accent, { duration: 150 });
     }
     props.onFocus?.({} as any);
   };
@@ -67,7 +74,7 @@ export function Input({
   const handleBlur = () => {
     setIsFocused(false);
     if (Platform.OS !== 'web') {
-      borderColor.value = withTiming(error ? colors.error : colors.border, { duration: 150 });
+      borderColor.value = withTiming(error ? colors.error : restingBorderColor, { duration: 150 });
     }
     props.onBlur?.({} as any);
   };
@@ -75,14 +82,16 @@ export function Input({
   // Get border color for web (CSS transition handles animation)
   const getBorderColor = () => {
     if (error) return colors.error;
-    if (isFocused) return colors.white;
-    return colors.border;
+    if (isFocused) return isGlass ? colors.white : colors.accent;
+    return restingBorderColor;
   };
 
   return (
     <View style={[styles.container, containerStyle]}>
       {label && (
-        <Text style={[styles.label, typography.labelMedium, { color: colors.text }]}>{label}</Text>
+        <Text style={[styles.label, typography.labelMedium, { color: labelColor ?? colors.text }]}>
+          {label}
+        </Text>
       )}
 
       <Animated.View
@@ -91,7 +100,7 @@ export function Input({
           {
             backgroundColor: isGlass ? colors.glassBackground : colors.card,
             borderColor:
-              Platform.OS === 'web' ? getBorderColor() : error ? colors.error : colors.border,
+              Platform.OS === 'web' ? getBorderColor() : error ? colors.error : restingBorderColor,
             // `transition` is a web-only CSS property with no RN equivalent.
             ...(Platform.OS === 'web' ? { transition: 'border-color 150ms ease' } : {}),
           } as ViewStyle,
@@ -123,7 +132,12 @@ export function Input({
         />
 
         {isPassword && (
-          <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.rightIcon}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+            onPress={() => setShowPassword(!showPassword)}
+            style={styles.rightIcon}
+          >
             <Ionicons
               name={showPassword ? 'eye-off-outline' : 'eye-outline'}
               size={22}
@@ -140,7 +154,13 @@ export function Input({
           style={[
             styles.helper,
             typography.bodySmall,
-            { color: error ? colors.error : colors.textSecondary },
+            {
+              color: error
+                ? colors.error
+                : isGlass
+                  ? colors.textSecondary
+                  : colors.cardTextSecondary,
+            },
           ]}
         >
           {error || hint}

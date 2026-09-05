@@ -50,7 +50,11 @@ export default function CompanionScreen() {
           >
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[typography.titleLarge, { color: colors.text }]}>Companion Name</Text>
+          <Text
+            style={[typography.titleLarge, { color: colors.text, flex: 1, textAlign: 'center' }]}
+          >
+            Companion Name
+          </Text>
           <View style={{ width: LAYOUT.minTouchTarget }} />
         </Animated.View>
 

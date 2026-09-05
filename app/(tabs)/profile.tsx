@@ -48,6 +48,8 @@ export default function ProfileScreen() {
             style={styles.header}
           >
             <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Edit account"
               onPress={() => router.push('/settings/account')}
               style={styles.headerContent}
               activeOpacity={0.7}
@@ -96,6 +98,9 @@ export default function ProfileScreen() {
                 {THEME_COLORS.map((color) => (
                   <TouchableOpacity
                     key={color.value}
+                    accessibilityRole="radio"
+                    accessibilityLabel={`${color.name} theme`}
+                    accessibilityState={{ selected: accentColor === color.value }}
                     onPress={() => handleColorChange(color.value)}
                     style={[
                       styles.colorOption,
@@ -284,6 +289,7 @@ function SettingsItem({
 }: SettingsItemProps) {
   return (
     <TouchableOpacity
+      accessibilityRole="button"
       onPress={onPress}
       style={[
         styles.settingsItem,

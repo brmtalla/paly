@@ -37,7 +37,7 @@ export default function CompleteScreen() {
         withSpring(0, { damping: 6 })
       )
     );
-  }, []);
+  }, [rotation, scale]);
 
   const celebrationStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }, { rotate: `${rotation.value}deg` }],

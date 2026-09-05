@@ -42,7 +42,7 @@ export default function QuizScreen() {
       quizStarted.current = true;
       startQuiz(content.class_id, profile.id, content.id).catch(console.error);
     }
-  }, [content, profile?.id]);
+  }, [content, profile?.id, questions.length, startQuiz]);
 
   const handleSelectAnswer = (optionIndex: number) => {
     if (showResult) return;
@@ -191,7 +191,9 @@ export default function QuizScreen() {
             <Ionicons name="close" size={24} color={colors.text} />
           </TouchableOpacity>
 
-          <Text style={[typography.titleMedium, { color: colors.text }]}>
+          <Text
+            style={[typography.titleMedium, { color: colors.text, flex: 1, textAlign: 'center' }]}
+          >
             Question {currentIndex + 1} / {questions.length}
           </Text>
 
@@ -249,6 +251,12 @@ export default function QuizScreen() {
               return (
                 <TouchableOpacity
                   key={index}
+                  accessibilityRole="radio"
+                  accessibilityLabel={`${String.fromCharCode(65 + index)}. ${option}`}
+                  accessibilityState={{
+                    selected: isSelected,
+                    disabled: showResult,
+                  }}
                   onPress={() => handleSelectAnswer(index)}
                   disabled={showResult}
                   style={[

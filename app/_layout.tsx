@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Stack, router, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as NativeSplashScreen from 'expo-splash-screen';
@@ -37,7 +37,7 @@ function RootLayoutNav() {
     if (user?.id) {
       initSubscription(user.id);
     }
-  }, [user?.id]);
+  }, [initSubscription, user?.id]);
 
   useEffect(() => {
     if (!isInitialized || isLoading || !isProfileReady) return;
@@ -112,7 +112,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     initialize();
-  }, []);
+  }, [initialize]);
 
   // Hide native splash once fonts are loaded and app is initialized
   useEffect(() => {
@@ -122,9 +122,9 @@ export default function RootLayout() {
     }
   }, [fontsLoaded, isInitialized, nativeSplashHidden]);
 
-  const handleSplashComplete = () => {
+  const handleSplashComplete = useCallback(() => {
     setShowSplash(false);
-  };
+  }, []);
 
   if (!fontsLoaded) {
     return null;
@@ -133,7 +133,7 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
+        <ThemeProvider initialAccentColor={profile?.theme_color}>
           <RootLayoutNav />
           {showSplash && nativeSplashHidden && (
             <SplashScreen

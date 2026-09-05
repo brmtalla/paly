@@ -35,7 +35,7 @@ export default function StudyScreen() {
       fetchStudyPrompts(profile.id);
       fetchClasses(profile.id);
     }
-  }, [profile?.id]);
+  }, [fetchClasses, fetchStudyPrompts, fetchSynthesizedContent, profile?.id]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -71,6 +71,8 @@ export default function StudyScreen() {
           {(['prompts', 'flashcards', 'quizzes'] as const).map((tab) => (
             <TouchableOpacity
               key={tab}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: activeTab === tab }}
               onPress={() => setActiveTab(tab)}
               style={[
                 styles.tab,
@@ -220,6 +222,11 @@ export default function StudyScreen() {
                   ))}
                   {readPrompts.length > 5 && (
                     <TouchableOpacity
+                      accessibilityRole="button"
+                      accessibilityLabel={
+                        showAllCompleted ? 'Show fewer completed items' : 'Show all completed items'
+                      }
+                      accessibilityState={{ expanded: showAllCompleted }}
                       onPress={() => setShowAllCompleted(!showAllCompleted)}
                       style={{ alignItems: 'center', paddingVertical: SPACING.md }}
                     >

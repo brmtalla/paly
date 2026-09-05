@@ -94,6 +94,12 @@ export function ThemeProvider({ children, initialAccentColor }: ThemeProviderPro
     }
   }, [systemColorScheme]);
 
+  useEffect(() => {
+    if (initialAccentColor && THEME_COLORS.some((color) => color.value === initialAccentColor)) {
+      setAccentColor(initialAccentColor);
+    }
+  }, [initialAccentColor]);
+
   const colors = useMemo((): ThemeColors => {
     const isDark = colorScheme === 'dark';
     const derived = getDerivedColors(accentColor);
@@ -101,10 +107,13 @@ export function ThemeProvider({ children, initialAccentColor }: ThemeProviderPro
 
     return {
       // Main backgrounds - YOUR ACCENT COLOR IS THE STAR!
-      background: isDark ? derived.accentDeepDark : derived.accent,
-      backgroundSecondary: isDark ? derived.accentDark : derived.accentLight,
-      backgroundTertiary: isDark ? derived.accentDeepDark : derived.accentDark,
-      backgroundDeep: isDark ? derived.accentDeepDark : derived.accentDeepDark,
+      // Use the deepest shade for text-bearing backgrounds and controls. Every
+      // theme in the palette keeps at least readable contrast with white text;
+      // several of the brighter swatch colors do not.
+      background: derived.accentDeepDark,
+      backgroundSecondary: derived.accentDeepDark,
+      backgroundTertiary: derived.accentDeepDark,
+      backgroundDeep: derived.accentDeepDark,
 
       // Cards & surfaces - neutral/white
       card: surfaces.card,
@@ -128,9 +137,9 @@ export function ThemeProvider({ children, initialAccentColor }: ThemeProviderPro
       cardTextMuted: isDark ? TEXT_ON_ACCENT.muted : TEXT_ON_CARD.muted,
 
       // The brand colors
-      accent: derived.accent,
+      accent: derived.accentDeepDark,
       accentLight: derived.accentLight,
-      accentDark: derived.accentDark,
+      accentDark: derived.accentDeepDark,
 
       // Elements that need to be white
       white: '#FFFFFF',

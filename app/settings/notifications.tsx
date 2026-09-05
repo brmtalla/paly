@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Switch, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -32,12 +32,7 @@ export default function NotificationsScreen() {
   const [autoSynthesize, setAutoSynthesize] = useState(profile?.auto_synthesize ?? false);
   const [_isLoading, _setIsLoading] = useState(false);
 
-  useEffect(() => {
-    fetchPreferences();
-    setAutoSynthesize(profile?.auto_synthesize ?? false);
-  }, [profile?.auto_synthesize]);
-
-  const fetchPreferences = async () => {
+  const fetchPreferences = useCallback(async () => {
     if (!profile?.id) return;
 
     try {
@@ -60,7 +55,12 @@ export default function NotificationsScreen() {
     } catch (error) {
       console.error('Error fetching preferences:', error);
     }
-  };
+  }, [profile?.id]);
+
+  useEffect(() => {
+    fetchPreferences();
+    setAutoSynthesize(profile?.auto_synthesize ?? false);
+  }, [fetchPreferences, profile?.auto_synthesize]);
 
   // profiles.sms_opted_in is the flag the delivery job actually consults;
   // notification_preferences.sms_enabled is read by nothing. Showing the latter
@@ -130,7 +130,11 @@ export default function NotificationsScreen() {
           >
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[typography.titleLarge, { color: colors.text }]}>Notifications</Text>
+          <Text
+            style={[typography.titleLarge, { color: colors.text, flex: 1, textAlign: 'center' }]}
+          >
+            Notifications
+          </Text>
           <View style={{ width: LAYOUT.minTouchTarget }} />
         </Animated.View>
 
@@ -214,14 +218,14 @@ export default function NotificationsScreen() {
             </Text>
             <Card variant="elevated" padding="none">
               <View style={styles.row}>
-                <View style={[styles.rowIcon, { backgroundColor: colors.backgroundSecondary }]}>
-                  <Ionicons name="sparkles" size={18} color={colors.text} />
+                <View style={[styles.rowIcon, { backgroundColor: colors.cardTertiary }]}>
+                  <Ionicons name="sparkles" size={18} color={colors.accent} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={[typography.titleSmall, { color: colors.text }]}>
+                  <Text style={[typography.titleSmall, { color: colors.cardText }]}>
                     Auto-Synthesize
                   </Text>
-                  <Text style={[typography.bodySmall, { color: colors.textSecondary }]}>
+                  <Text style={[typography.bodySmall, { color: colors.cardTextSecondary }]}>
                     Automatically synthesize notes on upload
                   </Text>
                 </View>
@@ -236,8 +240,8 @@ export default function NotificationsScreen() {
                       Alert.alert('Error', 'Failed to update preference');
                     }
                   }}
-                  trackColor={{ false: colors.backgroundTertiary, true: colors.accent + '60' }}
-                  thumbColor={autoSynthesize ? colors.accent : colors.textMuted}
+                  trackColor={{ false: colors.cardTertiary, true: colors.accent + '60' }}
+                  thumbColor={autoSynthesize ? colors.accent : colors.cardTextMuted}
                 />
               </View>
             </Card>
@@ -288,15 +292,15 @@ function NotificationRow({
     <View
       style={[
         styles.row,
-        !isLast && { borderBottomWidth: 1, borderBottomColor: colors.backgroundSecondary },
+        !isLast && { borderBottomWidth: 1, borderBottomColor: colors.cardTertiary },
       ]}
     >
-      <View style={[styles.rowIcon, { backgroundColor: colors.backgroundSecondary }]}>
-        <Ionicons name={icon} size={18} color={colors.text} />
+      <View style={[styles.rowIcon, { backgroundColor: colors.cardTertiary }]}>
+        <Ionicons name={icon} size={18} color={colors.accent} />
       </View>
       <View style={{ flex: 1 }}>
         <View style={styles.titleRow}>
-          <Text style={[typography.titleSmall, { color: colors.text }]}>{title}</Text>
+          <Text style={[typography.titleSmall, { color: colors.cardText }]}>{title}</Text>
           {isPremium && (
             <View style={[styles.premiumBadge, { backgroundColor: colors.accent + '20' }]}>
               <Ionicons name="diamond" size={10} color={colors.accent} />
@@ -304,13 +308,15 @@ function NotificationRow({
             </View>
           )}
         </View>
-        <Text style={[typography.bodySmall, { color: colors.textSecondary }]}>{description}</Text>
+        <Text style={[typography.bodySmall, { color: colors.cardTextSecondary }]}>
+          {description}
+        </Text>
       </View>
       <Switch
         value={value}
         onValueChange={onToggle}
-        trackColor={{ false: colors.backgroundTertiary, true: colors.accent + '60' }}
-        thumbColor={value ? colors.accent : colors.textMuted}
+        trackColor={{ false: colors.cardTertiary, true: colors.accent + '60' }}
+        thumbColor={value ? colors.accent : colors.cardTextMuted}
       />
     </View>
   );
@@ -374,7 +380,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.xs,
   },
   premiumText: {
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '700',
   },
   infoSection: {

@@ -96,9 +96,7 @@ export function PalyPointsBar() {
         </View>
         {isProUnlocked && (
           <View style={styles.proBadge}>
-            <Text
-              style={[typography.labelSmall, { color: '#FFD700', fontSize: 10, fontWeight: '800' }]}
-            >
+            <Text style={[typography.labelSmall, { color: '#FFD700', fontWeight: '800' }]}>
               PRO
             </Text>
           </View>

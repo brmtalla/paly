@@ -1,5 +1,13 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, Platform, useWindowDimensions } from 'react-native';
+import {
+  AccessibilityInfo,
+  View,
+  Text,
+  StyleSheet,
+  Animated,
+  Platform,
+  useWindowDimensions,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { THEME_COLORS } from '../theme/colors';
@@ -32,114 +40,155 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onAnimationComplete,
   const fadeOut = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    // Staggered animation sequence
-    Animated.sequence([
-      // Phase 1: Logo appears with scale
-      Animated.parallel([
-        Animated.spring(logoScale, {
-          toValue: 1,
-          friction: 8,
-          tension: 40,
-          useNativeDriver: true,
-        }),
-        Animated.timing(logoOpacity, {
-          toValue: 1,
-          duration: 400,
-          useNativeDriver: true,
-        }),
-      ]),
-      // Phase 2: Rings expand outward
-      Animated.stagger(150, [
+    let cancelled = false;
+    let splashAnimation: Animated.CompositeAnimation | undefined;
+
+    const finish = () => {
+      if (!cancelled) {
+        onAnimationComplete?.();
+      }
+    };
+
+    const startAnimation = () => {
+      if (cancelled) return;
+
+      // Staggered animation sequence
+      splashAnimation = Animated.sequence([
+        // Phase 1: Logo appears with scale
         Animated.parallel([
-          Animated.timing(ringScale1, {
-            toValue: 1.5,
-            duration: 800,
+          Animated.spring(logoScale, {
+            toValue: 1,
+            friction: 8,
+            tension: 40,
             useNativeDriver: true,
           }),
-          Animated.sequence([
-            Animated.timing(ringOpacity1, {
-              toValue: 0.4,
-              duration: 200,
-              useNativeDriver: true,
-            }),
-            Animated.timing(ringOpacity1, {
-              toValue: 0,
-              duration: 600,
-              useNativeDriver: true,
-            }),
-          ]),
-        ]),
-        Animated.parallel([
-          Animated.timing(ringScale2, {
-            toValue: 1.8,
-            duration: 800,
+          Animated.timing(logoOpacity, {
+            toValue: 1,
+            duration: 400,
             useNativeDriver: true,
           }),
-          Animated.sequence([
-            Animated.timing(ringOpacity2, {
-              toValue: 0.3,
-              duration: 200,
+        ]),
+        // Phase 2: Rings expand outward
+        Animated.stagger(150, [
+          Animated.parallel([
+            Animated.timing(ringScale1, {
+              toValue: 1.5,
+              duration: 800,
               useNativeDriver: true,
             }),
-            Animated.timing(ringOpacity2, {
-              toValue: 0,
-              duration: 600,
+            Animated.sequence([
+              Animated.timing(ringOpacity1, {
+                toValue: 0.4,
+                duration: 200,
+                useNativeDriver: true,
+              }),
+              Animated.timing(ringOpacity1, {
+                toValue: 0,
+                duration: 600,
+                useNativeDriver: true,
+              }),
+            ]),
+          ]),
+          Animated.parallel([
+            Animated.timing(ringScale2, {
+              toValue: 1.8,
+              duration: 800,
               useNativeDriver: true,
             }),
+            Animated.sequence([
+              Animated.timing(ringOpacity2, {
+                toValue: 0.3,
+                duration: 200,
+                useNativeDriver: true,
+              }),
+              Animated.timing(ringOpacity2, {
+                toValue: 0,
+                duration: 600,
+                useNativeDriver: true,
+              }),
+            ]),
+          ]),
+          Animated.parallel([
+            Animated.timing(ringScale3, {
+              toValue: 2.1,
+              duration: 800,
+              useNativeDriver: true,
+            }),
+            Animated.sequence([
+              Animated.timing(ringOpacity3, {
+                toValue: 0.2,
+                duration: 200,
+                useNativeDriver: true,
+              }),
+              Animated.timing(ringOpacity3, {
+                toValue: 0,
+                duration: 600,
+                useNativeDriver: true,
+              }),
+            ]),
           ]),
         ]),
+        // Phase 3: Text appears
         Animated.parallel([
-          Animated.timing(ringScale3, {
-            toValue: 2.1,
-            duration: 800,
+          Animated.timing(textOpacity, {
+            toValue: 1,
+            duration: 400,
             useNativeDriver: true,
           }),
-          Animated.sequence([
-            Animated.timing(ringOpacity3, {
-              toValue: 0.2,
-              duration: 200,
-              useNativeDriver: true,
-            }),
-            Animated.timing(ringOpacity3, {
-              toValue: 0,
-              duration: 600,
-              useNativeDriver: true,
-            }),
-          ]),
+          Animated.spring(textTranslateY, {
+            toValue: 0,
+            friction: 8,
+            tension: 40,
+            useNativeDriver: true,
+          }),
         ]),
-      ]),
-      // Phase 3: Text appears
-      Animated.parallel([
-        Animated.timing(textOpacity, {
+        // Phase 4: Subtitle
+        Animated.timing(subtitleOpacity, {
           toValue: 1,
-          duration: 400,
+          duration: 300,
           useNativeDriver: true,
         }),
-        Animated.spring(textTranslateY, {
+        // Hold for a moment
+        Animated.delay(600),
+        // Phase 5: Fade out everything
+        Animated.timing(fadeOut, {
           toValue: 0,
-          friction: 8,
-          tension: 40,
+          duration: 400,
           useNativeDriver: true,
         }),
-      ]),
-      // Phase 4: Subtitle
-      Animated.timing(subtitleOpacity, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      // Hold for a moment
-      Animated.delay(600),
-      // Phase 5: Fade out everything
-      Animated.timing(fadeOut, {
-        toValue: 0,
-        duration: 400,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      onAnimationComplete?.();
-    });
-  }, []);
+      ]);
+      splashAnimation.start(({ finished }) => {
+        if (finished) finish();
+      });
+    };
+
+    void AccessibilityInfo.isReduceMotionEnabled().then((reduceMotionEnabled) => {
+      if (reduceMotionEnabled) {
+        finish();
+        return;
+      }
+      startAnimation();
+    }, startAnimation);
+
+    return () => {
+      cancelled = true;
+      splashAnimation?.stop();
+    };
+  }, [
+    fadeOut,
+    logoOpacity,
+    logoScale,
+    onAnimationComplete,
+    ringOpacity1,
+    ringOpacity2,
+    ringOpacity3,
+    ringScale1,
+    ringScale2,
+    ringScale3,
+    subtitleOpacity,
+    textOpacity,
+    textTranslateY,
+  ]);
 
   return (
     <Animated.View style={[styles.container, { opacity: fadeOut }]}>

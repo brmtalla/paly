@@ -108,7 +108,11 @@ export default function NewClassScreen() {
               <Ionicons name="close" size={24} color={colors.text} />
             </TouchableOpacity>
 
-            <Text style={[typography.titleLarge, { color: colors.text }]}>Add Class</Text>
+            <Text
+              style={[typography.titleLarge, { color: colors.text, flex: 1, textAlign: 'center' }]}
+            >
+              Add Class
+            </Text>
 
             <View style={{ width: LAYOUT.minTouchTarget }} />
           </Animated.View>
@@ -126,6 +130,7 @@ export default function NewClassScreen() {
             <Card style={styles.formCard}>
               <Input
                 label="Class Name"
+                labelColor={colors.cardText}
                 placeholder="e.g., Biology 101"
                 value={name}
                 onChangeText={setName}
@@ -134,6 +139,7 @@ export default function NewClassScreen() {
 
               <Input
                 label="Location"
+                labelColor={colors.cardText}
                 placeholder="e.g., Room 301, Science Building"
                 value={location}
                 onChangeText={setLocation}
@@ -168,6 +174,9 @@ export default function NewClassScreen() {
                 {DAYS.map((day, index) => (
                   <TouchableOpacity
                     key={day}
+                    accessibilityRole="checkbox"
+                    accessibilityLabel={day}
+                    accessibilityState={{ checked: selectedDays.includes(index) }}
                     onPress={() => toggleDay(index)}
                     style={[
                       styles.dayButton,
@@ -198,6 +207,7 @@ export default function NewClassScreen() {
                 <View style={styles.timeInput}>
                   <Input
                     label="Start Time"
+                    labelColor={colors.cardText}
                     placeholder="09:00"
                     value={startTime}
                     onChangeText={setStartTime}
@@ -209,6 +219,7 @@ export default function NewClassScreen() {
                 <View style={styles.timeInput}>
                   <Input
                     label="End Time"
+                    labelColor={colors.cardText}
                     placeholder="10:00"
                     value={endTime}
                     onChangeText={setEndTime}
@@ -236,6 +247,7 @@ export default function NewClassScreen() {
                 <View style={styles.timeInput}>
                   <Input
                     label="Start Date"
+                    labelColor={colors.cardText}
                     placeholder="2025-01-15"
                     value={startDate}
                     onChangeText={setStartDate}
@@ -247,6 +259,7 @@ export default function NewClassScreen() {
                 <View style={styles.timeInput}>
                   <Input
                     label="End Date"
+                    labelColor={colors.cardText}
                     placeholder="2025-05-15"
                     value={endDate}
                     onChangeText={setEndDate}
@@ -272,6 +285,7 @@ export default function NewClassScreen() {
             <Card style={styles.formCard}>
               <Input
                 label="Instructor Name"
+                labelColor={colors.cardText}
                 placeholder="e.g., Dr. Smith"
                 value={instructorName}
                 onChangeText={setInstructorName}
@@ -280,6 +294,7 @@ export default function NewClassScreen() {
 
               <Input
                 label="Instructor Email"
+                labelColor={colors.cardText}
                 placeholder="e.g., smith@university.edu"
                 value={instructorEmail}
                 onChangeText={setInstructorEmail}
@@ -339,6 +354,8 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.sm,
     borderRadius: RADIUS.lg,
     minWidth: 44,
+    minHeight: LAYOUT.minTouchTarget,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   timeRow: {
